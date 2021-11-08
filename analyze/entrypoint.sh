@@ -37,6 +37,7 @@ if [[ "$GITHUB_EVENT_NAME" != "pull_request"* ]] && ! [[ "$GITHUB_REF" =~ ^refs/
     exit 1
 fi
 
+
 # It's important to change directories here, to ensure
 # the files in SARIF start at the source of the repo.
 # This allows GitHub to highlight the file.
@@ -44,9 +45,21 @@ cd "$GITHUB_WORKSPACE"
 
 if [[ "$GITHUB_EVENT_NAME" == "pull_request"* ]]
 then
-    $SCORECARD_BIN --local . --format "$SCORECARD_RESULTS_FORMAT" --show-details --policy="$SCORECARD_POLICY_FILE" > "$SCORECARD_RESULTS_FILE"
+    # For pull request events, we run on a local folder.
+    if [[ -z "$SCORECARD_POLICY_FILE" ]]
+    then
+        $SCORECARD_BIN --local . --format "$SCORECARD_RESULTS_FORMAT" --show-details > "$SCORECARD_RESULTS_FILE"
+    else
+        $SCORECARD_BIN --local . --format "$SCORECARD_RESULTS_FORMAT" --show-details --policy "$SCORECARD_POLICY_FILE" > "$SCORECARD_RESULTS_FILE"
+    fi
 else
-    $SCORECARD_BIN --repo="$GITHUB_REPOSITORY" --format "$SCORECARD_RESULTS_FORMAT" --show-details --policy="$SCORECARD_POLICY_FILE" > "$SCORECARD_RESULTS_FILE"
+    # For push events, we run on the repo.
+    if [[ -z "$SCORECARD_POLICY_FILE" ]]
+    then
+        $SCORECARD_BIN --repo="$GITHUB_REPOSITORY" --format "$SCORECARD_RESULTS_FORMAT" --show-details > "$SCORECARD_RESULTS_FILE"
+    else
+        $SCORECARD_BIN --repo="$GITHUB_REPOSITORY" --format "$SCORECARD_RESULTS_FORMAT" --show-details --policy "$SCORECARD_POLICY_FILE" > "$SCORECARD_RESULTS_FILE"
+    fi
 fi
 
 jq '.' "$SCORECARD_RESULTS_FILE"
