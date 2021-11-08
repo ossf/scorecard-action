@@ -21,7 +21,7 @@ author: "OSSF - github.com/ossf/scorecard"
 inputs:
   policy_file:
     description: "INPUT: Path to a policy file"
-    required: true
+    required: false
     
   results_file:
     description: "OUTPUT: Path to file to store results"
