@@ -23,11 +23,11 @@ inputs:
     description: "INPUT: Path to a policy file"
     required: true
     
-  result_file:
+  results_file:
     description: "OUTPUT: Path to file to store results"
     required: true
 
-  result_format:
+  results_format:
     description: "OUTPUT: format of the results [json, sarif, default]"
     required: true
 
