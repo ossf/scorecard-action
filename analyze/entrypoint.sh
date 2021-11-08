@@ -25,7 +25,8 @@ set -euo pipefail
 export GITHUB_AUTH_TOKEN="$INPUT_REPO_TOKEN"
 export SCORECARD_V4=1
 export SCORECARD_POLICY_FILE="$INPUT_POLICY_FILE"
-export SCORECARD_SARIF_FILE="$INPUT_SARIF_FILE"
+export SCORECARD_RESULTS_FILE="$INPUT_RESULTS_FILE"
+export SCORECARD_RESULTS_FORMAT="$INPUT_RESULTS_FORMAT"
 export SCORECARD_BIN="/scorecard"
 
 # Note: this will fail if we push to a branch on the same repo, so it will show as failing
@@ -43,9 +44,9 @@ cd "$GITHUB_WORKSPACE"
 
 if [[ "$GITHUB_EVENT_NAME" == "pull_request"* ]]
 then
-    $SCORECARD_BIN --local . --format sarif --show-details --policy="$SCORECARD_POLICY_FILE" > "$SCORECARD_SARIF_FILE"
+    $SCORECARD_BIN --local . --format "$SCORECARD_RESULTS_FORMAT" --show-details --policy="$SCORECARD_POLICY_FILE" > "$SCORECARD_RESULTS_FILE"
 else
-    $SCORECARD_BIN --repo="$GITHUB_REPOSITORY" --format sarif --show-details --policy="$SCORECARD_POLICY_FILE" > "$SCORECARD_SARIF_FILE"
+    $SCORECARD_BIN --repo="$GITHUB_REPOSITORY" --format "$SCORECARD_RESULTS_FORMAT" --show-details --policy="$SCORECARD_POLICY_FILE" > "$SCORECARD_RESULTS_FILE"
 fi
 
-jq '.' "$SCORECARD_SARIF_FILE"
+jq '.' "$SCORECARD_RESULTS_FILE"
