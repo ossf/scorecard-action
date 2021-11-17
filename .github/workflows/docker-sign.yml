@@ -1,0 +1,44 @@
+name: docker-build-sign-container
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    permissions:
+      id-token: write  
+      packages: write
+      contents: read
+    env:
+      COSIGN_EXPERIMENTAL: "true"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f # v2.3.4
+      - name: Log into ghcr.io
+        uses: docker/login-action@f054a8b539a109f9f41c372932f1ae047eff08c9 #v1.1.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ github.token }}
+      - name: Install Cosign
+        uses: sigstore/cosign-installer@f700e6fbbab82f6897758a3af7a8dede4e308656 # v1.2.1
+      - name: Set env vars
+        run: |
+      - name: Build and Push container images
+        uses: docker/build-push-action@a66e35b9cbcf4ad0ea91ffcaf7bbad63ad9e0229 # v2.7.0
+        with:
+          context: .
+          file: analyze/Dockerfile
+          platforms: linux/amd64
+          push: true
+          tags: |
+            ghcr.io/${{github.repository_owner}}/scorecard-actions:${{ github.sha }}
+            ghcr.io/${{github.repository_owner}}/scorecard-actions:latest
+          build-args: |
+            DOCKER_SHA=4bb5c72ef3ac7412dc5a71e0f65a8366d6f7fafccc9dc3af4251bfb932e1cf28
+      - name: Sign image
+        run: |
+          cosign sign ghcr.io/${{github.repository_owner}}/scorecard-actions:${{ github.sha }}
