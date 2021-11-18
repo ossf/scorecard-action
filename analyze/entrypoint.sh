@@ -27,6 +27,7 @@ export SCORECARD_V4=1
 export SCORECARD_POLICY_FILE="$INPUT_POLICY_FILE"
 export SCORECARD_RESULTS_FILE="$INPUT_RESULTS_FILE"
 export SCORECARD_RESULTS_FORMAT="$INPUT_RESULTS_FORMAT"
+export SCORECARD_GITHUB_ACTIONS=1
 export SCORECARD_BIN="/scorecard"
 
 # Note: this will fail if we push to a branch on the same repo, so it will show as failing
