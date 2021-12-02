@@ -14,7 +14,7 @@
 
 # Action syntax: https://docs.github.com/en/actions/creating-actions/metadata-syntax-for-github-actions.
 
-name: "Run analysis of OSSF Scorecard"
+name: "OSSF Scorecard action"
 description: "Run OSSF Scorecard checks and output results in SARIF format"
 author: "OSSF - github.com/ossf/scorecard"
 
@@ -34,6 +34,10 @@ inputs:
   repo_token:
     description: "INPUT: GitHub token with read access"
     required: True
+
+  share_results:
+    description: "INPUT: share the results with OSSF's public dashboards"
+    required: False
 
 branding:
   icon: "mic"
