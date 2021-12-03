@@ -45,5 +45,5 @@ branding:
 
 runs:
   using: "docker"
-  image: "docker://laurentsimon/scorecard-action:dogfood"
+  image: "docker://laurentsimon/scorecard-action:latest"
 
