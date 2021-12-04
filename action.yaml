@@ -35,8 +35,8 @@ inputs:
     description: "INPUT: GitHub token with read access"
     required: True
 
-  share_results:
-    description: "INPUT: share the results with OSSF's public dashboards"
+  badge_support:
+    description: "INPUT: Turn on support for Scorecard badges"
     required: False
 
 branding:
