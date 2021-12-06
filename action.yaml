@@ -31,6 +31,10 @@ inputs:
     description: "INPUT: GitHub token with read access"
     required: True
 
+  badge_support:
+    description: "INPUT: Turn on support for Scorecard badges"
+    required: false
+
 branding:
   icon: "mic"
   color: "purple"
