@@ -28,6 +28,7 @@ export SCORECARD_POLICY_FILE="$INPUT_POLICY_FILE"
 export SCORECARD_RESULTS_FILE="$INPUT_RESULTS_FILE"
 export SCORECARD_RESULTS_FORMAT="$INPUT_RESULTS_FORMAT"
 export SCORECARD_BIN="/scorecard"
+export ENABLED_CHECKS=
 
 # Note: this will fail if we push to a branch on the same repo, so it will show as failing
 # on forked repos.
@@ -53,12 +54,19 @@ then
         $SCORECARD_BIN --local . --format "$SCORECARD_RESULTS_FORMAT" --show-details --policy "$SCORECARD_POLICY_FILE" > "$SCORECARD_RESULTS_FILE"
     fi
 else
-    # For push events, we run on the repo.
+    # For other events, we run on the repo.
+
+    # For the branch protection trigger, we only run the Branch-Protection check.
+    if [[ "$GITHUB_EVENT_NAME" == "branch_protection_rule" ]]
+    then
+        export ENABLED_CHECKS="--checks Branch-Protection"
+    fi
+    
     if [[ -z "$SCORECARD_POLICY_FILE" ]]
     then
-        $SCORECARD_BIN --repo="$GITHUB_REPOSITORY" --format "$SCORECARD_RESULTS_FORMAT" --show-details > "$SCORECARD_RESULTS_FILE"
+        $SCORECARD_BIN --repo="$GITHUB_REPOSITORY" --format "$SCORECARD_RESULTS_FORMAT" $ENABLED_CHECKS --show-details > "$SCORECARD_RESULTS_FILE"
     else
-        $SCORECARD_BIN --repo="$GITHUB_REPOSITORY" --format "$SCORECARD_RESULTS_FORMAT" --show-details --policy "$SCORECARD_POLICY_FILE" > "$SCORECARD_RESULTS_FILE"
+        $SCORECARD_BIN --repo="$GITHUB_REPOSITORY" --format "$SCORECARD_RESULTS_FORMAT" $ENABLED_CHECKS --show-details --policy "$SCORECARD_POLICY_FILE" > "$SCORECARD_RESULTS_FILE"
     fi
 fi
 
