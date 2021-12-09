@@ -12,8 +12,8 @@ on:
 permissions: read-all
 
 jobs:
-  scan:
-    name: Scorecards scan
+  analysis:
+    name: Scorecards analysis
     runs-on: ubuntu-latest
     permissions:
       # Needed to upload the results to code-scanning dashboard.
@@ -62,7 +62,7 @@ jobs:
       
       # Upload the results to GitHub's code scanning dashboard.
       # This is required to visualize the results on GitHub website.
-      - name: "Upload SARIF results"
+      - name: "Upload to code-scanning"
         # Note: scorecard will flag this line if not pinned by hash.
         uses: github/codeql-action/upload-sarif@v1
         with:
