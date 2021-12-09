@@ -49,8 +49,8 @@ jobs:
           repo_token: ${{ secrets.SCORECARD_TOKEN }}
           # The Scorecard team runs a weekly scan of public GitHub repositories in order to track 
           # the overall security health of the open source ecosystem.
-          # Setting `publish_results: true` makes replaces the results of the team's weelky scans, 
-          # helping us scale by cutting down on repeated workflows and API requests.
+          # Setting `publish_results: true` replaces the results of the team's weelky scans, 
+          # helping us scale by cutting down on repeated workflows and GitHub API requests.
           # This option is needed to enable badges on the repo.
           publish_results: true
 
