@@ -38,11 +38,11 @@ jobs:
           #       * repo > public_repo
           #       * admin:org > read:org
           #       * admin:repo_hook > read:repo_hook
-          #       * read:discussion
+          #       * write:discussion > read:discussion
           #
-          # After creation, copy the token.
+          # Create and copy the token.
           #
-          # 2. Create an encrypted secret at https://github.com/<org>/<repo>/settings/secrets/actions
+          # 2. Create a new repository secret at https://github.com/<org>/<repo>/settings/secrets/actions
           #    with the following settings:
           #     - Name: SCORECARD_TOKEN
           #     - Value: the value of the token created in step 1 above.
