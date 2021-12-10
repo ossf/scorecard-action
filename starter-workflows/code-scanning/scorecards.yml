@@ -32,7 +32,7 @@ jobs:
           # For the token, 
           # 1. Create a PAT token at https://github.com/settings/tokens/new
           #    with the following read permissions:
-          #     - Note: SCORECARD_TOKEN (this is the name)
+          #     - Note: OSSF Scorecard read-only token
           #     - Expiration: No expiration
           #     - Scopes: 
           #       * repo > public_repo
