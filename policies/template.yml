@@ -23,6 +23,12 @@ policies:
   Code-Review:
       score: 10
       mode: enforced
+  Dangerous-Workflow:
+      score: 10
+      mode: enforced
+  License:
+      score: 10
+      mode: enforced
   Pinned-Dependencies:
       score: 10
       mode: enforced
