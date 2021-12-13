@@ -13,7 +13,6 @@ name: "CodeQL"
 
 on:
   push:
-    branches: [ main, * ]
   pull_request:
     # The branches below must be a subset of the branches above
     branches: [ main ]
@@ -32,9 +31,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        language: [  ]
-        # CodeQL supports [ 'cpp', 'csharp', 'go', 'java', 'javascript', 'python', 'ruby' ]
-        # Learn more about CodeQL language support at https://git.io/codeql-language-support
+        language: [ 'javascript' ]
 
     steps:
     - name: Checkout repository

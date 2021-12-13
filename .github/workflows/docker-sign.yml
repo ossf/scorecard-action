@@ -30,7 +30,7 @@ jobs:
         uses: docker/build-push-action@a66e35b9cbcf4ad0ea91ffcaf7bbad63ad9e0229 # v2.7.0
         with:
           context: .
-          file: analyze/Dockerfile
+          file: Dockerfile
           platforms: linux/amd64
           push: true
           tags: |

@@ -19,16 +19,12 @@ description: "Run OSSF Scorecard checks and output results in SARIF format"
 author: "OSSF - github.com/ossf/scorecard"
 
 inputs:
-  policy_file:
-    description: "INPUT: Path to a policy file"
-    required: false
-    
   results_file:
     description: "OUTPUT: Path to file to store results"
     required: true
 
   results_format:
-    description: "OUTPUT: format of the results [json, sarif, default]"
+    description: "OUTPUT: format of the results [json, sarif]"
     required: true
 
   repo_token:
