@@ -34,6 +34,7 @@ inputs:
   publish_results:
     description: "INPUT: Publish results"
     required: False
+    default: False
 
 branding:
   icon: "mic"
