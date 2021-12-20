@@ -23,7 +23,7 @@ set -euo pipefail
 # GITHUB_ACTIONS is true in GitHub env.
 
 export GITHUB_AUTH_TOKEN="$INPUT_REPO_TOKEN"
-export SCORECARD_V4=1
+export ENABLE_SARIF=1
 export ENABLE_LICENSE=1
 export ENABLE_DANGEROUS_WORKFLOW=1
 export SCORECARD_POLICY_FILE="/policy.yml" # Copied at docker image creation.
