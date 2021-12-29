@@ -35,8 +35,8 @@ the overall security health of the open source ecosystem. The results of the sca
 available as described [here](https://github.com/ossf/scorecard#public-data).
 Setting `publish_results: true` replaces the results of the team's weelky scans, 
 helping us scale by cutting down on repeated workflows and GitHub API requests.
-This option is needed to enable badges on the repo. If you're installing the action
-on a private repo, set it to `publish_results: false` or do not set the value at all.
+This option is needed to enable badges on the repo (release scheduled for Q2'22). 
+If you're installing the action on a private repo, set it to `publish_results: false` or do not set the value at all.
 
 ### Full example
 
@@ -73,7 +73,11 @@ jobs:
         with:
           results_file: results.sarif
           results_format: sarif
+          #R ead-only PAT token. To create it,
+          # follow the steps in https://github.com/ossf/scorecard-action/blob/main#pat-token-creation.
           repo_token: ${{ secrets.SCORECARD_TOKEN }}
+          # Publish the results to enable scorecard badges. For more details, see
+          # https://github.com/ossf/scorecard-action/blob/main#publishing-results
           publish_results: true
 
       # Upload the results as artifacts.
@@ -87,7 +91,6 @@ jobs:
           retention-days: 5
       
       # Upload the results to GitHub's code scanning dashboard.
-      # This is required to visualize the results on GitHub's scanning dashboard.
       - name: "Upload to code-scanning"
         uses: github/codeql-action/upload-sarif@5f532563584d71fdef14ee64d17bafb34f751ce5 # v1.0.26
         with:
