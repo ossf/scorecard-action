@@ -3,7 +3,7 @@
 > Official GitHub Action for [OSSF scorecard](https://github.com/ossf/scorecard).
 
 ## Installation
-The simplest and quickest way to install Scorecards's GitHub action is from the [GitHub's marketplace](https://github.com/marketplace/actions/scorecard-action).
+The simplest and quickest way to install Scorecards's GitHub action is from the [GitHub's marketplace](https://github.com/marketplace/actions/ossf-scorecard-action).
 
 ### Inputs
 
