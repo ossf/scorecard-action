@@ -83,9 +83,7 @@ jobs:
           # or comment out the following line.
           publish_results: true
 
-      # Upload the results as artifacts.
-      # https://docs.github.com/en/actions/advanced-guides/storing-workflow-data-as-artifacts
-      # This is optional.
+      # Upload the results as artifacts (optional).
       - name: "Upload artifact"
         uses: actions/upload-artifact@82c141cc518b40d92cc801eee768e7aafc9c2fa2 # v2.3.1
         with:
