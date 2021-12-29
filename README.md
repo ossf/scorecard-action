@@ -36,7 +36,7 @@ available as described [here](https://github.com/ossf/scorecard#public-data).
 Setting `publish_results: true` replaces the results of the team's weelky scans, 
 helping us scale by cutting down on repeated workflows and GitHub API requests.
 This option is needed to enable badges on the repo (release scheduled for Q2'22). 
-If you're installing the action on a private repo, set it to `publish_results: false` or do not set the value at all.
+If you are installing the action on a private repo, set it to `publish_results: false` or do not set the value at all.
 
 ### Full example
 
