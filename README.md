@@ -3,7 +3,7 @@
 > Official GitHub Action for [OSSF scorecard](https://github.com/ossf/scorecard).
 
 ## Installation
-The simplest and quickest way to install Scorecards's GitHub action is from the [marketplace](https://github.com/marketplace/actions/fortify-scancentral-scan).
+The simplest and quickest way to install Scorecards's GitHub action is from the [GitHub's marketplace](https://github.com/marketplace/actions/scorecard-action).
 
 ### Inputs
 
@@ -11,12 +11,12 @@ The simplest and quickest way to install Scorecards's GitHub action is from the 
 | ----- | -------- | ----------- |
 | `result_file` | yes | The file that contains the results |
 | `result_format` | yes | The format in which to store the results [json \| sarif]. For GitHub's scanning dashboard, select `sarif` |
-| `repo_token` | yes | PAT token with read-only access. Follow [these steps to create it](#PAT token creation). |
+| `repo_token` | yes | PAT token with read-only access. Follow [these steps to create it](#pat-token-creation). |
 | `publish_results` | recommended | This will allow you to display a badge on your repository to show off your hard work (release scheduled for Q2'22). |
 
 ### PAT token creation
 1. Create a PAT token [here](https://github.com/settings/tokens/new) with the following read permissions:
-    - Note: `OSSF Scorecard read-only token`
+    - Note: `Read-only token for OSSF Scorecard Action`
     - Expiration: `No expiration`
     - Scopes: 
         * `repo > public_repo`
@@ -64,6 +64,7 @@ jobs:
         with:
           results_file: results.sarif
           results_format: sarif
+
           # For the token, 
           # 1. Create a PAT token at https://github.com/settings/tokens/new
           #    with the following read permissions:
@@ -82,6 +83,7 @@ jobs:
           #     - Name: SCORECARD_TOKEN
           #     - Value: the value of the token created in step 1 above.
           repo_token: ${{ secrets.SCORECARD_TOKEN }}
+
           # The Scorecard team runs a weekly scan of public GitHub repositories in order to track 
           # the overall security health of the open source ecosystem.
           # Setting `publish_results: true` replaces the results of the team's weelky scans, 
