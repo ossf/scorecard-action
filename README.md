@@ -31,8 +31,8 @@ The simplest and quickest way to install Scorecards's GitHub action is from the 
 
 ### Publishing results
 The Scorecard team runs a weekly scan of public GitHub repositories in order to track 
-the overall security health of the open source ecosystem. The results of the scans are public
-and available as described [here](https://github.com/ossf/scorecard#public-data).
+the overall security health of the open source ecosystem. The results of the scans are publicly
+available as described [here](https://github.com/ossf/scorecard#public-data).
 Setting `publish_results: true` replaces the results of the team's weelky scans, 
 helping us scale by cutting down on repeated workflows and GitHub API requests.
 This option is needed to enable badges on the repo. If you're installing the action
