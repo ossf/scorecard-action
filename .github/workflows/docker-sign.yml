@@ -37,7 +37,7 @@ jobs:
             ghcr.io/${{github.repository_owner}}/scorecard-actions:${{ github.sha }}
             ghcr.io/${{github.repository_owner}}/scorecard-actions:latest
           build-args: |
-            DOCKER_SHA=4bb5c72ef3ac7412dc5a71e0f65a8366d6f7fafccc9dc3af4251bfb932e1cf28
+            DOCKER_SHA=988824994c6c8929bd2bc2e119e19139ef8ea8d684e89d722054ada03afad538
       - name: Sign image
         run: |
           cosign sign ghcr.io/${{github.repository_owner}}/scorecard-actions:${{ github.sha }}
