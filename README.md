@@ -77,7 +77,9 @@ jobs:
           # follow the steps in https://github.com/ossf/scorecard-action/blob/main#pat-token-creation.
           repo_token: ${{ secrets.SCORECARD_TOKEN }}
           # Publish the results to enable scorecard badges. For more details, see
-          # https://github.com/ossf/scorecard-action/blob/main#publishing-results
+          # https://github.com/ossf/scorecard-action/blob/main#publishing-results.
+          # If you are installing the action on a private repo, set it to `publish_results: false` 
+          # or do not set the value at all.
           publish_results: true
 
       # Upload the results as artifacts.
