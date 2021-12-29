@@ -9,9 +9,9 @@ The simplest and quickest way to install Scorecards's GitHub action is from the 
 
 | input | required | description |
 | ----- | -------- | ----------- |
-| `result_file` | yes | The file that contains the results |
-| `result_format` | yes | The format in which to store the results [json \| sarif]. For GitHub's scanning dashboard, select `sarif` |
-| `repo_token` | yes | PAT token with read-only access. Follow [these steps to create it](#pat-token-creation). |
+| `result_file` | yes | The file that contains the results. |
+| `result_format` | yes | The format in which to store the results [json \| sarif]. For GitHub's scanning dashboard, select `sarif`. |
+| `repo_token` | yes | PAT token with read-only access. Follow [these steps](#pat-token-creation) to create it. |
 | `publish_results` | recommended | This will allow you to display a badge on your repository to show off your hard work (release scheduled for Q2'22). See details [here](#publishing-results).|
 
 ### PAT token creation
