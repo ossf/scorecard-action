@@ -1,7 +1,5 @@
 name: docker-build-sign-container
 
-# Trigger https://docs.github.com/en/actions/learn-github-actions/events-that-trigger-workflows#workflow_dispatch.
-# Run manually via https://docs.github.com/en/actions/managing-workflow-runs/manually-running-a-workflow.
 on: workflow_dispatch
 
 permissions: read-all
