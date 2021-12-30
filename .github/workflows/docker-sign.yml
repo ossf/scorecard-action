@@ -3,6 +3,8 @@ name: docker-build-sign-container
 on:
   workflow_dispatch:
 
+permissions: read-all
+
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
