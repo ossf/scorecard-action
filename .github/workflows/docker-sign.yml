@@ -5,6 +5,11 @@ on:
     tags:
       - "*" # triggers only if push new tag version, like `0.8.4` or else
 
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+  SCORECARD_IMAGE_HASH: 4bb5c72ef3ac7412dc5a71e0f65a8366d6f7fafccc9dc3af4251bfb932e1cf28 # latest for testing
+
 jobs:
   build:
     permissions:
@@ -19,7 +24,7 @@ jobs:
       - name: Log into ghcr.io
         uses: docker/login-action@f054a8b539a109f9f41c372932f1ae047eff08c9 #v1.1.0
         with:
-          registry: ghcr.io
+          registry: ${{ env.REGISTRY }}
           username: ${{ github.repository_owner }}
           password: ${{ github.token }}
       - name: Install Cosign
@@ -34,10 +39,10 @@ jobs:
           platforms: linux/amd64
           push: true
           tags: |
-            ghcr.io/${{github.repository_owner}}/scorecard-actions:${{ github.sha }}
-            ghcr.io/${{github.repository_owner}}/scorecard-actions:latest
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
           build-args: |
-            DOCKER_SHA=4bb5c72ef3ac7412dc5a71e0f65a8366d6f7fafccc9dc3af4251bfb932e1cf28
+            DOCKER_SHA=${{ env.SCORECARD_IMAGE_HASH }}
       - name: Sign image
         run: |
-          cosign sign ghcr.io/${{github.repository_owner}}/scorecard-actions:${{ github.sha }}
+          cosign sign ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
