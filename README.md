@@ -4,6 +4,7 @@
 
 ## Installation
 The simplest and quickest way to install Scorecards's GitHub action is from the [GitHub's marketplace](https://github.com/marketplace/actions/ossf-scorecard-action).
+**WARNING**: the action does *not* support private repositories.
 
 ### Inputs
 
@@ -35,9 +36,7 @@ the overall security health of the open source ecosystem. The results of the sca
 available as described [here](https://github.com/ossf/scorecard#public-data).
 Setting `publish_results: true` replaces the results of the team's weelky scans, 
 helping us scale by cutting down on repeated workflows and GitHub API requests.
-This option is needed to enable badges on the repo (release scheduled for Q2'22). 
-If you are installing the action on a private repo, set it to `publish_results: false` or 
-comment the line.
+This option is needed to enable badges on the repository (release scheduled for Q2'22). 
 
 ### Full example
 
@@ -79,8 +78,6 @@ jobs:
           repo_token: ${{ secrets.SCORECARD_TOKEN }}
           # Publish the results to enable scorecard badges. For more details, see
           # https://github.com/ossf/scorecard-action#publishing-results.
-          # If you are installing the action on a private repo, set it to `publish_results: false` 
-          # or comment out the following line.
           publish_results: true
 
       # Upload the results as artifacts (optional).
