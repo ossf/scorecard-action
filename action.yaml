@@ -38,7 +38,7 @@ inputs:
 
 branding:
   icon: "mic"
-  color: "purple"
+  color: "white"
 
 runs:
   using: "docker"
