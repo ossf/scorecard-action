@@ -78,7 +78,7 @@ jobs:
           repo_token: ${{ secrets.SCORECARD_TOKEN }}
           # Publish the results to enable scorecard badges. For more details, see
           # https://github.com/ossf/scorecard-action#publishing-results.
-          # The line below disables badge support for private repositories.
+          # The line below disables data sharing for private repositories.
           publish_results: ${{ !github.event.repository.private }}
 
       # Upload the results as artifacts (optional).
