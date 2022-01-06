@@ -24,7 +24,7 @@ If you've already used Scorecards manually in the past, you do not need to creat
         
 2. Copy the token value. 
 
-3. [Create a new repository secret](https://github.com/<org>/<repo>/settings/secrets/actions/new) with the following settings:
+3. Create a new repository secret at https://github.com/<org>/<repo>/settings/secrets/actions/new (replace <org>/<repo> with the names of your organization and repository) with the following settings:
     - Name: `SCORECARD_TOKEN`
     - Value: the value of the token created in step 1 above.
 
