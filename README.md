@@ -42,19 +42,15 @@ Note: if you have aleady configured other code scanning tools, your UI will look
 
 The workflow is preconfigured to run on every repository contribution. Results are available on the GitHub code-scanning dashboard[TODO:ADD LINK?] for remediation. 
 
-## Verify Runs and Find Results
-To verify that the Action is running successfully, 
--go to Action tab
--see if the action run succeeds
--then go to Security> Scanning results
--should have a list of results
+## Verify Runs and View Results
+To verify that the Action is running successfully, click the repository's Actions tab and view recent runs. 
+    
+    
+To view a list of results from each run, go to the Security tab and click "Code Scanning Alerts." 
 
-
-
-
-
-
-If you prefer to manually set up the Scorecards GitHub Action, use the following inputs.
+## Manual Action Set Up
+    
+If you prefer to manually set up the Scorecards GitHub Action, use the following values.
 
 ### Inputs
 
@@ -67,11 +63,11 @@ If you prefer to manually set up the Scorecards GitHub Action, use the following
 
 ### Publishing results
 The Scorecard team runs a weekly scan of public GitHub repositories in order to track 
-the overall security health of the open source ecosystem. The results of the scans are publicly
-available as described [here](https://github.com/ossf/scorecard#public-data).
-Setting `publish_results: true` replaces the results of the team's weelky scans, 
+the overall security health of the open source ecosystem. The results of the scans are [publicly
+available](https://github.com/ossf/scorecard#public-data).
+Setting `publish_results: true` replaces the results of the team's weekly scans with your own scan results, 
 helping us scale by cutting down on repeated workflows and GitHub API requests.
-This option is needed to enable badges on the repository (release scheduled for Q2'22). 
+This option is also needed to enable badges on the repository (release scheduled for Q2'22). 
 
 ### Full example
 
