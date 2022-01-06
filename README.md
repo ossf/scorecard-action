@@ -10,7 +10,7 @@ To install the Scorecards GitHub Action, you need to:
 1) Authenticate by creating a PAT token and saving the token value as a repository secret (new Scorecards users only)
 2) Set up the workflow via the GitHub UI
 
-If you've already used Scorecards manually in the past, you do not need to create a new PAT token or repository secret. Jump to [Workflow Setup](workflow-setup). 
+If you've already used Scorecards manually in the past, you do not need to create a new PAT token or repository secret and can jump to [Workflow Setup](workflow-setup). 
 
 ### Authentication
 1. [Create a PAT token](https://github.com/settings/tokens/new) with the following read permissions:
