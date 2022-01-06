@@ -1,5 +1,5 @@
 # Scorecards' GitHub action
-
+[![CodeQL](https://github.com/ossf/scorecard-action/actions/workflows/codeql-analysis.yml/badge.svg)](https://github.com/ossf/scorecard-action/actions/workflows/codeql-analysis.yml)
 > Official GitHub Action for [OSSF scorecard](https://github.com/ossf/scorecard).
 
 ## Installation
