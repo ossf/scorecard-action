@@ -5,7 +5,7 @@
 ## Installation
 **NOTE**: The Scorecards GitHub Action does not support private repositories. Private repositories can run Scorecards manually by following the [standard installation instructions)[https://github.com/ossf/scorecard#installation].
 
-To install the Scorecards GitHub Action, you must:
+To install the Scorecards GitHub Action, you need to:
 
 1) Authenticate by creating a PAT token and saving the token value as a repository secret (new Scorecards users only)
 2) Set up the workflow via the GitHub UI
