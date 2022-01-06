@@ -13,7 +13,7 @@ To install the Scorecards GitHub Action, you must:
 If you've already used Scorecards manually in the past, you do not need to create a new PAT token or repository secret. Jump to (Workflow Setup)[#workflow-setup]. 
 
 ### Authentication
-1. Create a PAT token [here](https://github.com/settings/tokens/new) with the following read permissions:
+1. [Create a PAT token](https://github.com/settings/tokens/new) with the following read permissions:
     - Note: `Read-only token for OSSF Scorecard Action`
     - Expiration: `No expiration`
     - Scopes: 
@@ -23,7 +23,7 @@ If you've already used Scorecards manually in the past, you do not need to creat
         * `write:discussion > read:discussion`
     - Create and copy the token value.
 
-2. Create a new repository secret at `https://github.com/<org>/<repo>/settings/secrets/actions/new` with the following settings:
+2. [Create a new repository secret](https://github.com/<org>/<repo>/settings/secrets/actions/new) with the following settings:
     - Name: `SCORECARD_TOKEN`
     - Value: the value of the token created in step 1 above.
 
@@ -31,11 +31,13 @@ If you've already used Scorecards manually in the past, you do not need to creat
 1) From your GitHub project's main page, click “Security” in the top ribbon, then “Set up Code Scanning.” 
 [TODO:ADD IMAGE]
 
-Note: if you have aleady configured other code scanning tools, your UI will look different. Instead, click "Code Scanning Alerts" on the left side of the page, and continue with the next step . 
+Note: if you have aleady configured other code scanning tools, your UI will look different than shown above. Instead, click "Code Scanning Alerts" on the left side of the page, and continue with the next step[TODO:ADD LINK]. 
 [TODO:ADD IMAGE]
 
-2) Select the OSSF Scorecards option and click “set up this workflow”
+2) Select the "OSSF Scorecards supply-chain security analysis" option and click “set up this workflow”
 [TODO:ADD IMAGE]
+
+3) Commit and merge the changes.
 
 The workflow is preconfigured to run on every repository contribution. Results are available on the GitHub code-scanning dashboard[TODO:ADD LINK?] for remediation. 
 
