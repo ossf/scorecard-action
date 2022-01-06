@@ -3,8 +3,55 @@
 > Official GitHub Action for [OSSF scorecard](https://github.com/ossf/scorecard).
 
 ## Installation
-The simplest and quickest way to install Scorecards's GitHub action is from the [GitHub's marketplace](https://github.com/marketplace/actions/ossf-scorecard-action).
-**WARNING**: the action does *not* support private repositories.
+**NOTE**: The Scorecards GitHub Action does not support private repositories. Private repositories can run Scorecards manually by following the [standard installation instructions)[https://github.com/ossf/scorecard#installation].
+
+To install the Scorecards GitHub Action, you must:
+
+1) Authenticate by creating a PAT token and saving the token value as a repository secret (new Scorecards users only)
+2) Set up the workflow via the GitHub UI
+
+If you've already used Scorecards manually in the past, you do not need to create a new PAT token or repository secret. Jump to (Workflow Setup)[#workflow-setup]. 
+
+### Authentication
+1. Create a PAT token [here](https://github.com/settings/tokens/new) with the following read permissions:
+    - Note: `Read-only token for OSSF Scorecard Action`
+    - Expiration: `No expiration`
+    - Scopes: 
+        * `repo > public_repo`
+        * `admin:org > read:org`
+        * `admin:repo_hook > read:repo_hook`
+        * `write:discussion > read:discussion`
+    - Create and copy the token value.
+
+2. Create a new repository secret at `https://github.com/<org>/<repo>/settings/secrets/actions/new` with the following settings:
+    - Name: `SCORECARD_TOKEN`
+    - Value: the value of the token created in step 1 above.
+
+### Workflow Setup
+1) From your GitHub project's main page, click “Security” in the top ribbon, then “Set up Code Scanning.” 
+[TODO:ADD IMAGE]
+
+Note: if you have aleady configured other code scanning tools, your UI will look different. Instead, click "Code Scanning Alerts" on the left side of the page, and continue with the next step . 
+[TODO:ADD IMAGE]
+
+2) Select the OSSF Scorecards option and click “set up this workflow”
+[TODO:ADD IMAGE]
+
+The workflow is preconfigured to run on every repository contribution. Results are available on the GitHub code-scanning dashboard[TODO:ADD LINK?] for remediation. 
+
+## Verify Runs and Find Results
+To verify that the Action is running successfully, 
+-go to Action tab
+-see if the action run succeeds
+-then go to Security> Scanning results
+-should have a list of results
+
+
+
+
+
+
+If you prefer to manually set up the Scorecards GitHub Action, use the following inputs.
 
 ### Inputs
 
@@ -14,21 +61,6 @@ The simplest and quickest way to install Scorecards's GitHub action is from the 
 | `result_format` | yes | The format in which to store the results [json \| sarif]. For GitHub's scanning dashboard, select `sarif`. |
 | `repo_token` | yes | PAT token with read-only access. Follow [these steps](#pat-token-creation) to create it. |
 | `publish_results` | recommended | This will allow you to display a badge on your repository to show off your hard work (release scheduled for Q2'22). See details [here](#publishing-results).|
-
-### PAT token creation
-1. Create a PAT token [here](https://github.com/settings/tokens/new) with the following read permissions:
-    - Note: `Read-only token for OSSF Scorecard Action`
-    - Expiration: `No expiration`
-    - Scopes: 
-        * `repo > public_repo`
-        * `admin:org > read:org`
-        * `admin:repo_hook > read:repo_hook`
-        * `write:discussion > read:discussion`
-    - Create and copy the token.
-
-2. Create a new repository secret at `https://github.com/<org>/<repo>/settings/secrets/actions/new` with the following settings:
-    - Name: `SCORECARD_TOKEN`
-    - Value: the value of the token created in step 1 above.
 
 ### Publishing results
 The Scorecard team runs a weekly scan of public GitHub repositories in order to track 
