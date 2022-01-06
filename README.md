@@ -43,10 +43,9 @@ Note: if you have aleady configured other code scanning tools, your UI will look
 The workflow is preconfigured to run on every repository contribution. Results are available on the GitHub code-scanning dashboard[TODO:ADD LINK?] for remediation. 
 
 ## Verify Runs and View Results
-To verify that the Action is running successfully, click the repository's Actions tab and view recent runs. 
-    
-    
-To view a list of results from each run, go to the Security tab and click "Code Scanning Alerts." 
+To verify that the Action is running successfully, click the repository's Actions tab to see the status of all recent workflow runs. 
+       
+To view a list of results from each Scorecards Action run, go to the Security tab and click "Code Scanning Alerts." 
 
 ## Manual Action Set Up
     
