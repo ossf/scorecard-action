@@ -67,4 +67,4 @@ policies:
       mode: enforced
   Maintained:
       score: 1
-      mode: enabled
+      mode: enforced
