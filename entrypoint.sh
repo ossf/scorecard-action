@@ -74,5 +74,6 @@ else
 fi
 
 echo "Result publication enabled: $SCORECARD_PUBLISH_RESULTS"
-echo "Event: $GITHUB_EVENT_PATH"
+echo "Event file: $GITHUB_EVENT_PATH"
+echo "Event data: $(cat \"$GITHUB_EVENT_PATH\")"
 jq '.' "$SCORECARD_RESULTS_FILE"
