@@ -26,7 +26,7 @@ export GITHUB_AUTH_TOKEN="$INPUT_REPO_TOKEN"
 export ENABLE_SARIF=1
 export ENABLE_LICENSE=1
 export ENABLE_DANGEROUS_WORKFLOW=1
-export SCORECARD_POLICY_FILE="policies/template.yml"
+export SCORECARD_POLICY_FILE="/policy.yml"
 export SCORECARD_RESULTS_FILE="$INPUT_RESULTS_FILE"
 export SCORECARD_RESULTS_FORMAT="$INPUT_RESULTS_FORMAT"
 export SCORECARD_PUBLISH_RESULTS="$INPUT_PUBLISH_RESULTS"
@@ -35,7 +35,7 @@ export SCORECARD_PRIVATE_REPOSITORY="$(jq '.repository.private' $GITHUB_EVENT_PA
 export SCORECARD_BIN="/scorecard"
 export ENABLED_CHECKS=
 
-# WARNING: bool are strings https://github.com/actions/runner/issues/1483.
+# WARNING: boolean inputs are strings https://github.com/actions/runner/issues/1483.
 
 # If the repository is private, never publish the results.
 if [[ "$SCORECARD_PRIVATE_REPOSITORY" == "true" ]]; then
@@ -46,10 +46,6 @@ fi
 echo "Event file: $GITHUB_EVENT_PATH"
 echo "Private repository: $SCORECARD_PRIVATE_REPOSITORY"
 echo "Publication enabled: $SCORECARD_PUBLISH_RESULTS"
-
-if [[ "$SCORECARD_PUBLISH_RESULTS" == "true" ]]; then
-    echo "publish!!"
-fi
 
 # Note: this will fail if we push to a branch on the same repo, so it will show as failing
 # on forked repos.
