@@ -77,7 +77,7 @@ jobs:
           results_format: sarif
           # Read-only PAT token. To create it,
           # follow the steps in https://github.com/ossf/scorecard-action#pat-token-creation.
-          repo_token: ${{ secrets.SCORECARD_TOKEN }}
+          repo_token: ${{ secrets.SCORECARD_READ_TOKEN }}
           # Publish the results to enable scorecard badges. For more details, see
           # https://github.com/ossf/scorecard-action#publishing-results.
           publish_results: true
