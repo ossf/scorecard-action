@@ -30,16 +30,27 @@ To install the Scorecards GitHub Action, you need to:
     - Value: the value of the token created in step 1 above.
 
 ### Workflow Setup
-1) From your GitHub project's main page, click “Security” in the top ribbon, then “Set up Code Scanning.” 
-[TODO:ADD IMAGE]
+1) From your GitHub project's main page, click “Security” in the top ribbon. 
+![image](/images/install01.png)
 
-Note: if you have aleady configured other code scanning tools, your UI will look different than shown above. Instead, click "Code Scanning Alerts" on the left side of the page, and continue with the next step[TODO:ADD LINK]. 
-[TODO:ADD IMAGE]
+2) Click “Set up Code Scanning.” 
+![image](/images/install02.png)
 
-2) Select the "OSSF Scorecards supply-chain security analysis" option and click “set up this workflow”
-[TODO:ADD IMAGE]
+Note: if you have aleady configured other code scanning tools, your UI will look different than shown above. Instead, click "Code Scanning Alerts" on the left side of the page. 
 
-3) Commit and merge the changes.
+![image](/images/installb1.png)
+
+Then click "Add More Scanning Tools."
+
+![image](/images/installb2.png)
+
+3) Choose the "OSSF Scorecards supply-chain security analysis" from the list of workflows, and then click “set up this workflow.”
+![image](/images/install03.png)
+
+
+4) Commit the changes.
+![image](/images/install04.png)
+
 
 The workflow is preconfigured to run on every repository contribution. Results are available on the GitHub code-scanning dashboard[TODO:ADD LINK?] for remediation. 
 
