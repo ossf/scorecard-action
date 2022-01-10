@@ -26,7 +26,7 @@ export GITHUB_AUTH_TOKEN="$INPUT_REPO_TOKEN"
 export ENABLE_SARIF=1
 export ENABLE_LICENSE=1
 export ENABLE_DANGEROUS_WORKFLOW=1
-export SCORECARD_POLICY_FILE="/policy.yml" # Copied at docker image creation.
+export SCORECARD_POLICY_FILE="policies/template.yml"
 export SCORECARD_RESULTS_FILE="$INPUT_RESULTS_FILE"
 export SCORECARD_RESULTS_FORMAT="$INPUT_RESULTS_FORMAT"
 export SCORECARD_PUBLISH_RESULTS="$INPUT_PUBLISH_RESULTS"
@@ -36,7 +36,7 @@ export SCORECARD_BIN="/scorecard"
 export ENABLED_CHECKS=
 
 # If the repository is private, never publish the results.
-if ! [[ $SCORECARD_PRIVATE_REPOSITORY ]]; then
+if [[ $SCORECARD_PRIVATE_REPOSITORY ]]; then
     export SCORECARD_PUBLISH_RESULTS="false"
 fi
 
@@ -44,6 +44,9 @@ echo "Event file: $GITHUB_EVENT_PATH"
 echo "Private repository: $SCORECARD_PRIVATE_REPOSITORY"
 echo "Result publication enabled: $SCORECARD_PUBLISH_RESULTS"
 
+if [[ $SCORECARD_PUBLISH_RESULTS ]]; then
+    echo "private!!"
+fi
 
 # Note: this will fail if we push to a branch on the same repo, so it will show as failing
 # on forked repos.
