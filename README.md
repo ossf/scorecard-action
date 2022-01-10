@@ -26,7 +26,7 @@ To install the Scorecards GitHub Action, you need to:
 2. Copy the token value. 
 
 3. [Create a new repository secret](https://docs.github.com/en/actions/security-guides/encrypted-secrets#creating-encrypted-secrets-for-a-repository) with the following settings:
-    - Name: `SCORECARD_TOKEN`
+    - Name: `SCORECARD_READ_SECRET`
     - Value: the value of the token created in step 1 above.
 
 ### Workflow Setup
