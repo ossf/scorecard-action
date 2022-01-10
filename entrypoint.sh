@@ -33,6 +33,10 @@ export SCORECARD_PUBLISH_RESULTS="$INPUT_PUBLISH_RESULTS"
 export SCORECARD_BIN="/scorecard"
 export ENABLED_CHECKS=
 
+echo "Result publication enabled: $SCORECARD_PUBLISH_RESULTS"
+echo "Event file: $GITHUB_EVENT_PATH"
+echo "Event data: $(cat \"$GITHUB_EVENT_PATH\")"
+
 # Note: this will fail if we push to a branch on the same repo, so it will show as failing
 # on forked repos.
 if [[ "$GITHUB_EVENT_NAME" != "pull_request"* ]] && ! [[ "$GITHUB_REF" =~ ^refs/heads/(main|master)$ ]]; then
@@ -73,7 +77,4 @@ else
     fi
 fi
 
-echo "Result publication enabled: $SCORECARD_PUBLISH_RESULTS"
-echo "Event file: $GITHUB_EVENT_PATH"
-echo "Event data: $(cat \"$GITHUB_EVENT_PATH\")"
 jq '.' "$SCORECARD_RESULTS_FILE"
