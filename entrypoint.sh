@@ -40,12 +40,20 @@ export ENABLED_CHECKS=
 # If the repository is private, never publish the results.
 if [[ "$SCORECARD_PRIVATE_REPOSITORY" == "true" ]]; then
     export SCORECARD_PUBLISH_RESULTS="false"
-    echo "setting to false"
+fi
+
+# We only use the policy file if the request format is sarif.
+if [[ "$SCORECARD_RESULTS_FORMAT" != "sarif" ]]; then
+    unset SCORECARD_POLICY_FILE
 fi
 
 echo "Event file: $GITHUB_EVENT_PATH"
+echo "Event name: $GITHUB_EVENT_NAME"
+echo "Ref: $GITHUB_REF"
 echo "Private repository: $SCORECARD_PRIVATE_REPOSITORY"
 echo "Publication enabled: $SCORECARD_PUBLISH_RESULTS"
+echo "Format: $SCORECARD_RESULTS_FORMAT"
+echo "Policy file: $SCORECARD_POLICY_FILE"
 
 # Note: this will fail if we push to a branch on the same repo, so it will show as failing
 # on forked repos.
