@@ -33,9 +33,11 @@ To install the Scorecards GitHub Action, you need to:
 
 ### Workflow Setup
 1) From your GitHub project's main page, click “Security” in the top ribbon. 
+
 ![image](/images/install01.png)
 
 2) Click “Set up Code Scanning.” 
+
 ![image](/images/install02.png)
 
 Note: if you have aleady configured other code scanning tools, your UI will look different than shown above. Instead, click "Code Scanning Alerts" on the left side of the page. 
@@ -51,6 +53,7 @@ Then click "Add More Scanning Tools."
 ![image](/images/install03.png)
 
 4) Commit the changes.
+
 ![image](/images/install04.png)
 
 ## Verify Runs and View Results
