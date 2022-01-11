@@ -57,8 +57,13 @@ Then click "Add More Scanning Tools."
 The workflow is preconfigured to run on every repository contribution. 
 
 To verify that the Action is running successfully, click the repository's Actions tab to see the status of all recent workflow runs. 
+
+![image](/images/actionconfirm.png)
        
-To view a list of results from each Scorecards Action run, go to the Security tab and click "Code Scanning Alerts." Click on the individual alerts for more information, including remediation instructions. (You will need to click "Show more" to expand the full remediation instructions.)[TODO:ADD SCREENSHOT]
+To view a list of results from each Scorecards Action run, go to the Security tab and click "Code Scanning Alerts." Click on the individual alerts for more information, including remediation instructions. You will need to click "Show more" to expand the full remediation instructions.
+
+![image](/images/remediation.png)
+
 
 ## Manual Action Set Up
     
