@@ -15,7 +15,7 @@ To install the Scorecards GitHub Action, you need to:
 
 ### Authentication
 1. [Create a Personal Access Token](https://github.com/settings/tokens/new) with the following read permissions:
-    - Note: `Read-only token for OSSF Scorecard Action`
+    - Note: `Read-only token for OSSF Scorecard Action - myorg/myrepo` (Note: replace `myorg/myrepo` with the names of your organization and repository so you can keep track of your tokens.)
     - Expiration: `No expiration`
     - Scopes: 
         * `repo > public_repo`
@@ -24,8 +24,7 @@ To install the Scorecards GitHub Action, you need to:
         * `write:discussion > read:discussion`
 
 ![image](/images/tokenscopes.png)
-
-        
+     
 2. Copy the token value. 
 
 3. [Create a new repository secret](https://docs.github.com/en/actions/security-guides/encrypted-secrets#creating-encrypted-secrets-for-a-repository) with the following settings:
@@ -54,13 +53,12 @@ Then click "Add More Scanning Tools."
 4) Commit the changes.
 ![image](/images/install04.png)
 
-
-The workflow is preconfigured to run on every repository contribution. Results are available on the GitHub code-scanning dashboard[TODO:ADD LINK?] for remediation. 
-
 ## Verify Runs and View Results
+The workflow is preconfigured to run on every repository contribution. 
+
 To verify that the Action is running successfully, click the repository's Actions tab to see the status of all recent workflow runs. 
        
-To view a list of results from each Scorecards Action run, go to the Security tab and click "Code Scanning Alerts." 
+To view a list of results from each Scorecards Action run, go to the Security tab and click "Code Scanning Alerts." Click on the individual alerts for more information, including remediation instructions. (You will need to click "Show more" to expand the full remediation instructions.)[TODO:ADD SCREENSHOT]
 
 ## Manual Action Set Up
     
