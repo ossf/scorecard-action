@@ -2,9 +2,9 @@
 [![CodeQL](https://github.com/ossf/scorecard-action/actions/workflows/codeql-analysis.yml/badge.svg)](https://github.com/ossf/scorecard-action/actions/workflows/codeql-analysis.yml)
 > Official GitHub Action for [OSSF scorecard](https://github.com/ossf/scorecard).
 
-## Installation
-**NOTE**: The Scorecards GitHub Action does not support private repositories. Private repositories can run Scorecards from the command line by following the [standard installation instructions)[https://github.com/ossf/scorecard#installation].
+The Scorecards GitHub Action is free for all public repositories. Private repositires are supported if they have [GitHub Advanced Security](https://docs.github.com/en/get-started/learning-about-github/about-github-advanced-security). Private repositories without GitHub Advanced Security can run Scorecards from the command line by following the [standard installation instructions](https://github.com/ossf/scorecard#installation).
 
+## Installation
 To install the Scorecards GitHub Action, you need to:
 
 1) Create a Personal Access Token (PAT) for authentication and save the token value as a repository secret; 
