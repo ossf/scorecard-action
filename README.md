@@ -47,8 +47,8 @@ Then click "Add More Scanning Tools."
 ![image](/images/installb2.png)
 
 3) Choose the "OSSF Scorecards supply-chain security analysis" from the list of workflows, and then click “set up this workflow.”
-![image](/images/install03.png)
 
+![image](/images/install03.png)
 
 4) Commit the changes.
 ![image](/images/install04.png)
