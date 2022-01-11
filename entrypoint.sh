@@ -30,8 +30,30 @@ export SCORECARD_POLICY_FILE="/policy.yml" # Copied at docker image creation.
 export SCORECARD_RESULTS_FILE="$INPUT_RESULTS_FILE"
 export SCORECARD_RESULTS_FORMAT="$INPUT_RESULTS_FORMAT"
 export SCORECARD_PUBLISH_RESULTS="$INPUT_PUBLISH_RESULTS"
+# https://docs.github.com/en/actions/learn-github-actions/environment-variables
+export SCORECARD_PRIVATE_REPOSITORY="$(jq '.repository.private' $GITHUB_EVENT_PATH)"
 export SCORECARD_BIN="/scorecard"
 export ENABLED_CHECKS=
+
+# WARNING: boolean inputs are strings https://github.com/actions/runner/issues/1483.
+
+# If the repository is private, never publish the results.
+if [[ "$SCORECARD_PRIVATE_REPOSITORY" == "true" ]]; then
+    export SCORECARD_PUBLISH_RESULTS="false"
+fi
+
+# We only use the policy file if the request format is sarif.
+if [[ "$SCORECARD_RESULTS_FORMAT" != "sarif" ]]; then
+    unset SCORECARD_POLICY_FILE
+fi
+
+echo "Event file: $GITHUB_EVENT_PATH"
+echo "Event name: $GITHUB_EVENT_NAME"
+echo "Ref: $GITHUB_REF"
+echo "Private repository: $SCORECARD_PRIVATE_REPOSITORY"
+echo "Publication enabled: $SCORECARD_PUBLISH_RESULTS"
+echo "Format: $SCORECARD_RESULTS_FORMAT"
+echo "Policy file: $SCORECARD_POLICY_FILE"
 
 # Note: this will fail if we push to a branch on the same repo, so it will show as failing
 # on forked repos.
@@ -72,7 +94,5 @@ else
         $SCORECARD_BIN --repo="$GITHUB_REPOSITORY" --format "$SCORECARD_RESULTS_FORMAT" $ENABLED_CHECKS --show-details --policy "$SCORECARD_POLICY_FILE" > "$SCORECARD_RESULTS_FILE"
     fi
 fi
-
-echo "Result publication enabled: $SCORECARD_PUBLISH_RESULTS"
 
 jq '.' "$SCORECARD_RESULTS_FILE"
