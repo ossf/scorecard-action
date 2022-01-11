@@ -2,7 +2,7 @@
 [![CodeQL](https://github.com/ossf/scorecard-action/actions/workflows/codeql-analysis.yml/badge.svg)](https://github.com/ossf/scorecard-action/actions/workflows/codeql-analysis.yml)
 > Official GitHub Action for [OSSF scorecard](https://github.com/ossf/scorecard).
 
-The Scorecards GitHub Action is free for all public repositories. Private repositires are supported if they have [GitHub Advanced Security](https://docs.github.com/en/get-started/learning-about-github/about-github-advanced-security). Private repositories without GitHub Advanced Security can run Scorecards from the command line by following the [standard installation instructions](https://github.com/ossf/scorecard#installation).
+The Scorecards GitHub Action is free for all public repositories. Private repositories are supported if they have [GitHub Advanced Security](https://docs.github.com/en/get-started/learning-about-github/about-github-advanced-security). Private repositories without GitHub Advanced Security can run Scorecards from the command line by following the [standard installation instructions](https://github.com/ossf/scorecard#installation).
 
 ## Installation
 To install the Scorecards GitHub Action, you need to:
@@ -119,8 +119,10 @@ jobs:
           # Read-only PAT token. To create it,
           # follow the steps in https://github.com/ossf/scorecard-action#pat-token-creation.
           repo_token: ${{ secrets.SCORECARD_TOKEN }}
-          # Publish the results to enable scorecard badges. For more details, see
-          # https://github.com/ossf/scorecard-action#publishing-results.
+          # Publish the results for public repositories to enable scorecard badges. For more details, see
+          # https://github.com/ossf/scorecard-action#publishing-results. 
+          # For private repositories, `publish_results` will automatically be set to `false`, regardless 
+          # of the value entered here.
           publish_results: true
 
       # Upload the results as artifacts (optional).
