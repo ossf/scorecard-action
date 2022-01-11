@@ -3,13 +3,13 @@
 > Official GitHub Action for [OSSF scorecard](https://github.com/ossf/scorecard).
 
 ## Installation
-**NOTE**: The Scorecards GitHub Action does not support private repositories. Private repositories can run Scorecards manually by following the [standard installation instructions)[https://github.com/ossf/scorecard#installation].
+**NOTE**: The Scorecards GitHub Action does not support private repositories. Private repositories can run Scorecards from the command line by following the [standard installation instructions)[https://github.com/ossf/scorecard#installation].
 
 To install the Scorecards GitHub Action, you need to:
 
 1) Create a Personal Access Token (PAT) for authentication and save the token value as a repository secret; 
     
-    (Note: current Scorecards users can reuse their existing PAT for the repository secret.)
+    (Note: If you have already installed Scorecards on your repository from the command line, you can reuse your existing PAT for the repository secret. If you no longer have access to the PAT, though, simply create a new one.)
     
 3) Set up the workflow via the GitHub UI
 
