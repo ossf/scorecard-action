@@ -71,13 +71,13 @@ jobs:
           persist-credentials: false
 
       - name: "Run analysis"
-        uses: ossf/scorecard-action@59f9117686133e93b60a8f23131f87089a076e1b
+        uses: ossf/scorecard-action@5f4e3145c8e85f00681e145122bfe721eb0d69a7 #v0.0.2
         with:
           results_file: results.sarif
           results_format: sarif
           # Read-only PAT token. To create it,
           # follow the steps in https://github.com/ossf/scorecard-action#pat-token-creation.
-          repo_token: ${{ secrets.SCORECARD_READ_TOKEN }}
+          repo_token: ${{ secrets.SCORECARD_TOKEN }}
           # Publish the results to enable scorecard badges. For more details, see
           # https://github.com/ossf/scorecard-action#publishing-results.
           publish_results: true
