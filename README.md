@@ -112,6 +112,8 @@ jobs:
     permissions:
       # Needed to upload the results to code-scanning dashboard.
       security-events: write
+      actions: read
+      contents: read
     
     steps:
       - name: "Checkout code"
