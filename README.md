@@ -4,6 +4,22 @@
 
 The Scorecards GitHub Action is free for all public repositories. Private repositories are supported if they have [GitHub Advanced Security](https://docs.github.com/en/get-started/learning-about-github/about-github-advanced-security). Private repositories without GitHub Advanced Security can run Scorecards from the command line by following the [standard installation instructions](https://github.com/ossf/scorecard#installation).
 
+________
+[Installation](#installation) 
+- [Authentication](#authentication)
+- [Workflow Setup](#workflow-setup)
+
+[View Results](#view-results)
+- [Verify Runs](#verify-runs)
+- [Troubleshooting](#troubleshooting)
+
+[Manual Action Setup](#manual-action-setup)
+- [Inputs](#inputs)
+- [Publishing Results](#publishing-results)
+- [Uploading Artifacts](#uploading-artifacts)
+- [Workflow Example](#workflow-example)
+________
+
 ## Installation
 To install the Scorecards GitHub Action, you need to:
 
@@ -56,21 +72,27 @@ Then click "Add More Scanning Tools."
 
 ![image](/images/install04.png)
 
-## Verify Runs and View Results
+## View Results
+
+To view a list of results from each Scorecards Action run, go to the Security tab and click "Code Scanning Alerts." Click on the individual alerts for more information, including remediation instructions. You will need to click "Show more" to expand the full remediation instructions.
+
+![image](/images/remediation.png)
+
+### Verify Runs 
 The workflow is preconfigured to run on every repository contribution. 
 
 To verify that the Action is running successfully, click the repository's Actions tab to see the status of all recent workflow runs. 
 
 ![image](/images/actionconfirm.png)
-       
-To view a list of results from each Scorecards Action run, go to the Security tab and click "Code Scanning Alerts." Click on the individual alerts for more information, including remediation instructions. You will need to click "Show more" to expand the full remediation instructions.
 
-![image](/images/remediation.png)
+### Troubleshooting 
+If the run has failed, the most likely reason is an authentication failure. Confirm that the Personal Access Token is saved as an encrypted secret within the same repository (see [Authentication](#authentication)). 
 
+If the PAT is saved as an encrypted secret and the run is still failing, confirm that you have not made any ammendations to the workflow yaml file that affected the syntax. Review the [workflow example](#workflow-example) and reset to the default values if necessary.  
 
-## Manual Action Set Up
+## Manual Action Setup
     
-If you prefer to manually set up the Scorecards GitHub Action, use the following values.
+If you prefer to manually set up the Scorecards GitHub Action, use the following values in your [workflow file](https://docs.github.com/en/actions/learn-github-actions/workflow-syntax-for-github-actions). 
 
 ### Inputs
 
@@ -81,7 +103,7 @@ If you prefer to manually set up the Scorecards GitHub Action, use the following
 | `repo_token` | yes | PAT token with read-only access. Follow [these steps](#pat-token-creation) to create it. |
 | `publish_results` | recommended | This will allow you to display a badge on your repository to show off your hard work (release scheduled for Q2'22). See details [here](#publishing-results).|
 
-### Publishing results
+### Publishing Results
 The Scorecard team runs a weekly scan of public GitHub repositories in order to track 
 the overall security health of the open source ecosystem. The results of the scans are [publicly
 available](https://github.com/ossf/scorecard#public-data).
@@ -89,7 +111,12 @@ Setting `publish_results: true` replaces the results of the team's weekly scans 
 helping us scale by cutting down on repeated workflows and GitHub API requests.
 This option is also needed to enable badges on the repository (release scheduled for Q2'22). 
 
-### Full example
+### Uploading Artifacts
+The Scorecards Action uses the [artifact uploader action](https://github.com/actions/upload-artifact) to upload results in SARIF format to the Actions tab. These results are available to anybody for five days after the run to help with debugging. To disable the upload, comment out the `Upload Artifact` value in the Workflow Example. Note: if you disable this option, the results of the Scorecards Action run will be available only to maintainers (on the Security tab scanning dashboard). 
+
+[TODO: ADD DESCIPTION HERE]
+
+### Workflow Example
 
 ```yml
 name: Scorecards supply-chain security
@@ -135,7 +162,8 @@ jobs:
           # of the value entered here.
           publish_results: true
 
-      # Upload the results as artifacts (optional).
+      # Upload the results as artifacts (optional). Commenting out will disable uploads of run results in SARIF
+      # format to the repository Actions tab.
       - name: "Upload artifact"
         uses: actions/upload-artifact@82c141cc518b40d92cc801eee768e7aafc9c2fa2 # v2.3.1
         with:
