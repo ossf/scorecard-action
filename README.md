@@ -112,9 +112,9 @@ helping us scale by cutting down on repeated workflows and GitHub API requests.
 This option is also needed to enable badges on the repository (release scheduled for Q2'22). 
 
 ### Uploading Artifacts
-The Scorecards Action uses the [artifact uploader action](https://github.com/actions/upload-artifact) to upload results in SARIF format to the Actions tab. These results are available to anybody for five days after the run to help with debugging. To disable the upload, comment out the `Upload Artifact` value in the Workflow Example. Note: if you disable this option, the results of the Scorecards Action run will be available only to maintainers (on the Security tab scanning dashboard). 
+The Scorecards Action uses the [artifact uploader action](https://github.com/actions/upload-artifact) to upload results in SARIF format to the Actions tab. These results are available to anybody for five days after the run to help with debugging. To disable the upload, comment out the `Upload Artifact` value in the Workflow Example. 
 
-[TODO: ADD DESCIPTION HERE]
+Note: if you disable this option, the results of the Scorecards Action run will be available only to maintainers (on the Security tab scanning dashboard). 
 
 ### Workflow Example
 
