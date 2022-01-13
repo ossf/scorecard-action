@@ -21,7 +21,7 @@
 #           -e INPUT_REPO_TOKEN=$GITHUB_AUTH_TOKEN \
 #           -e GITHUB_REPOSITORY="ossf/scorecard" \
 #           laurentsimon/scorecard-action:latest
-FROM gcr.io/openssf/scorecard@sha256:1ac704d0af5e50459193e211198e8a17d683230d73c1bda95ce2ca224b0eb8ab as base
+FROM gcr.io/openssf/scorecard@sha256:84ccbdbe49fd6a3c91b04c9971ff7af6bb19fd80d24f3bf08070cdfd4296a54f as base
 
 # Build our image and update the root certs.
 # TODO: use distroless.
