@@ -56,7 +56,7 @@ To install the Scorecards GitHub Action, you need to:
 
 ![image](/images/install02.png)
 
-Note: if you have aleady configured other code scanning tools, your UI will look different than shown above. Instead, click "Code Scanning Alerts" on the left side of the page. 
+Note: if you have already configured other code scanning tools, your UI will look different than shown above. Instead, click "Code Scanning Alerts" on the left side of the page. 
 
 ![image](/images/installb1.png)
 
@@ -88,7 +88,7 @@ To verify that the Action is running successfully, click the repository's Action
 ### Troubleshooting 
 If the run has failed, the most likely reason is an authentication failure. Confirm that the Personal Access Token is saved as an encrypted secret within the same repository (see [Authentication](#authentication)). 
 
-If the PAT is saved as an encrypted secret and the run is still failing, confirm that you have not made any ammendations to the workflow yaml file that affected the syntax. Review the [workflow example](#workflow-example) and reset to the default values if necessary.  
+If the PAT is saved as an encrypted secret and the run is still failing, confirm that you have not made any changes to the workflow yaml file that affected the syntax. Review the [workflow example](#workflow-example) and reset to the default values if necessary.  
 
 ## Manual Action Setup
     
