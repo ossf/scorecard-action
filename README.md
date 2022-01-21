@@ -40,12 +40,14 @@ To install the Scorecards GitHub Action, you need to:
         * `write:discussion > read:discussion`
 
 ![image](/images/tokenscopes.png)
-     
+
 2. Copy the token value. 
 
 3. [Create a new repository secret](https://docs.github.com/en/actions/security-guides/encrypted-secrets#creating-encrypted-secrets-for-a-repository) with the following settings:
     - Name: `SCORECARD_READ_TOKEN`
     - Value: the value of the token created in step 1 above.
+
+4. (Optional) If you install Scorecard on a repository owned by an organization that uses [SAML SSO](https://docs.github.com/en/enterprise-cloud@latest/authentication/authenticating-with-saml-single-sign-on/about-authentication-with-saml-single-sign-on), be sure to [enable SSO](https://docs.github.com/en/enterprise-cloud@latest/authentication/authenticating-with-saml-single-sign-on/authorizing-a-personal-access-token-for-use-with-saml-single-sign-on) for your PAT token.
 
 ### Workflow Setup
 1) From your GitHub project's main page, click “Security” in the top ribbon. 
@@ -87,6 +89,8 @@ To verify that the Action is running successfully, click the repository's Action
 
 ### Troubleshooting 
 If the run has failed, the most likely reason is an authentication failure. Confirm that the Personal Access Token is saved as an encrypted secret within the same repository (see [Authentication](#authentication)). 
+
+If you install Scorecard on a repository owned by an organization that uses [SAML SSO](https://docs.github.com/en/enterprise-cloud@latest/authentication/authenticating-with-saml-single-sign-on/about-authentication-with-saml-single-sign-on) or if you see `403 Resource protected by organization SAML enforcement` in the logs, be sure to [enable SSO](https://docs.github.com/en/enterprise-cloud@latest/authentication/authenticating-with-saml-single-sign-on/authorizing-a-personal-access-token-for-use-with-saml-single-sign-on) for your PAT token (see [Authentication](#authentication)).
 
 If the PAT is saved as an encrypted secret and the run is still failing, confirm that you have not made any changes to the workflow yaml file that affected the syntax. Review the [workflow example](#workflow-example) and reset to the default values if necessary.  
 
