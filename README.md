@@ -31,9 +31,7 @@ To install the Scorecards GitHub Action, you need to:
 
 ### Authentication
 1. [Create a Personal Access Token](https://github.com/settings/tokens/new) with the following read permissions:
-Note 1: `Read-only token for OSSF Scorecard Action - myorg/myrepo` (Note: replace `myorg/myrepo` with the names of your organization and repository so you can keep track of your tokens.)
-
-Note 2: If you install Scorecard on a repository owned by an organization that uses [SAML SSO](https://docs.github.com/en/enterprise-cloud@latest/authentication/authenticating-with-saml-single-sign-on/about-authentication-with-saml-single-sign-on), be sure to [enable SSO](https://docs.github.com/en/enterprise-cloud@latest/authentication/authenticating-with-saml-single-sign-on/authorizing-a-personal-access-token-for-use-with-saml-single-sign-on) for your PAT token.
+    - Note: `Read-only token for OSSF Scorecard Action - myorg/myrepo` (Note: replace `myorg/myrepo` with the names of your organization and repository so you can keep track of your tokens.)
     - Expiration: `No expiration`
     - Scopes: 
         * `repo > public_repo`
@@ -42,7 +40,9 @@ Note 2: If you install Scorecard on a repository owned by an organization that u
         * `write:discussion > read:discussion`
 
 ![image](/images/tokenscopes.png)
-     
+
+If you install Scorecard on a repository owned by an organization that uses [SAML SSO](https://docs.github.com/en/enterprise-cloud@latest/authentication/authenticating-with-saml-single-sign-on/about-authentication-with-saml-single-sign-on), be sure to [enable SSO](https://docs.github.com/en/enterprise-cloud@latest/authentication/authenticating-with-saml-single-sign-on/authorizing-a-personal-access-token-for-use-with-saml-single-sign-on) for your PAT token.
+
 2. Copy the token value. 
 
 3. [Create a new repository secret](https://docs.github.com/en/actions/security-guides/encrypted-secrets#creating-encrypted-secrets-for-a-repository) with the following settings:
