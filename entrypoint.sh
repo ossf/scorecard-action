@@ -32,7 +32,7 @@ export SCORECARD_RESULTS_FORMAT="$INPUT_RESULTS_FORMAT"
 export SCORECARD_PUBLISH_RESULTS="$INPUT_PUBLISH_RESULTS"
 # https://docs.github.com/en/actions/learn-github-actions/environment-variables
 export SCORECARD_PRIVATE_REPOSITORY="$(jq '.repository.private' $GITHUB_EVENT_PATH)"
-export SCORECARD_DEFAULT_BRANCH="refs/heads/$(jq '.repository.default_branch' $GITHUB_EVENT_PATH)"
+export SCORECARD_DEFAULT_BRANCH="refs/heads/$(jq -r '.repository.default_branch' $GITHUB_EVENT_PATH)"
 export SCORECARD_BIN="/scorecard"
 export ENABLED_CHECKS=
 
@@ -56,8 +56,6 @@ echo "Publication enabled: $SCORECARD_PUBLISH_RESULTS"
 echo "Format: $SCORECARD_RESULTS_FORMAT"
 echo "Policy file: $SCORECARD_POLICY_FILE"
 echo "Default branch: $SCORECARD_DEFAULT_BRANCH"
-
-cat "$GITHUB_EVENT_PATH"
 
 # Note: this will fail if we push to a branch on the same repo, so it will show as failing
 # on forked repos.
