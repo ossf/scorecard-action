@@ -32,7 +32,7 @@ export SCORECARD_RESULTS_FORMAT="$INPUT_RESULTS_FORMAT"
 export SCORECARD_PUBLISH_RESULTS="$INPUT_PUBLISH_RESULTS"
 # https://docs.github.com/en/actions/learn-github-actions/environment-variables
 export SCORECARD_PRIVATE_REPOSITORY="$(jq '.repository.private' $GITHUB_EVENT_PATH)"
-export SCORECARD_DEFAULT_BRANCH="refs/heads/$(jq '.default_branch' $GITHUB_EVENT_PATH)"
+export SCORECARD_DEFAULT_BRANCH="refs/heads/$(jq '.repository.default_branch' $GITHUB_EVENT_PATH)"
 export SCORECARD_BIN="/scorecard"
 export ENABLED_CHECKS=
 
