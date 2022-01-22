@@ -57,11 +57,13 @@ echo "Format: $SCORECARD_RESULTS_FORMAT"
 echo "Policy file: $SCORECARD_POLICY_FILE"
 echo "Default branch: $SCORECARD_DEFAULT_BRANCH"
 
+cat "$GITHUB_EVENT_PATH"
+
 # Note: this will fail if we push to a branch on the same repo, so it will show as failing
 # on forked repos.
 if [[ "$GITHUB_EVENT_NAME" != "pull_request"* ]] && [[ "$GITHUB_REF" != "$SCORECARD_DEFAULT_BRANCH" ]]; then
     echo "$GITHUB_REF not supported with '$GITHUB_EVENT_NAME' event."
-    echo "Only the default branch is supported"
+    echo "Only the default branch '$SCORECARD_DEFAULT_BRANCH' is supported"
     exit 1
 fi
 
