@@ -32,7 +32,7 @@ export SCORECARD_RESULTS_FORMAT="$INPUT_RESULTS_FORMAT"
 export SCORECARD_PUBLISH_RESULTS="$INPUT_PUBLISH_RESULTS"
 # https://docs.github.com/en/actions/learn-github-actions/environment-variables
 export SCORECARD_PRIVATE_REPOSITORY="$(jq '.repository.private' $GITHUB_EVENT_PATH)"
-export SCORECARD_DEFAULT_BRANCH="$(jq '.default_branch' $GITHUB_EVENT_PATH)"
+export SCORECARD_DEFAULT_BRANCH="refs/heads/$(jq '.default_branch' $GITHUB_EVENT_PATH)"
 export SCORECARD_BIN="/scorecard"
 export ENABLED_CHECKS=
 
@@ -59,7 +59,7 @@ echo "Default branch: $SCORECARD_DEFAULT_BRANCH"
 
 # Note: this will fail if we push to a branch on the same repo, so it will show as failing
 # on forked repos.
-if [[ "$GITHUB_EVENT_NAME" != "pull_request"* ]] && ! [[ "$GITHUB_REF" =~ ^"refs/heads/$SCORECARD_DEFAULT_BRANCH"$ ]]; then
+if [[ "$GITHUB_EVENT_NAME" != "pull_request"* ]] && [[ "$GITHUB_REF" != "$SCORECARD_DEFAULT_BRANCH" ]]; then
     echo "$GITHUB_REF not supported with '$GITHUB_EVENT_NAME' event."
     echo "Only the default branch is supported"
     exit 1
