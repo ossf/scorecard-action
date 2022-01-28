@@ -98,7 +98,7 @@ If the PAT is saved as an encrypted secret and the run is still failing, confirm
     
 If you prefer to manually set up the Scorecards GitHub Action, you will need to set up a [workflow file](https://docs.github.com/en/actions/learn-github-actions/workflow-syntax-for-github-actions).
 
-First, [create a new file](https://docs.github.com/en/repositories/working-with-files/managing-files/creating-new-files) in this location: `[yourrepo].github/workflows/scorecards-analysis.yml`. Then use the input values below.
+First, [create a new file](https://docs.github.com/en/repositories/working-with-files/managing-files/creating-new-files) in this location: `[yourrepo]/.github/workflows/scorecards-analysis.yml`. Then use the input values below.
  
 
 ### Inputs
