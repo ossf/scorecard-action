@@ -44,7 +44,7 @@ export ENABLED_CHECKS=
 # default_branch: null
 #
 # for trigger event `schedule`. This is a bug.
-# So instead we use the REST API instead to retrieve the data.
+# So instead we use the REST API to retrieve the data.
 #
 # Boolean inputs are strings https://github.com/actions/runner/issues/1483.
 # ===============================================================================
