@@ -49,7 +49,7 @@ export ENABLED_CHECKS=
 # Boolean inputs are strings https://github.com/actions/runner/issues/1483.
 # ===============================================================================
 export SCORECARD_PRIVATE_REPOSITORY="$(curl -s -H \"Authorization: Bearer $GITHUB_AUTH_TOKEN\" https://api.github.com/repos/$SCORECARD_REPOSITORY | jq -r '.private')"
-export SCORECARD_DEFAULT_BRANCH="refs/heads/$(curl -s -H \"Authorization: Bearer $GITHUB_AUTH_TOKEN\" https://api.github.com/$SCORECARD_REPOSITORY | jq -r '.default_branch')"
+export SCORECARD_DEFAULT_BRANCH="refs/heads/$(curl -s -H \"Authorization: Bearer $GITHUB_AUTH_TOKEN\" https://api.github.com/repos/$SCORECARD_REPOSITORY | jq -r '.default_branch')"
 
 # If the repository is private, never publish the results.
 if [[ "$SCORECARD_PRIVATE_REPOSITORY" == "true" ]]; then
