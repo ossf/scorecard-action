@@ -59,7 +59,12 @@ echo "Format: $SCORECARD_RESULTS_FORMAT"
 echo "Policy file: $SCORECARD_POLICY_FILE"
 echo "Default branch: $SCORECARD_DEFAULT_BRANCH"
 echo "Master branch: $SCORECARD_MASTER_BRANCH"
+echo "Token: $GITHUB_TOKEN"
 
+if [[ -z "$GITHUB_TOKEN" ]]
+    then
+    echo "$GITHUB_TOKEN not empty!"
+fi
 # Note: this will fail if we push to a branch on the same repo, so it will show as failing
 # on forked repos.
 if [[ "$GITHUB_EVENT_NAME" != "pull_request"* ]] && [[ "$GITHUB_REF" != "$SCORECARD_DEFAULT_BRANCH" ]]; then
