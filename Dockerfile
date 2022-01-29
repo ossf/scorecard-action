@@ -27,7 +27,8 @@ FROM gcr.io/openssf/scorecard@sha256:8165ad910019422f40c51cbb97ff6e7db0e2e2e11fa
 # TODO: use distroless.
 FROM debian:9.5-slim
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends jq ca-certificates
+    apt-get install -y --no-install-recommends \
+    jq ca-certificates curl
 
 # Copy the scorecard binary from the official scorecard image.
 COPY --from=base /scorecard /scorecard
