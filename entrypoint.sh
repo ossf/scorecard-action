@@ -36,6 +36,8 @@ export SCORECARD_DEFAULT_BRANCH="refs/heads/$(jq -r '.repository.default_branch'
 export SCORECARD_BIN="/scorecard"
 export ENABLED_CHECKS=
 
+export SCORECARD_MASTER_BRANCH="refs/heads/$(jq -r '.repository.master_branch' $GITHUB_EVENT_PATH)"
+
 # WARNING: boolean inputs are strings https://github.com/actions/runner/issues/1483.
 
 # If the repository is private, never publish the results.
@@ -56,6 +58,7 @@ echo "Publication enabled: $SCORECARD_PUBLISH_RESULTS"
 echo "Format: $SCORECARD_RESULTS_FORMAT"
 echo "Policy file: $SCORECARD_POLICY_FILE"
 echo "Default branch: $SCORECARD_DEFAULT_BRANCH"
+echo "Master branch: $SCORECARD_MASTER_BRANCH"
 
 # Note: this will fail if we push to a branch on the same repo, so it will show as failing
 # on forked repos.
