@@ -25,7 +25,8 @@ FROM gcr.io/openssf/scorecard@sha256:8165ad910019422f40c51cbb97ff6e7db0e2e2e11fa
 
 # Build our image and update the root certs.
 # TODO: use distroless.
-FROM debian:9.5-slim
+#FROM debian:9.5-slim
+FROM debian@sha256:ef6be890318a105f7401d0504c01c2888daa5d9e45b308cf0e45c7cb8e44634f
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
     jq ca-certificates curl
