@@ -30,13 +30,28 @@ export SCORECARD_POLICY_FILE="/policy.yml" # Copied at docker image creation.
 export SCORECARD_RESULTS_FILE="$INPUT_RESULTS_FILE"
 export SCORECARD_RESULTS_FORMAT="$INPUT_RESULTS_FORMAT"
 export SCORECARD_PUBLISH_RESULTS="$INPUT_PUBLISH_RESULTS"
-# https://docs.github.com/en/actions/learn-github-actions/environment-variables
-export SCORECARD_PRIVATE_REPOSITORY="$(jq '.repository.private' $GITHUB_EVENT_PATH)"
-export SCORECARD_DEFAULT_BRANCH="refs/heads/$(jq -r '.repository.default_branch' $GITHUB_EVENT_PATH)"
+export SCORECARD_REPOSITORY="$(jq -r '.repository.full_name' $GITHUB_EVENT_PATH)"
 export SCORECARD_BIN="/scorecard"
 export ENABLED_CHECKS=
 
-# WARNING: boolean inputs are strings https://github.com/actions/runner/issues/1483.
+## ============================== WARNING ======================================
+# https://docs.github.com/en/actions/learn-github-actions/environment-variables
+# export SCORECARD_PRIVATE_REPOSITORY="$(jq '.repository.private' $GITHUB_EVENT_PATH)"
+# export SCORECARD_DEFAULT_BRANCH="refs/heads/$(jq -r '.repository.default_branch' $GITHUB_EVENT_PATH)"
+#
+# The $GITHUB_EVENT_PATH file produces:
+# private: null
+# default_branch: null
+#
+# for trigger event `schedule`. This is a bug.
+# So instead we use the REST API to retrieve the data.
+#
+# Boolean inputs are strings https://github.com/actions/runner/issues/1483.
+# ===============================================================================
+curl -s -H "Authorization: Bearer $GITHUB_AUTH_TOKEN" https://api.github.com/repos/$SCORECARD_REPOSITORY > repo_info.json
+export SCORECARD_PRIVATE_REPOSITORY="$(cat repo_info.json | jq -r '.private')"
+export SCORECARD_DEFAULT_BRANCH="refs/heads/$(cat repo_info.json | jq -r '.default_branch')"
+rm repo_info.json
 
 # If the repository is private, never publish the results.
 if [[ "$SCORECARD_PRIVATE_REPOSITORY" == "true" ]]; then
@@ -51,6 +66,7 @@ fi
 echo "Event file: $GITHUB_EVENT_PATH"
 echo "Event name: $GITHUB_EVENT_NAME"
 echo "Ref: $GITHUB_REF"
+echo "Repository: $SCORECARD_REPOSITORY"
 echo "Private repository: $SCORECARD_PRIVATE_REPOSITORY"
 echo "Publication enabled: $SCORECARD_PUBLISH_RESULTS"
 echo "Format: $SCORECARD_RESULTS_FORMAT"
