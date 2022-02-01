@@ -30,6 +30,7 @@ export SCORECARD_POLICY_FILE="/policy.yml" # Copied at docker image creation.
 export SCORECARD_RESULTS_FILE="$INPUT_RESULTS_FILE"
 export SCORECARD_RESULTS_FORMAT="$INPUT_RESULTS_FORMAT"
 export SCORECARD_PUBLISH_RESULTS="$INPUT_PUBLISH_RESULTS"
+export SCORECARD_IS_FORK="$(jq '.repository.fork' $GITHUB_EVENT_PATH)"
 export SCORECARD_BIN="/scorecard"
 export ENABLED_CHECKS=
 
@@ -66,11 +67,25 @@ echo "Event file: $GITHUB_EVENT_PATH"
 echo "Event name: $GITHUB_EVENT_NAME"
 echo "Ref: $GITHUB_REF"
 echo "Repository: $GITHUB_REPOSITORY"
+echo "Fork repository: $SCORECARD_IS_FORK"
 echo "Private repository: $SCORECARD_PRIVATE_REPOSITORY"
 echo "Publication enabled: $SCORECARD_PUBLISH_RESULTS"
 echo "Format: $SCORECARD_RESULTS_FORMAT"
 echo "Policy file: $SCORECARD_POLICY_FILE"
 echo "Default branch: $SCORECARD_DEFAULT_BRANCH"
+
+if [[ -z "$GITHUB_AUTH_TOKEN" ]]; then
+    echo "The 'repo_token' variable is empty."
+
+    if [[ "$SCORECARD_IS_FORK" == "true" ]]; then
+        echo "We have detected you are running on a fork."
+    fi
+
+    echo "Please follow the instructions at https://github.com/ossf/scorecard-action#authentication to create the read-only PAT token."
+    exit 1
+fi
+
+
 
 # Note: this will fail if we push to a branch on the same repo, so it will show as failing
 # on forked repos.
