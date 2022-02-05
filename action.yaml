@@ -29,12 +29,12 @@ inputs:
 
   repo_token:
     description: "INPUT: GitHub token with read access"
-    required: True
+    required: true
 
   publish_results:
     description: "INPUT: Publish results"
-    required: False
-    default: False
+    required: false
+    default: false
 
 branding:
   icon: "mic"
