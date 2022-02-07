@@ -14,7 +14,7 @@ import (
 const ORG_NAME string = "organization name"
 const PAT string = "access token"
 
-// Adds the Google Scorecard workflow to all repositores under the given organization.
+// Adds the OpenSSF Scorecard workflow to all repositores under the given organization.
 func main() {
 	// Get github user client.
 	context := context.Background()
