@@ -20,6 +20,7 @@ import (
 )
 
 func Test_scorecardIsFork(t *testing.T) {
+	t.Parallel()
 	type args struct {
 		ghEventPath string
 	}
@@ -60,7 +61,9 @@ func Test_scorecardIsFork(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			var data []byte
 			var err error
 			if tt.args.ghEventPath != "" {
@@ -84,6 +87,7 @@ func Test_scorecardIsFork(t *testing.T) {
 }
 
 func Test_initalizeENVVariables(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name                   string
 		wantErr                bool
@@ -158,7 +162,9 @@ func Test_initalizeENVVariables(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			if tt.inputresultsfileSet {
 				os.Setenv("INPUT_RESULTS_FILE", tt.inputresultsfile)
 			} else {
@@ -183,14 +189,18 @@ func Test_initalizeENVVariables(t *testing.T) {
 				t.Errorf("initalizeENVVariables() error = %v, wantErr %v", err, tt.wantErr)
 			}
 
-			if os.Getenv("ENABLE_SARIF") == "" && os.Getenv("ENABLE_SARIF") != "1" {
-				t.Errorf("ENABLE_SARIF is not set")
-			}
-			if os.Getenv("ENABLE_LICENSE") == "" && os.Getenv("ENABLE_LICENSE") != "1" {
-				t.Errorf("ENABLE_LICENSE is not set")
-			}
-			if os.Getenv("ENABLE_DANGEROUS_WORKFLOW") == "" && os.Getenv("ENABLE_DANGEROUS_WORKFLOW") != "1" {
-				t.Errorf("ENABLE_DANGEROUS_WORKFLOW is not set")
+			envvars := make(map[string]string)
+			envvars["ENABLE_SARIF"] = "1"
+			envvars["ENABLE_LICENSE"] = "1"
+			envvars["ENABLE_DANGEROUS_WORKFLOW"] = "1"
+			envvars["SCORECARD_POLICY_FILE"] = "./policy.yml"
+			envvars["SCORECARD_BIN"] = "/scorecard"
+			envvars["ENABLED_CHECKS"] = ""
+
+			for k, v := range envvars {
+				if os.Getenv(k) != v {
+					t.Errorf("%s env var not set correctly", k)
+				}
 			}
 		})
 	}
