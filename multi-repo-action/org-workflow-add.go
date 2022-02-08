@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"io/ioutil"
-	"os"
 
 	"github.com/google/go-github/v42/github"
 	"golang.org/x/oauth2"
@@ -52,18 +51,18 @@ func main() {
 		err_check(err, "Get Branch Error")
 		defaultBranchSHA := defaultBranch.Commit.SHA
 
-		// Check if scorecard file already exists in workflows folder.
+		// Skip if scorecard file already exists in workflows folder.
 		scoreFileContent, _, _, err := client.Repositories.GetContents(context, ORG_NAME, repoName, ".github/workflows/scorecards-analysis.yml", &github.RepositoryContentGetOptions{})
 		if scoreFileContent != nil || err == nil {
 			fmt.Println("Could not process repo", repoName, "since scorecard workflow already exists.")
-			os.Exit(1)
+			continue
 		}
 
-		// Check if branch scorecard already exists.
+		// Skip if branch scorecard already exists.
 		scorecardBranch, _, err := client.Repositories.GetBranch(context, ORG_NAME, repoName, "scorecard", true)
 		if scorecardBranch != nil || err == nil {
 			fmt.Println("Could not process repo", repoName, "since branch scorecard already exists.")
-			os.Exit(1)
+			continue
 		}
 
 		// Create new branch using a reference that stores the new commit hash.
@@ -95,7 +94,7 @@ func main() {
 		_, _, err = client.PullRequests.Create(context, ORG_NAME, repoName, pr)
 		err_check(err, "Pull Request Error")
 
-		//Logging
+		// Logging
 		fmt.Println("Added scorecard workflow PR from scorecard to", *defaultBranch.Name, "branch of repo", repoName)
 	}
 }
