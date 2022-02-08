@@ -14,13 +14,16 @@
 package main
 
 import (
+	"fmt"
 	"io/ioutil"
 	"os"
+	"strconv"
 	"testing"
 )
 
+//not setting t.Parallel() here because we are mutating the env variables
+//nolint
 func Test_scorecardIsFork(t *testing.T) {
-	t.Parallel()
 	type args struct {
 		ghEventPath string
 	}
@@ -63,7 +66,6 @@ func Test_scorecardIsFork(t *testing.T) {
 	for _, tt := range tests {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
 			var data []byte
 			var err error
 			if tt.args.ghEventPath != "" {
@@ -86,8 +88,10 @@ func Test_scorecardIsFork(t *testing.T) {
 	}
 }
 
+//not setting t.Parallel() here because we are mutating the env variables
+//nolint
 func Test_initalizeENVVariables(t *testing.T) {
-	t.Parallel()
+	//nolint
 	tests := []struct {
 		name                   string
 		wantErr                bool
@@ -164,43 +168,233 @@ func Test_initalizeENVVariables(t *testing.T) {
 	for _, tt := range tests {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
 			if tt.inputresultsfileSet {
-				os.Setenv("INPUT_RESULTS_FILE", tt.inputresultsfile)
+				defer os.Unsetenv(inputpublishresults)
+				os.Setenv(inputresultsfile, tt.inputresultsfile)
 			} else {
-				os.Unsetenv("INPUT_RESULTS_FILE")
+				os.Unsetenv(inputresultsfile)
 			}
 			if tt.inputresultsFormatSet {
-				os.Setenv("INPUT_RESULTS_FORMAT", tt.inputresultsFormat)
+				defer os.Unsetenv(inputresultsformat)
+				os.Setenv(inputresultsformat, tt.inputresultsFormat)
 			} else {
-				os.Unsetenv("INPUT_RESULTS_FORMAT")
+				os.Unsetenv(inputresultsformat)
 			}
 			if tt.inputPublishResultsSet {
-				os.Setenv("INPUT_PUBLISH_RESULTS", tt.inputPublishResults)
+				defer os.Unsetenv(inputpublishresults)
+				os.Setenv(inputpublishresults, tt.inputPublishResults)
 			} else {
-				os.Unsetenv("INPUT_PUBLISH_RESULTS")
+				os.Unsetenv(inputpublishresults)
 			}
 			if tt.githubEventPathSet {
-				os.Setenv("GITHUB_EVENT_PATH", tt.githubEventPath)
+				defer os.Unsetenv(githubEventPath)
+				os.Setenv(githubEventPath, tt.githubEventPath)
 			} else {
-				os.Unsetenv("GITHUB_EVENT_PATH")
+				os.Unsetenv(githubEventPath)
 			}
 			if err := initalizeENVVariables(); (err != nil) != tt.wantErr {
-				t.Errorf("initalizeENVVariables() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("initalizeENVVariables() error = %v, wantErr %v %v", err, tt.wantErr, t.Name())
 			}
 
 			envvars := make(map[string]string)
-			envvars["ENABLE_SARIF"] = "1"
-			envvars["ENABLE_LICENSE"] = "1"
-			envvars["ENABLE_DANGEROUS_WORKFLOW"] = "1"
-			envvars["SCORECARD_POLICY_FILE"] = "./policy.yml"
-			envvars["SCORECARD_BIN"] = "/scorecard"
-			envvars["ENABLED_CHECKS"] = ""
+			envvars[enableSarif] = "1"
+			envvars[enableLicense] = "1"
+			envvars[enableDangerousWorkflow] = "1"
+			envvars[scorecardPolicyFile] = "./policy.yml"
+			envvars[scorecardBin] = "/scorecard"
+			envvars[enabledChecks] = ""
 
 			for k, v := range envvars {
 				if os.Getenv(k) != v {
-					t.Errorf("%s env var not set correctly", k)
+					t.Errorf("%s env var not set correctly %s", k, v)
 				}
+			}
+		})
+	}
+}
+
+//not setting t.Parallel() here because we are mutating the env variables
+//nolint
+func Test_updateEnvVariables(t *testing.T) {
+	tests := []struct {
+		name                string
+		outputResultsFormat string
+		isPrivateRepo       bool
+		wantErr             bool
+	}{
+		{
+			name:                "Success - private repo",
+			outputResultsFormat: "json",
+			isPrivateRepo:       true,
+			wantErr:             false,
+		},
+		{
+			name:                "Success - private repo - sarif",
+			outputResultsFormat: "sarif",
+			isPrivateRepo:       true,
+			wantErr:             false,
+		},
+	}
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			if err := updateEnvVariables(); (err != nil) != tt.wantErr {
+				t.Errorf("updateEnvVariables() error = %v, wantErr %v", err, tt.wantErr)
+			}
+			if !tt.wantErr && tt.isPrivateRepo {
+				if os.Getenv(scorecardPublishResults) != "false" {
+					t.Errorf("scorecardPublishResults env var should be false")
+				}
+			}
+
+			if !tt.wantErr && tt.outputResultsFormat == sarif {
+				if _, ok := os.LookupEnv(scorecardPolicyFile); ok {
+					t.Errorf("enableSarif env var should not be set")
+				}
+			}
+		})
+	}
+}
+
+//not setting t.Parallel() here because we are mutating the env variables
+//nolint
+func Test_updateRepoistoryInformation(t *testing.T) {
+	type args struct {
+		defaultBranch string
+		privateRepo   bool
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Success - private repo",
+			args: args{
+				defaultBranch: "master",
+				privateRepo:   true,
+			},
+			wantErr: false,
+		},
+		{
+			name: "Success - public repo",
+			args: args{
+				defaultBranch: "master",
+				privateRepo:   false,
+			},
+			wantErr: false,
+		},
+		{
+			name: "Success - public repo - no default branch",
+			args: args{
+				defaultBranch: "",
+				privateRepo:   false,
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			if err := updateRepositoryInformation(tt.args.privateRepo, tt.args.defaultBranch); (err != nil) != tt.wantErr {
+				t.Errorf("updateRepoistoryInformation() error = %v, wantErr %v", err, tt.wantErr)
+			}
+			if tt.args.privateRepo {
+				if os.Getenv(scorecardPrivateRepository) != strconv.FormatBool(tt.args.privateRepo) {
+					t.Errorf("scorecardPublishResults env var should be false")
+				}
+			}
+			if tt.args.defaultBranch != "" {
+				if os.Getenv(scorecardDefaultBranch) != fmt.Sprintf("refs/heads/%s", tt.args.defaultBranch) {
+					t.Errorf("scorecardDefaultBranch env var should be %s", tt.args.defaultBranch)
+				}
+			}
+		})
+	}
+}
+
+//not setting t.Parallel() here because we are mutating the env variables
+//nolint
+func Test_checkIfRequiredENVSet(t *testing.T) {
+	tests := []struct {
+		name    string
+		wantErr bool
+	}{
+		{
+			name:    "Success - all required env vars set",
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		tt := tt
+		envVariables := make(map[string]bool)
+		envVariables[githubRepository] = true
+		envVariables[githubAuthToken] = true
+		t.Run(tt.name, func(t *testing.T) {
+			if !tt.wantErr {
+				for k := range envVariables {
+					defer os.Unsetenv(k)
+					if err := os.Setenv(k, "true"); err != nil {
+						t.Errorf("failed to set env var %s", k)
+					}
+				}
+			}
+			if err := checkIfRequiredENVSet(); (err != nil) != tt.wantErr {
+				t.Errorf("checkIfRequiredENVSet() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
+
+//nolint
+func Test_gitHubEventPath(t *testing.T) {
+	tests := []struct {
+		name                       string
+		wantErr                    bool
+		shouldgitHubEventPathBeSet bool
+		gitHubEventPath            string
+	}{
+		{
+			name:                       "Success - gitHubEventPath set",
+			wantErr:                    false,
+			shouldgitHubEventPathBeSet: true,
+			gitHubEventPath:            "./testdata/fork.json",
+		},
+		{
+			name:                       "Success - gitHubEventPath not set",
+			wantErr:                    true,
+			shouldgitHubEventPathBeSet: false,
+			gitHubEventPath:            "",
+		},
+		{
+			name:                       "Success - gitHubEventPath is empty",
+			wantErr:                    true,
+			shouldgitHubEventPathBeSet: true,
+			gitHubEventPath:            "",
+		},
+		{
+			name:                       "Failure non-existent file",
+			wantErr:                    true,
+			shouldgitHubEventPathBeSet: true,
+			gitHubEventPath:            "./foo.bar.json",
+		},
+		{
+			name:                       "Failure non-existent file",
+			wantErr:                    true,
+			shouldgitHubEventPathBeSet: true,
+			gitHubEventPath:            "./testdata/incorrect.json",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.shouldgitHubEventPathBeSet {
+				if err := os.Setenv(githubEventPath, tt.gitHubEventPath); err != nil {
+					t.Errorf("failed to set env var %s", githubEventPath)
+				}
+				defer os.Unsetenv(githubEventPath)
+			}
+			if err := gitHubEventPath(); (err != nil) != tt.wantErr {
+				t.Errorf("gitHubEventPath() error = %v, wantErr %v %v", err, tt.wantErr, tt.name)
 			}
 		})
 	}
