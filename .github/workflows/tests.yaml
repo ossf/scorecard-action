@@ -36,4 +36,5 @@ jobs:
         with:
           go-version: '1.17.x'
       - name: Run Go tests
-        run: go test -race ./...
+        # cannot run tests with race because we are mutating state (setting ENV variables)
+        run: go test ./...
