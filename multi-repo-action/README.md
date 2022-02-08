@@ -4,11 +4,12 @@ This tool will add the [OpenSSF's Scorecard workflow](https://github.com/ossf/sc
 
 ## Setup
 
-Running this tool requires two parameters, which are defined at the top of `org-workflow-add.go`:
+Running this tool requires three parameters, which are defined at the top of `org-workflow-add.go`:
 1. ORG_NAME - the name of the organization for which the workflow should be enabled.
 2. PAT - a Personal Access Token with the following scopes:
     - `repo > public_repo`
     - `admin:org > read:org`
+3. REPO_LIST (OPTIONAL) - repository names under the organization that the workflow should be added to. If not provided, every repository will be updated.
 
 Another PAT should also be defined inside of `scorecards.yml` using steps defined in [scorecard-action](https://github.com/ossf/scorecard-action#pat-token-creation).
 

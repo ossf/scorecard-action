@@ -11,8 +11,10 @@ import (
 )
 
 // *****SET THESE PARAMETERS*****
-const ORG_NAME string = "organization name"
-const PAT string = "access token"
+const ORG_NAME string = "ORGANIZATION NAME"
+const PAT string = "PERSONAL ACCESS TOKEN"
+
+var REPO_LIST = []string{} // OPTIONAL, LEAVE EMPTY FOR ALL REPOS UNDER ORG
 
 // Adds the OpenSSF Scorecard workflow to all repositores under the given organization.
 func main() {
@@ -24,15 +26,16 @@ func main() {
 	tokenClient := oauth2.NewClient(context, tokenService)
 	client := github.NewClient(tokenClient)
 
-	// Get repositories under organization.
-	lops := &github.RepositoryListByOrgOptions{Type: "all"}
-	repos, _, err := client.Repositories.ListByOrg(context, ORG_NAME, lops)
-	err_check(err, "List Org Repos Error")
+	// If not provided, get all repositories under organization.
+	if len(REPO_LIST) == 0 {
+		lops := &github.RepositoryListByOrgOptions{Type: "all"}
+		repos, _, err := client.Repositories.ListByOrg(context, ORG_NAME, lops)
+		err_check(err, "List Org Repos Error")
 
-	// Convert to list of repository names.
-	repoNames := []string{}
-	for _, repo := range repos {
-		repoNames = append(repoNames, *repo.Name)
+		// Convert to list of repository names.
+		for _, repo := range repos {
+			REPO_LIST = append(REPO_LIST, *repo.Name)
+		}
 	}
 
 	// Get yml file into byte array.
@@ -40,7 +43,7 @@ func main() {
 	err_check(err, "Read File Error")
 
 	// Process each repository.
-	for _, repoName := range repoNames {
+	for _, repoName := range REPO_LIST {
 
 		// Get head commit SHA of default branch.
 		repo, _, err := client.Repositories.Get(context, ORG_NAME, repoName)
