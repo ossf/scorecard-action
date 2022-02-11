@@ -48,7 +48,7 @@ export ENABLED_CHECKS=
 #
 # Boolean inputs are strings https://github.com/actions/runner/issues/1483.
 # ===============================================================================
-curl -s -H "Authorization: Bearer $GITHUB_AUTH_TOKEN" https://api.github.com/repos/$GITHUB_REPOSITORY > repo_info.json
+curl -s -H "Authorization: Bearer $GITHUB_AUTH_TOKEN" "https://api.github.com/repos/$GITHUB_REPOSITORY" | tee repo_info.json
 export SCORECARD_PRIVATE_REPOSITORY="$(cat repo_info.json | jq -r '.private')"
 export SCORECARD_DEFAULT_BRANCH="refs/heads/$(cat repo_info.json | jq -r '.default_branch')"
 rm repo_info.json
