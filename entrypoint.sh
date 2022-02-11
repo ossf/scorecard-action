@@ -30,7 +30,6 @@ export SCORECARD_POLICY_FILE="/policy.yml" # Copied at docker image creation.
 export SCORECARD_RESULTS_FILE="$INPUT_RESULTS_FILE"
 export SCORECARD_RESULTS_FORMAT="$INPUT_RESULTS_FORMAT"
 export SCORECARD_PUBLISH_RESULTS="$INPUT_PUBLISH_RESULTS"
-export SCORECARD_IS_FORK="$(jq '.repository.fork' $GITHUB_EVENT_PATH)"
 export SCORECARD_BIN="/scorecard"
 export ENABLED_CHECKS=
 
@@ -51,6 +50,7 @@ export ENABLED_CHECKS=
 curl -s -H "Authorization: Bearer $GITHUB_AUTH_TOKEN" https://api.github.com/repos/$GITHUB_REPOSITORY > repo_info.json
 export SCORECARD_PRIVATE_REPOSITORY="$(cat repo_info.json | jq -r '.private')"
 export SCORECARD_DEFAULT_BRANCH="refs/heads/$(cat repo_info.json | jq -r '.default_branch')"
+export SCORECARD_IS_FORK="$(cat repo_info.json | jq -r '.fork')"
 rm repo_info.json
 
 # If the repository is private, never publish the results.
