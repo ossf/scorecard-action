@@ -14,6 +14,7 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -395,6 +396,88 @@ func Test_gitHubEventPath(t *testing.T) {
 			}
 			if err := gitHubEventPath(); (err != nil) != tt.wantErr {
 				t.Errorf("gitHubEventPath() error = %v, wantErr %v %v", err, tt.wantErr, tt.name)
+			}
+		})
+	}
+}
+
+// The reason we are not using t.Parallel() here is because we are mutating the env variables
+//nolint
+func Test_validate(t *testing.T) {
+	//nolint
+	tests := []struct {
+		name                   string
+		wantWriter             string
+		wantErr                bool
+		authToken              string
+		scorecardFork          bool
+		gitHubEventName        string
+		ref                    string
+		scorecardDefaultBranch string
+	}{
+
+		{
+			name:                   "scorecardFork set and failure",
+			wantErr:                true,
+			authToken:              "",
+			scorecardFork:          true,
+			gitHubEventName:        "",
+			ref:                    "",
+			scorecardDefaultBranch: "",
+		},
+		{
+			name:                   "Success - scorecardFork set",
+			wantErr:                false,
+			authToken:              "token",
+			scorecardFork:          false,
+			gitHubEventName:        "",
+			ref:                    "",
+			scorecardDefaultBranch: "",
+		},
+		{
+			name:                   "Success - scorecardFork set",
+			wantErr:                true,
+			authToken:              "token",
+			scorecardFork:          true,
+			gitHubEventName:        "pull_request",
+			ref:                    "main",
+			scorecardDefaultBranch: "main",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			writer := &bytes.Buffer{}
+			if err := os.Setenv(scorecardFork, strconv.FormatBool(tt.scorecardFork)); err != nil {
+				t.Errorf("failed to set env var %s", scorecardFork)
+			}
+			defer os.Unsetenv(scorecardFork)
+			if tt.gitHubEventName != "" {
+				if err := os.Setenv(githubEventName, tt.gitHubEventName); err != nil {
+					t.Errorf("failed to set env var %s", githubEventName)
+				}
+				defer os.Unsetenv(githubEventName)
+			}
+			if tt.ref != "" {
+				if err := os.Setenv(githubRef, tt.ref); err != nil {
+					t.Errorf("failed to set env var %s", githubRef)
+				}
+				defer os.Unsetenv(githubRef)
+			}
+			if tt.scorecardDefaultBranch != "" {
+				if err := os.Setenv(scorecardDefaultBranch, tt.scorecardDefaultBranch); err != nil {
+					t.Errorf("failed to set env var %s", scorecardDefaultBranch)
+				}
+				defer os.Unsetenv(scorecardDefaultBranch)
+			}
+			if tt.authToken != "" {
+				if err := os.Setenv(githubAuthToken, tt.authToken); err != nil {
+					t.Errorf("failed to set env var %s", githubAuthToken)
+				}
+				defer os.Unsetenv(githubAuthToken)
+			}
+			if err := validate(writer); (err != nil) != tt.wantErr {
+				t.Errorf("validate() error = %v, wantErr %v", err, tt.wantErr)
+				return
 			}
 		})
 	}
