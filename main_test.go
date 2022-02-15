@@ -18,8 +18,11 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"os/exec"
 	"strconv"
 	"testing"
+
+	"github.com/google/go-cmp/cmp"
 )
 
 //not setting t.Parallel() here because we are mutating the env variables
@@ -478,6 +481,240 @@ func Test_validate(t *testing.T) {
 			if err := validate(writer); (err != nil) != tt.wantErr {
 				t.Errorf("validate() error = %v, wantErr %v", err, tt.wantErr)
 				return
+			}
+		})
+	}
+}
+
+func Test_runScorecardSettings(t *testing.T) {
+	t.Parallel()
+	type args struct {
+		githubEventName        string
+		scorecardPolicyFile    string
+		scorecardResultsFormat string
+		scorecardBin           string
+		scorecardResultsFile   string
+		githubRepository       string
+	}
+	//nolint
+	tests := []struct {
+		wantErr bool
+		name    string
+		args    args
+		want    *exec.Cmd
+	}{
+		{
+			name: "Success - scorecardFork set",
+			args: args{
+				githubEventName:        "pull_request",
+				scorecardPolicyFile:    "./testdata/scorecard.yaml",
+				scorecardResultsFormat: "json",
+				scorecardBin:           "scorecard",
+				scorecardResultsFile:   "./testdata/scorecard.json",
+				githubRepository:       "foo/bar",
+			},
+			want: &exec.Cmd{
+				Path: "scorecard",
+				Args: []string{
+					"scorecard",
+					"--policy",
+					"./testdata/scorecard.yaml",
+					"--results-format",
+					"json",
+					"--results-file",
+					"./testdata/scorecard.json",
+					"--repo",
+					"foo/bar",
+				},
+			},
+		},
+		{
+			name: "Success - scorecardFork set",
+			args: args{
+				githubEventName:        "pull_request",
+				scorecardPolicyFile:    "./testdata/scorecard.yaml",
+				scorecardResultsFormat: "json",
+				scorecardBin:           "scorecard",
+				scorecardResultsFile:   "./testdata/scorecard.json",
+				githubRepository:       "foo/bar",
+			},
+			want: &exec.Cmd{
+				Path: "scorecard",
+				Args: []string{
+					"scorecard",
+					"--policy",
+					"./testdata/scorecard.yaml",
+					"--results-format",
+					"json",
+					"--results-file",
+					"./testdata/scorecard.json",
+					"--repo",
+					"foo/bar",
+				},
+			},
+		},
+		{
+			name: "Success - scorecardFork set",
+			args: args{
+				githubEventName:        "pull_request",
+				scorecardPolicyFile:    "./testdata/scorecard.yaml",
+				scorecardResultsFormat: "json",
+				scorecardBin:           "scorecard",
+				scorecardResultsFile:   "./testdata/scorecard.json",
+				githubRepository:       "foo/bar",
+			},
+			want: &exec.Cmd{
+				Path: "scorecard",
+				Args: []string{
+					"scorecard",
+					"--policy",
+					"./testdata/scorecard.yaml",
+					"--results-format",
+					"json",
+					"--results-file",
+					"./testdata/scorecard.json",
+					"--repo",
+					"foo/bar",
+				},
+			},
+		},
+		{
+			name: "Success - scorecardFork set",
+			args: args{
+				githubEventName:        "pull_request",
+				scorecardResultsFormat: "json",
+				scorecardBin:           "scorecard",
+				scorecardResultsFile:   "./testdata/scorecard.json",
+				githubRepository:       "foo/bar",
+			},
+			want: &exec.Cmd{
+				Path: "scorecard",
+				Args: []string{
+					"scorecard",
+					"--results-format",
+					"json",
+					"--results-file",
+					"./testdata/scorecard.json",
+					"--repo",
+					"foo/bar",
+				},
+			},
+		},
+		{
+			name: "Success - scorecardFork set",
+			args: args{
+				githubEventName:        "pull_request",
+				scorecardResultsFormat: "json",
+				scorecardBin:           "scorecard",
+				scorecardResultsFile:   "./testdata/scorecard.json",
+				githubRepository:       "foo/bar",
+			},
+			want: &exec.Cmd{
+				Path: "scorecard",
+				Args: []string{
+					"scorecard",
+					"--results-format",
+					"json",
+					"--results-file",
+					"./testdata/scorecard.json",
+					"--repo",
+					"foo/bar",
+				},
+			},
+		},
+		{
+			name: "Success - scorecardFork set",
+			args: args{
+				scorecardResultsFormat: "json",
+				scorecardBin:           "scorecard",
+				scorecardResultsFile:   "./testdata/scorecard.json",
+				githubRepository:       "foo/bar",
+			},
+			want: &exec.Cmd{
+				Path: "scorecard",
+				Args: []string{
+					"scorecard",
+					"--results-format",
+					"json",
+					"--results-file",
+					"./testdata/scorecard.json",
+					"--repo",
+					"foo/bar",
+				},
+			},
+		},
+		{
+			name: "Success - Branch protection rule",
+			args: args{
+				githubEventName:        "branch_protection_rule",
+				scorecardResultsFormat: "json",
+				scorecardBin:           "scorecard",
+				scorecardResultsFile:   "./testdata/scorecard.json",
+				githubRepository:       "foo/bar",
+			},
+			want: &exec.Cmd{
+				Path: "scorecard",
+				Args: []string{
+					"scorecard",
+					"--results-format",
+					"json",
+					"--results-file",
+					"./testdata/scorecard.json",
+					"--repo",
+					"foo/bar",
+				},
+			},
+		},
+		{
+			name: "Success - Branch protection rule",
+			args: args{
+				scorecardPolicyFile:    "./testdata/scorecard.yaml",
+				githubEventName:        "branch_protection_rule",
+				scorecardResultsFormat: "json",
+				scorecardBin:           "scorecard",
+				scorecardResultsFile:   "./testdata/scorecard.json",
+				githubRepository:       "foo/bar",
+			},
+			want: &exec.Cmd{
+				Path: "scorecard",
+				Args: []string{
+					"scorecard",
+					"--policy",
+					"./testdata/scorecard.yaml",
+					"--results-format",
+					"json",
+					"--results-file",
+					"./testdata/scorecard.json",
+					"--repo",
+					"foo/bar",
+				},
+			},
+		},
+		{
+			name: "Want error - Branch protection rule",
+			args: args{
+				githubEventName:        "",
+				scorecardResultsFormat: "",
+				scorecardBin:           "",
+				scorecardResultsFile:   "",
+				githubRepository:       "",
+			},
+			wantErr: true,
+		},
+	}
+
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			got, err := runScorecardSettings(tt.args.githubEventName, tt.args.scorecardPolicyFile,
+				tt.args.scorecardResultsFormat, tt.args.scorecardBin, tt.args.scorecardResultsFile, tt.args.githubRepository)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("runScorecardSettings() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !tt.wantErr && cmp.Equal(got.Args, tt.want.Args) {
+				t.Errorf("runScorecardSettings() = %v, want %v", got, tt.want)
 			}
 		})
 	}
