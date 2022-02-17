@@ -1,4 +1,4 @@
-module org-workflow-add
+module github.com/ossf/scorecard-actions/cli
 
 go 1.17
 

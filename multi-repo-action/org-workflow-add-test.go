@@ -1,53 +1,10 @@
 package main
 
-import (
-	"context"
-	"fmt"
-
-	"github.com/google/go-github/v42/github"
-	"github.com/migueleliasweb/go-github-mock/src/mock"
-)
+import "testing"
 
 // Currently incomplete
+// Good reference: https://github.com/google/go-github/blob/887f605dd1f81715a4d4e3983e38450b29833639/github/repos_contents_test.go
 
-func main_test() {
-	mockedHTTPClient := mock.NewMockedHTTPClient(
-		mock.WithRequestMatch(
-			mock.GetUsersByUsername,
-			github.User{
-				Name: github.String("myuser"),
-			},
-		),
-		mock.WithRequestMatch(
-			mock.GetOrgsReposByOrg,
-			[]github.Repository{
-				{
-					Name: github.String("test-repo-1"),
-				},
-			},
-		),
-		mock.WithRequestMatch(
-			mock.GetReposByOwnerByRepo,
-			github.Repository{
-				DefaultBranch: github.String("main"),
-			},
-		),
-		mock.WithRequestMatch(
-			mock.GetReposBranchesByOwnerByRepo,
-			github.Branch{
-				Commit: &github.RepositoryCommit{
-					SHA: github.String("abcd"),
-				},
-			},
-		),
-	)
-	c := github.NewClient(mockedHTTPClient)
+func TestOrgWorkflowAdd(t *testing.T) {
 
-	ctx := context.Background()
-
-	user, _, _ := c.Users.Get(ctx, "myuser")
-
-	repos, _, _ := c.Repositories.ListByOrg(ctx, *user.Name, nil)
-
-	fmt.Println(repos)
 }

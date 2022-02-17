@@ -11,8 +11,6 @@ Running this tool requires three parameters, which are defined at the top of `or
     - `admin:org > read:org`
 3. REPO_LIST (OPTIONAL) - repository names under the organization that the workflow should be added to. If not provided, every repository will be updated.
 
-Another PAT should also be defined inside of `scorecards.yml` using steps defined in [scorecard-action](https://github.com/ossf/scorecard-action#pat-token-creation).
-
 ## Execution
 
 Execute this process by running `go run org-workflow-add.go` in the command line. Output will be produced for each successfully updated repository.

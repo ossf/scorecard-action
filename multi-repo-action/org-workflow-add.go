@@ -9,10 +9,10 @@ import (
 )
 
 // *****SET THESE PARAMETERS*****
-const ORG_NAME string = "ORGANIZATION NAME"
-const PAT string = "PERSONAL ACCESS TOKEN"
+const ORG_NAME string = ""
+const PAT string = ""
 
-var REPO_LIST = []string{} // OPTIONAL, LEAVE EMPTY FOR ALL REPOS UNDER ORG
+var REPO_LIST = []string{} // OPTIONAL, LEAVE EMPTY TO PROCESS ALL REPOS UNDER ORG
 
 // Adds the OpenSSF Scorecard workflow to all repositores under the given organization.
 func main() {
