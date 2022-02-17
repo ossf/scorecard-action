@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
 
 	"github.com/google/go-github/v42/github"
 	"golang.org/x/oauth2"
@@ -37,9 +36,12 @@ func main() {
 		}
 	}
 
-	// Get yml file into byte array.
-	fileContent, err := ioutil.ReadFile("scorecards.yml")
-	err_check(err, "Read File Error")
+	// Get most recent scorecard workflow yml.
+	opts := &github.RepositoryContentGetOptions{}
+	workflowFile, _, _, err := client.Repositories.GetContents(context, "ossf", "scorecard", ".github/workflows/scorecard-analysis.yml", opts)
+	err_check(err, "Could not download latest scorecard workflow file.")
+	workflowContent, err := workflowFile.GetContent()
+	err_check(err, "Could not access workflow file's contents.")
 
 	// Process each repository.
 	for _, repoName := range REPO_LIST {
@@ -76,7 +78,7 @@ func main() {
 		// Create file in repository.
 		opts := &github.RepositoryContentFileOptions{
 			Message: github.String("Adding scorecard workflow"),
-			Content: fileContent,
+			Content: []byte(workflowContent),
 			Branch:  github.String("scorecard"),
 		}
 		_, _, err = client.Repositories.CreateFile(context, ORG_NAME, repoName, ".github/workflows/scorecards-analysis.yml", opts)

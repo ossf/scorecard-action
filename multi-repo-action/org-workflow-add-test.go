@@ -8,7 +8,7 @@ import (
 	"github.com/migueleliasweb/go-github-mock/src/mock"
 )
 
-//Currently incomplete
+// Currently incomplete
 
 func main_test() {
 	mockedHTTPClient := mock.NewMockedHTTPClient(
