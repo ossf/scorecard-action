@@ -8,55 +8,39 @@ import (
 
 	"github.com/sigstore/cosign/cmd/cosign/cli/options"
 	"github.com/sigstore/cosign/cmd/cosign/cli/sign"
+	_ "github.com/sigstore/cosign/cmd/cosign/cli/verify"
 )
 
-var keyPass = []byte("hello")
+func main() {
+	err := signUploadResult("payload.txt")
+	if err != nil {
+		fmt.Println(err)
+	}
 
-var passFunc = func(_ bool) ([]byte, error) {
-	return keyPass, nil
 }
 
-func main() {
-	testData := "Hello World"
-	fmt.Println(testData)
-
+func signUploadResult(payload string) error {
 	os.Setenv("COSIGN_EXPERIMENTAL", "true")
 	ctx := context.Background()
-
-	// client, err := rekor.NewClient("rekor.sigstore.dev")
-	// err_check(err, "Rekor new client error.")
-
-	// //Generate key
-	// key, err := cosign.GenerateKeyPair(passFunc)
-	// err_check(err, "Generate key error.")
-	// os.WriteFile("signKey", key.PrivateBytes, 0600)
-
+	// Sign the data in payload.txt and generate certificate and tlog entry in Rekor.
 	keyOpts := sign.KeyOpts{
-		// KeyRef:    "signKey",
-		PassFunc:  passFunc,
-		FulcioURL: "https://fulcio.sigstore.dev",
-		RekorURL:  "https://rekor.sigstore.dev",
+		FulcioURL:    "https://fulcio.sigstore.dev",
+		RekorURL:     "https://rekor.sigstore.dev",
+		OIDCIssuer:   options.DefaultOIDCIssuerURL,
+		OIDCClientID: "sigstore",
 	}
 	regOpts := options.RegistryOptions{}
+
 	res, err := sign.SignBlobCmd(ctx, keyOpts, regOpts, "payload.txt", true, "output_signature", "output_certificate", time.Minute) //b64?
-	err_check(err, "Sign blob error.")
+	if err != nil {
+		return fmt.Errorf("error signing blob: %w", err)
+	}
 	fmt.Println(res)
 
-	// //GetRekorPub retrieves the rekor public key from the embedded or cached TUF root.
-	// //If expired, makes a network call to retrieve the updated target.
-	// cosign.GetRekorPub()
-
-	// //TLogUpload will upload the signature, public key and payload to the transparency log.
-	// cosign.TLogUpload()
-
-	// //VerifyImageSignature verifies a signature
-	// cosign.VerifyImageSignature()
-
-}
-
-func err_check(err error, msg string) {
-	if err != nil {
-		fmt.Println(msg, err)
-		os.Exit(1)
-	}
+	// (For testing) Verify signature.
+	// err = verify.VerifyBlobCmd(ctx, keyOpts, "output_certificate", "", "", "output_signature", "payload.txt")
+	// if err != nil {
+	// 	return fmt.Errorf("error verifying blob signature: %w", err)
+	// }
+	return nil
 }
