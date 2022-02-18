@@ -10,8 +10,8 @@ import (
 )
 
 // *****SET THESE PARAMETERS*****
-const ORG_NAME string = "rohan-test-org"
-const PAT string = "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"
+const ORG_NAME string = "ORGANIZATION NAME"
+const PAT string = "PERSONAL ACCESS TOKEN"
 
 var REPO_LIST = []string{} // OPTIONAL, LEAVE EMPTY TO PROCESS ALL REPOS UNDER ORG
 
