@@ -3,14 +3,15 @@ package main
 import (
 	"context"
 	"fmt"
+	"io/ioutil"
 
 	"github.com/google/go-github/v42/github"
 	"golang.org/x/oauth2"
 )
 
 // *****SET THESE PARAMETERS*****
-const ORG_NAME string = ""
-const PAT string = ""
+const ORG_NAME string = "rohan-test-org"
+const PAT string = "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"
 
 var REPO_LIST = []string{} // OPTIONAL, LEAVE EMPTY TO PROCESS ALL REPOS UNDER ORG
 
@@ -36,12 +37,9 @@ func main() {
 		}
 	}
 
-	// Get most recent scorecard workflow yml.
-	opts := &github.RepositoryContentGetOptions{}
-	workflowFile, _, _, err := client.Repositories.GetContents(context, "ossf", "scorecard", ".github/workflows/scorecard-analysis.yml", opts)
-	err_check(err, "Could not download latest scorecard workflow file.")
-	workflowContent, err := workflowFile.GetContent()
-	err_check(err, "Could not access workflow file's contents.")
+	// Get yml file into byte array.
+	workflowContent, err := ioutil.ReadFile("scorecards-analysis.yml")
+	err_check(err, "Read File Error")
 
 	// Process each repository.
 	for _, repoName := range REPO_LIST {
