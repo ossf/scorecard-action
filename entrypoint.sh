@@ -30,7 +30,6 @@ export SCORECARD_POLICY_FILE="/policy.yml" # Copied at docker image creation.
 export SCORECARD_RESULTS_FILE="$INPUT_RESULTS_FILE"
 export SCORECARD_RESULTS_FORMAT="$INPUT_RESULTS_FORMAT"
 export SCORECARD_PUBLISH_RESULTS="$INPUT_PUBLISH_RESULTS"
-export SCORECARD_REPOSITORY="$(jq -r '.repository.full_name' $GITHUB_EVENT_PATH)"
 export SCORECARD_BIN="/scorecard"
 export ENABLED_CHECKS=
 
@@ -48,9 +47,10 @@ export ENABLED_CHECKS=
 #
 # Boolean inputs are strings https://github.com/actions/runner/issues/1483.
 # ===============================================================================
-curl -s -H "Authorization: Bearer $GITHUB_AUTH_TOKEN" https://api.github.com/repos/$SCORECARD_REPOSITORY > repo_info.json
+curl -s -H "Authorization: Bearer $GITHUB_AUTH_TOKEN" https://api.github.com/repos/$GITHUB_REPOSITORY > repo_info.json
 export SCORECARD_PRIVATE_REPOSITORY="$(cat repo_info.json | jq -r '.private')"
 export SCORECARD_DEFAULT_BRANCH="refs/heads/$(cat repo_info.json | jq -r '.default_branch')"
+export SCORECARD_IS_FORK="$(cat repo_info.json | jq -r '.fork')"
 rm repo_info.json
 
 # If the repository is private, never publish the results.
@@ -66,12 +66,26 @@ fi
 echo "Event file: $GITHUB_EVENT_PATH"
 echo "Event name: $GITHUB_EVENT_NAME"
 echo "Ref: $GITHUB_REF"
-echo "Repository: $SCORECARD_REPOSITORY"
+echo "Repository: $GITHUB_REPOSITORY"
+echo "Fork repository: $SCORECARD_IS_FORK"
 echo "Private repository: $SCORECARD_PRIVATE_REPOSITORY"
 echo "Publication enabled: $SCORECARD_PUBLISH_RESULTS"
 echo "Format: $SCORECARD_RESULTS_FORMAT"
 echo "Policy file: $SCORECARD_POLICY_FILE"
 echo "Default branch: $SCORECARD_DEFAULT_BRANCH"
+
+if [[ -z "$GITHUB_AUTH_TOKEN" ]]; then
+    echo "The 'repo_token' variable is empty."
+
+    if [[ "$SCORECARD_IS_FORK" == "true" ]]; then
+        echo "We have detected you are running on a fork."
+    fi
+
+    echo "Please follow the instructions at https://github.com/ossf/scorecard-action#authentication to create the read-only PAT token."
+    exit 1
+fi
+
+
 
 # Note: this will fail if we push to a branch on the same repo, so it will show as failing
 # on forked repos.
