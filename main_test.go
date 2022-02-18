@@ -14,11 +14,15 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
 	"io/ioutil"
 	"os"
+	"os/exec"
 	"strconv"
 	"testing"
+
+	"github.com/google/go-cmp/cmp"
 )
 
 //not setting t.Parallel() here because we are mutating the env variables
@@ -395,6 +399,322 @@ func Test_gitHubEventPath(t *testing.T) {
 			}
 			if err := gitHubEventPath(); (err != nil) != tt.wantErr {
 				t.Errorf("gitHubEventPath() error = %v, wantErr %v %v", err, tt.wantErr, tt.name)
+			}
+		})
+	}
+}
+
+// The reason we are not using t.Parallel() here is because we are mutating the env variables
+//nolint
+func Test_validate(t *testing.T) {
+	//nolint
+	tests := []struct {
+		name                   string
+		wantWriter             string
+		wantErr                bool
+		authToken              string
+		scorecardFork          bool
+		gitHubEventName        string
+		ref                    string
+		scorecardDefaultBranch string
+	}{
+
+		{
+			name:                   "scorecardFork set and failure",
+			wantErr:                true,
+			authToken:              "",
+			scorecardFork:          true,
+			gitHubEventName:        "",
+			ref:                    "",
+			scorecardDefaultBranch: "",
+		},
+		{
+			name:                   "Success - scorecardFork set",
+			wantErr:                false,
+			authToken:              "token",
+			scorecardFork:          false,
+			gitHubEventName:        "",
+			ref:                    "",
+			scorecardDefaultBranch: "",
+		},
+		{
+			name:                   "Success - scorecardFork set",
+			wantErr:                true,
+			authToken:              "token",
+			scorecardFork:          true,
+			gitHubEventName:        "pull_request",
+			ref:                    "main",
+			scorecardDefaultBranch: "main",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			writer := &bytes.Buffer{}
+			if err := os.Setenv(scorecardFork, strconv.FormatBool(tt.scorecardFork)); err != nil {
+				t.Errorf("failed to set env var %s", scorecardFork)
+			}
+			defer os.Unsetenv(scorecardFork)
+			if tt.gitHubEventName != "" {
+				if err := os.Setenv(githubEventName, tt.gitHubEventName); err != nil {
+					t.Errorf("failed to set env var %s", githubEventName)
+				}
+				defer os.Unsetenv(githubEventName)
+			}
+			if tt.ref != "" {
+				if err := os.Setenv(githubRef, tt.ref); err != nil {
+					t.Errorf("failed to set env var %s", githubRef)
+				}
+				defer os.Unsetenv(githubRef)
+			}
+			if tt.scorecardDefaultBranch != "" {
+				if err := os.Setenv(scorecardDefaultBranch, tt.scorecardDefaultBranch); err != nil {
+					t.Errorf("failed to set env var %s", scorecardDefaultBranch)
+				}
+				defer os.Unsetenv(scorecardDefaultBranch)
+			}
+			if tt.authToken != "" {
+				if err := os.Setenv(githubAuthToken, tt.authToken); err != nil {
+					t.Errorf("failed to set env var %s", githubAuthToken)
+				}
+				defer os.Unsetenv(githubAuthToken)
+			}
+			if err := validate(writer); (err != nil) != tt.wantErr {
+				t.Errorf("validate() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+		})
+	}
+}
+
+func Test_runScorecardSettings(t *testing.T) {
+	t.Parallel()
+	type args struct {
+		githubEventName        string
+		scorecardPolicyFile    string
+		scorecardResultsFormat string
+		scorecardBin           string
+		scorecardResultsFile   string
+		githubRepository       string
+	}
+	//nolint
+	tests := []struct {
+		wantErr bool
+		name    string
+		args    args
+		want    *exec.Cmd
+	}{
+		{
+			name: "Success - scorecardFork set",
+			args: args{
+				githubEventName:        "pull_request",
+				scorecardPolicyFile:    "./testdata/scorecard.yaml",
+				scorecardResultsFormat: "json",
+				scorecardBin:           "scorecard",
+				scorecardResultsFile:   "./testdata/scorecard.json",
+				githubRepository:       "foo/bar",
+			},
+			want: &exec.Cmd{
+				Path: "scorecard",
+				Args: []string{
+					"scorecard",
+					"--policy",
+					"./testdata/scorecard.yaml",
+					"--results-format",
+					"json",
+					"--results-file",
+					"./testdata/scorecard.json",
+					"--repo",
+					"foo/bar",
+				},
+			},
+		},
+		{
+			name: "Success - scorecardFork set",
+			args: args{
+				githubEventName:        "pull_request",
+				scorecardPolicyFile:    "./testdata/scorecard.yaml",
+				scorecardResultsFormat: "json",
+				scorecardBin:           "scorecard",
+				scorecardResultsFile:   "./testdata/scorecard.json",
+				githubRepository:       "foo/bar",
+			},
+			want: &exec.Cmd{
+				Path: "scorecard",
+				Args: []string{
+					"scorecard",
+					"--policy",
+					"./testdata/scorecard.yaml",
+					"--results-format",
+					"json",
+					"--results-file",
+					"./testdata/scorecard.json",
+					"--repo",
+					"foo/bar",
+				},
+			},
+		},
+		{
+			name: "Success - scorecardFork set",
+			args: args{
+				githubEventName:        "pull_request",
+				scorecardPolicyFile:    "./testdata/scorecard.yaml",
+				scorecardResultsFormat: "json",
+				scorecardBin:           "scorecard",
+				scorecardResultsFile:   "./testdata/scorecard.json",
+				githubRepository:       "foo/bar",
+			},
+			want: &exec.Cmd{
+				Path: "scorecard",
+				Args: []string{
+					"scorecard",
+					"--policy",
+					"./testdata/scorecard.yaml",
+					"--results-format",
+					"json",
+					"--results-file",
+					"./testdata/scorecard.json",
+					"--repo",
+					"foo/bar",
+				},
+			},
+		},
+		{
+			name: "Success - scorecardFork set",
+			args: args{
+				githubEventName:        "pull_request",
+				scorecardResultsFormat: "json",
+				scorecardBin:           "scorecard",
+				scorecardResultsFile:   "./testdata/scorecard.json",
+				githubRepository:       "foo/bar",
+			},
+			want: &exec.Cmd{
+				Path: "scorecard",
+				Args: []string{
+					"scorecard",
+					"--results-format",
+					"json",
+					"--results-file",
+					"./testdata/scorecard.json",
+					"--repo",
+					"foo/bar",
+				},
+			},
+		},
+		{
+			name: "Success - scorecardFork set",
+			args: args{
+				githubEventName:        "pull_request",
+				scorecardResultsFormat: "json",
+				scorecardBin:           "scorecard",
+				scorecardResultsFile:   "./testdata/scorecard.json",
+				githubRepository:       "foo/bar",
+			},
+			want: &exec.Cmd{
+				Path: "scorecard",
+				Args: []string{
+					"scorecard",
+					"--results-format",
+					"json",
+					"--results-file",
+					"./testdata/scorecard.json",
+					"--repo",
+					"foo/bar",
+				},
+			},
+		},
+		{
+			name: "Success - scorecardFork set",
+			args: args{
+				scorecardResultsFormat: "json",
+				scorecardBin:           "scorecard",
+				scorecardResultsFile:   "./testdata/scorecard.json",
+				githubRepository:       "foo/bar",
+			},
+			want: &exec.Cmd{
+				Path: "scorecard",
+				Args: []string{
+					"scorecard",
+					"--results-format",
+					"json",
+					"--results-file",
+					"./testdata/scorecard.json",
+					"--repo",
+					"foo/bar",
+				},
+			},
+		},
+		{
+			name: "Success - Branch protection rule",
+			args: args{
+				githubEventName:        "branch_protection_rule",
+				scorecardResultsFormat: "json",
+				scorecardBin:           "scorecard",
+				scorecardResultsFile:   "./testdata/scorecard.json",
+				githubRepository:       "foo/bar",
+			},
+			want: &exec.Cmd{
+				Path: "scorecard",
+				Args: []string{
+					"scorecard",
+					"--results-format",
+					"json",
+					"--results-file",
+					"./testdata/scorecard.json",
+					"--repo",
+					"foo/bar",
+				},
+			},
+		},
+		{
+			name: "Success - Branch protection rule",
+			args: args{
+				scorecardPolicyFile:    "./testdata/scorecard.yaml",
+				githubEventName:        "branch_protection_rule",
+				scorecardResultsFormat: "json",
+				scorecardBin:           "scorecard",
+				scorecardResultsFile:   "./testdata/scorecard.json",
+				githubRepository:       "foo/bar",
+			},
+			want: &exec.Cmd{
+				Path: "scorecard",
+				Args: []string{
+					"scorecard",
+					"--policy",
+					"./testdata/scorecard.yaml",
+					"--results-format",
+					"json",
+					"--results-file",
+					"./testdata/scorecard.json",
+					"--repo",
+					"foo/bar",
+				},
+			},
+		},
+		{
+			name: "Want error - Branch protection rule",
+			args: args{
+				githubEventName:        "",
+				scorecardResultsFormat: "",
+				scorecardBin:           "",
+				scorecardResultsFile:   "",
+				githubRepository:       "",
+			},
+			wantErr: true,
+		},
+	}
+
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			got, err := runScorecardSettings(tt.args.githubEventName, tt.args.scorecardPolicyFile,
+				tt.args.scorecardResultsFormat, tt.args.scorecardBin, tt.args.scorecardResultsFile, tt.args.githubRepository)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("runScorecardSettings() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !tt.wantErr && cmp.Equal(got.Args, tt.want.Args) {
+				t.Errorf("runScorecardSettings() = %v, want %v", got, tt.want)
 			}
 		})
 	}
