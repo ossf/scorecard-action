@@ -301,7 +301,7 @@ func Test_updateRepoistoryInformation(t *testing.T) {
 				t.Errorf("updateRepoistoryInformation() error = %v, wantErr %v", err, tt.wantErr)
 			}
 			if tt.args.privateRepo {
-				if os.Getenv(scorecardPrivateRepository) != strconv.FormatBool(tt.args.privateRepo) {
+				if scorecardPrivateRepository != strconv.FormatBool(tt.args.privateRepo) {
 					t.Errorf("scorecardPublishResults env var should be false")
 				}
 			}
