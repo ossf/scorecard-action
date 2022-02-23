@@ -14,7 +14,7 @@ import (
 const orgName string = "organization name"
 const pat string = "personal access token"
 
-var REPO_LIST = []string{} // Optional, leave empty to process all repos under org.
+var RepoList = []string{} // Optional, leave empty to process all repos under org.
 // **************************************
 
 // Adds the OpenSSF Scorecard workflow to all repositores under the given organization.
