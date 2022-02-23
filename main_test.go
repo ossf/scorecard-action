@@ -204,9 +204,6 @@ func Test_initalizeENVVariables(t *testing.T) {
 			envvars[enableSarif] = "1"
 			envvars[enableLicense] = "1"
 			envvars[enableDangerousWorkflow] = "1"
-			envvars[scorecardPolicyFile] = "./policy.yml"
-			envvars[scorecardBin] = "/scorecard"
-			envvars[enabledChecks] = ""
 
 			for k, v := range envvars {
 				if os.Getenv(k) != v {
@@ -246,7 +243,7 @@ func Test_updateEnvVariables(t *testing.T) {
 				t.Errorf("updateEnvVariables() error = %v, wantErr %v", err, tt.wantErr)
 			}
 			if !tt.wantErr && tt.isPrivateRepo {
-				if os.Getenv(scorecardPublishResults) != "false" {
+				if scorecardPublishResults != "false" {
 					t.Errorf("scorecardPublishResults env var should be false")
 				}
 			}
@@ -304,12 +301,12 @@ func Test_updateRepoistoryInformation(t *testing.T) {
 				t.Errorf("updateRepoistoryInformation() error = %v, wantErr %v", err, tt.wantErr)
 			}
 			if tt.args.privateRepo {
-				if os.Getenv(scorecardPrivateRepository) != strconv.FormatBool(tt.args.privateRepo) {
+				if scorecardPrivateRepository != strconv.FormatBool(tt.args.privateRepo) {
 					t.Errorf("scorecardPublishResults env var should be false")
 				}
 			}
 			if tt.args.defaultBranch != "" {
-				if os.Getenv(scorecardDefaultBranch) != fmt.Sprintf("refs/heads/%s", tt.args.defaultBranch) {
+				if scorecardDefaultBranch != fmt.Sprintf("refs/heads/%s", tt.args.defaultBranch) {
 					t.Errorf("scorecardDefaultBranch env var should be %s", tt.args.defaultBranch)
 				}
 			}
@@ -467,10 +464,7 @@ func Test_validate(t *testing.T) {
 				defer os.Unsetenv(githubRef)
 			}
 			if tt.scorecardDefaultBranch != "" {
-				if err := os.Setenv(scorecardDefaultBranch, tt.scorecardDefaultBranch); err != nil {
-					t.Errorf("failed to set env var %s", scorecardDefaultBranch)
-				}
-				defer os.Unsetenv(scorecardDefaultBranch)
+				scorecardDefaultBranch = tt.scorecardDefaultBranch
 			}
 			if tt.authToken != "" {
 				if err := os.Setenv(githubAuthToken, tt.authToken); err != nil {
