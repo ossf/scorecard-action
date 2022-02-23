@@ -306,7 +306,7 @@ func Test_updateRepoistoryInformation(t *testing.T) {
 				}
 			}
 			if tt.args.defaultBranch != "" {
-				if os.Getenv(scorecardDefaultBranch) != fmt.Sprintf("refs/heads/%s", tt.args.defaultBranch) {
+				if scorecardDefaultBranch != fmt.Sprintf("refs/heads/%s", tt.args.defaultBranch) {
 					t.Errorf("scorecardDefaultBranch env var should be %s", tt.args.defaultBranch)
 				}
 			}
@@ -464,10 +464,7 @@ func Test_validate(t *testing.T) {
 				defer os.Unsetenv(githubRef)
 			}
 			if tt.scorecardDefaultBranch != "" {
-				if err := os.Setenv(scorecardDefaultBranch, tt.scorecardDefaultBranch); err != nil {
-					t.Errorf("failed to set env var %s", scorecardDefaultBranch)
-				}
-				defer os.Unsetenv(scorecardDefaultBranch)
+				scorecardDefaultBranch = tt.scorecardDefaultBranch
 			}
 			if tt.authToken != "" {
 				if err := os.Setenv(githubAuthToken, tt.authToken); err != nil {
