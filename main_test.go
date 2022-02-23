@@ -243,7 +243,7 @@ func Test_updateEnvVariables(t *testing.T) {
 				t.Errorf("updateEnvVariables() error = %v, wantErr %v", err, tt.wantErr)
 			}
 			if !tt.wantErr && tt.isPrivateRepo {
-				if os.Getenv(scorecardPublishResults) != "false" {
+				if scorecardPublishResults != "false" {
 					t.Errorf("scorecardPublishResults env var should be false")
 				}
 			}
