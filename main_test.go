@@ -204,7 +204,6 @@ func Test_initalizeENVVariables(t *testing.T) {
 			envvars[enableSarif] = "1"
 			envvars[enableLicense] = "1"
 			envvars[enableDangerousWorkflow] = "1"
-			envvars[scorecardPolicyFile] = "./policy.yml"
 			envvars[scorecardBin] = "/scorecard"
 			envvars[enabledChecks] = ""
 
