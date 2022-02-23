@@ -39,8 +39,8 @@ jobs:
         # cannot run tests with race because we are mutating state (setting ENV variables)
         run: go test -covermode=atomic  -coverprofile=unit-coverage.out ./...
       - name: Upload codecoverage
-       uses: codecov/codecov-action@f32b3a3741e1053eb607407145bc9619351dc93b # 2.1.0
-       with:
+        uses: codecov/codecov-action@f32b3a3741e1053eb607407145bc9619351dc93b # 2.1.0
+        with:
          files: ./unit-coverage.out
          verbose: true
 
