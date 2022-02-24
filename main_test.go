@@ -15,6 +15,7 @@ package main
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -23,6 +24,8 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
+	"github.com/sigstore/cosign/cmd/cosign/cli/rekor"
+	"github.com/sigstore/cosign/pkg/cosign"
 )
 
 //not setting t.Parallel() here because we are mutating the env variables
@@ -711,5 +714,30 @@ func Test_runScorecardSettings(t *testing.T) {
 				t.Errorf("runScorecardSettings() = %v, want %v", got, tt.want)
 			}
 		})
+	}
+}
+
+func Test_signScorecardResult(t *testing.T) {
+	// Sign example scorecard results file.
+	scorecardResultsFile := "./testdata/scorecard-results-example.sarif"
+	err := signScorecardResult(scorecardResultsFile)
+	if err != nil {
+		t.Errorf("signScorecardResult() error, %v", err)
+		return
+	}
+
+	// Verify that the signature was created and uploaded to the Rekor tlog by looking up the payload.
+	ctx := context.Background()
+	rekorClient, _ := rekor.NewClient("https://rekor.sigstore.dev")
+	scorecardResultData, err := ioutil.ReadFile("./testdata/scorecard-results-example.sarif")
+	if err != nil {
+		t.Errorf("signScorecardResult() error reading scorecard result file, %v", err)
+		return
+	}
+	uuids, _ := cosign.FindTLogEntriesByPayload(ctx, rekorClient, scorecardResultData)
+
+	if len(uuids) == 0 {
+		t.Errorf("signScorecardResult() error finding signature in Rekor tlog, %v", err)
+		return
 	}
 }

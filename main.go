@@ -14,6 +14,7 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -24,6 +25,10 @@ import (
 	"os/exec"
 	"strconv"
 	"strings"
+	"time"
+
+	"github.com/sigstore/cosign/cmd/cosign/cli/options"
+	"github.com/sigstore/cosign/cmd/cosign/cli/sign"
 )
 
 var (
@@ -399,4 +404,25 @@ func runScorecardSettings(githubEventName, scorecardPolicyFile, scorecardResults
 		scorecardResultsFile,
 	}
 	return &result, nil
+}
+
+func signScorecardResult(scorecardResultsFile string) error {
+	os.Setenv("COSIGN_EXPERIMENTAL", "true")
+	ctx := context.Background()
+
+	// Sign the scorecard result data and generate certificate and tlog entry in Rekor.
+	keyOpts := sign.KeyOpts{
+		FulcioURL:    "https://fulcio.sigstore.dev",
+		RekorURL:     "https://rekor.sigstore.dev",
+		OIDCIssuer:   options.DefaultOIDCIssuerURL,
+		OIDCClientID: "sigstore",
+	}
+	regOpts := options.RegistryOptions{}
+
+	_, err := sign.SignBlobCmd(ctx, keyOpts, regOpts, scorecardResultsFile, true, "", "", time.Minute)
+	if err != nil {
+		return fmt.Errorf("Error signing payload: %w", err)
+	}
+
+	return nil
 }
