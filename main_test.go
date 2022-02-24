@@ -718,6 +718,7 @@ func Test_runScorecardSettings(t *testing.T) {
 }
 
 func Test_signScorecardResult(t *testing.T) {
+	t.Parallel()
 	// Sign example scorecard results file.
 	scorecardResultsFile := "./testdata/scorecard-results-example.sarif"
 	err := signScorecardResult(scorecardResultsFile)
@@ -728,13 +729,21 @@ func Test_signScorecardResult(t *testing.T) {
 
 	// Verify that the signature was created and uploaded to the Rekor tlog by looking up the payload.
 	ctx := context.Background()
-	rekorClient, _ := rekor.NewClient("https://rekor.sigstore.dev")
+	rekorClient, err := rekor.NewClient("https://rekor.sigstore.dev")
+	if err != nil {
+		t.Errorf("signScorecardResult() error getting Rekor client, %v", err)
+		return
+	}
 	scorecardResultData, err := ioutil.ReadFile("./testdata/scorecard-results-example.sarif")
 	if err != nil {
 		t.Errorf("signScorecardResult() error reading scorecard result file, %v", err)
 		return
 	}
-	uuids, _ := cosign.FindTLogEntriesByPayload(ctx, rekorClient, scorecardResultData)
+	uuids, err := cosign.FindTLogEntriesByPayload(ctx, rekorClient, scorecardResultData)
+	if err != nil {
+		t.Errorf("signScorecardResult() error getting tlog entries, %v", err)
+		return
+	}
 
 	if len(uuids) == 0 {
 		t.Errorf("signScorecardResult() error finding signature in Rekor tlog, %v", err)
