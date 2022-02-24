@@ -41,6 +41,12 @@ var (
 	errEmptyGitHubAuthToken       = errors.New("repo_token variable is empty")
 	errOnlyDefaultBranchSupported = errors.New("only default branch is supported")
 	errEmptyScorecardBin          = errors.New("scorecard_bin variable is empty")
+	enabledChecks                 = ""
+	scorecardPrivateRepository    = ""
+	scorecardDefaultBranch        = ""
+	scorecardPublishResults       = ""
+	scorecardResultsFormat        = ""
+	scorecardResultsFile          = ""
 )
 
 type repositoryInformation struct {
@@ -52,26 +58,20 @@ const (
 	enableSarif             = "ENABLE_SARIF"
 	enableLicense           = "ENABLE_LICENSE"
 	enableDangerousWorkflow = "ENABLE_DANGEROUS_WORKFLOW"
-	enabledChecks           = "ENABLED_CHECKS"
 	githubEventPath         = "GITHUB_EVENT_PATH"
 	githubEventName         = "GITHUB_EVENT_NAME"
 	githubRepository        = "GITHUB_REPOSITORY"
 	githubRef               = "GITHUB_REF"
 	githubWorkspace         = "GITHUB_WORKSPACE"
 	//nolint:gosec
-	githubAuthToken            = "GITHUB_AUTH_TOKEN"
-	inputresultsfile           = "INPUT_RESULTS_FILE"
-	inputresultsformat         = "INPUT_RESULTS_FORMAT"
-	inputpublishresults        = "INPUT_PUBLISH_RESULTS"
-	scorecardBin               = "SCORECARD_BIN"
-	scorecardResultsFormat     = "SCORECARD_RESULTS_FORMAT"
-	scorecardPublishResults    = "SCORECARD_PUBLISH_RESULTS"
-	scorecardPolicyFile        = "SCORECARD_POLICY_FILE"
-	scorecardResultsFile       = "SCORECARD_RESULTS_FILE"
-	scorecardFork              = "SCORECARD_IS_FORK"
-	scorecardDefaultBranch     = "SCORECARD_DEFAULT_BRANCH"
-	scorecardPrivateRepository = "SCORECARD_PRIVATE_REPOSITORY"
-	sarif                      = "sarif"
+	githubAuthToken     = "GITHUB_AUTH_TOKEN"
+	inputresultsfile    = "INPUT_RESULTS_FILE"
+	inputresultsformat  = "INPUT_RESULTS_FORMAT"
+	inputpublishresults = "INPUT_PUBLISH_RESULTS"
+	scorecardBin        = "/scorecard"
+	scorecardPolicyFile = "./policy.yml"
+	scorecardFork       = "SCORECARD_IS_FORK"
+	sarif               = "sarif"
 )
 
 // main is the entrypoint for the action.
@@ -109,8 +109,8 @@ func main() {
 
 	// gets the cmd run settings
 	cmd, err := runScorecardSettings(os.Getenv(githubEventName),
-		os.Getenv(scorecardPolicyFile), os.Getenv(scorecardResultsFormat),
-		os.Getenv(scorecardBin), os.Getenv(scorecardResultsFile), os.Getenv(githubRepository))
+		scorecardPolicyFile, scorecardResultsFormat,
+		scorecardBin, scorecardResultsFile, os.Getenv(githubRepository))
 	if err != nil {
 		panic(err)
 	}
@@ -119,7 +119,7 @@ func main() {
 		panic(err)
 	}
 
-	results, err := ioutil.ReadFile(os.Getenv(scorecardResultsFile))
+	results, err := ioutil.ReadFile(scorecardResultsFile)
 	if err != nil {
 		panic(err)
 	}
@@ -143,9 +143,6 @@ func initalizeENVVariables() error {
 	envvars[enableSarif] = "1"
 	envvars[enableLicense] = "1"
 	envvars[enableDangerousWorkflow] = "1"
-	envvars[scorecardPolicyFile] = "./policy.yml"
-	envvars[scorecardBin] = "/scorecard"
-	envvars[enabledChecks] = ""
 
 	for key, val := range envvars {
 		if err := os.Setenv(key, val); err != nil {
@@ -159,9 +156,7 @@ func initalizeENVVariables() error {
 		if result == "" {
 			return errInputResultFileEmpty
 		}
-		if err := os.Setenv(scorecardResultsFile, result); err != nil {
-			return fmt.Errorf("error setting %s: %w", scorecardResultsFile, err)
-		}
+		scorecardResultsFile = result
 	}
 
 	if result, exists := os.LookupEnv(inputresultsformat); !exists {
@@ -170,9 +165,7 @@ func initalizeENVVariables() error {
 		if result == "" {
 			return errInputResultFormatEmtpy
 		}
-		if err := os.Setenv(scorecardResultsFormat, result); err != nil {
-			return fmt.Errorf("error setting %s: %w", scorecardResultsFormat, err)
-		}
+		scorecardResultsFormat = result
 	}
 
 	if result, exists := os.LookupEnv(inputpublishresults); !exists {
@@ -181,9 +174,7 @@ func initalizeENVVariables() error {
 		if result == "" {
 			return errInputPublishResultsEmpty
 		}
-		if err := os.Setenv(scorecardPublishResults, result); err != nil {
-			return fmt.Errorf("error setting %s: %w", scorecardPublishResults, err)
-		}
+		scorecardPublishResults = result
 	}
 
 	return gitHubEventPath()
@@ -296,28 +287,17 @@ func updateRepositoryInformation(privateRepo bool, defaultBranch string) error {
 		return errEmptyDefaultBranch
 	}
 
-	if err := os.Setenv(scorecardPrivateRepository, strconv.FormatBool(privateRepo)); err != nil {
-		return fmt.Errorf("error setting %s: %w", scorecardPrivateRepository, err)
-	}
-	if err := os.Setenv(scorecardDefaultBranch, fmt.Sprintf("refs/heads/%s", defaultBranch)); err != nil {
-		return fmt.Errorf("error setting %s: %w", scorecardDefaultBranch, err)
-	}
+	scorecardPrivateRepository = strconv.FormatBool(privateRepo)
+	scorecardDefaultBranch = fmt.Sprintf("refs/heads/%s", defaultBranch)
+
 	return nil
 }
 
 // updateEnvVariables is a function to update the ENV variables based on results format and private repository.
 func updateEnvVariables() error {
-	resultsFileFormat := os.Getenv(scorecardResultsFormat)
-	if resultsFileFormat != sarif {
-		if err := os.Unsetenv(scorecardPolicyFile); err != nil {
-			return fmt.Errorf("error unsetting %s: %w", scorecardPolicyFile, err)
-		}
-	}
-	isPrivateRepo := os.Getenv(scorecardPrivateRepository)
+	isPrivateRepo := scorecardPrivateRepository
 	if isPrivateRepo != "true" {
-		if err := os.Setenv(scorecardPublishResults, "false"); err != nil {
-			return fmt.Errorf("error setting %s: %w", scorecardPublishResults, err)
-		}
+		scorecardPublishResults = "false"
 	}
 	return nil
 }
@@ -329,11 +309,6 @@ func printEnvVariables(writer io.Writer) {
 	fmt.Fprintf(writer, "GITHUB_REPOSITORY=%s\n", os.Getenv(githubRepository))
 	fmt.Fprintf(writer, "SCORECARD_IS_FORK=%s\n", os.Getenv(scorecardFork))
 	fmt.Fprintf(writer, "Ref=%s\n", os.Getenv(githubRef))
-	fmt.Fprintf(writer, "SCORECARD_PRIVATE_REPOSITORY=%s\n", os.Getenv(scorecardPrivateRepository))
-	fmt.Fprintf(writer, "SCORECARD_PUBLISH_RESULTS=%s\n", os.Getenv(scorecardPublishResults))
-	fmt.Fprintf(writer, "Format=%s\n", os.Getenv(scorecardResultsFormat))
-	fmt.Fprintf(writer, "Policy file=%s\n", os.Getenv(scorecardPolicyFile))
-	fmt.Fprintf(writer, "Default branch=%s\n", os.Getenv(scorecardDefaultBranch))
 }
 
 // validate is a function to validate the scorecard configuration based on the environment variables.
@@ -349,9 +324,9 @@ func validate(writer io.Writer) error {
 		return errEmptyGitHubAuthToken
 	}
 	if strings.Contains(os.Getenv(githubEventName), "pull_request") &&
-		os.Getenv(githubRef) == os.Getenv(scorecardDefaultBranch) {
+		os.Getenv(githubRef) == scorecardDefaultBranch {
 		fmt.Fprintf(writer, "%s not supported with %s event.\n", os.Getenv(githubRef), os.Getenv(githubEventName))
-		fmt.Fprintf(writer, "Only the default branch %s is supported.\n", os.Getenv(scorecardDefaultBranch))
+		fmt.Fprintf(writer, "Only the default branch %s is supported.\n", scorecardDefaultBranch)
 		return errOnlyDefaultBranchSupported
 	}
 	return nil
@@ -393,7 +368,7 @@ func runScorecardSettings(githubEventName, scorecardPolicyFile, scorecardResults
 		return &result, nil
 	}
 
-	enabledChecks := ""
+	enabledChecks = ""
 	if githubEventName == "branch_protection_rule" {
 		enabledChecks = "--checks Branch-Protection"
 	}
