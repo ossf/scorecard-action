@@ -421,7 +421,7 @@ func signScorecardResult(scorecardResultsFile string) error {
 
 	_, err := sign.SignBlobCmd(ctx, keyOpts, regOpts, scorecardResultsFile, true, "", "", time.Minute)
 	if err != nil {
-		return fmt.Errorf("Error signing payload: %w", err)
+		return fmt.Errorf("error signing payload: %w", err)
 	}
 
 	return nil
