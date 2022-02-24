@@ -17,24 +17,36 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"net/http"
 	"os"
+	"os/exec"
 	"strconv"
+	"strings"
 )
 
 var (
-	errInputResultFileNotSet     = errors.New("INPUT_RESULTS_FILE is not set")
-	errInputResultFileEmpty      = errors.New("INPUT_RESULTS_FILE is empty")
-	errInputResultFormatNotSet   = errors.New("INPUT_RESULTS_FORMAT is not set")
-	errInputResultFormatEmtpy    = errors.New("INPUT_RESULTS_FORMAT is empty")
-	errInputPublishResultsNotSet = errors.New("INPUT_PUBLISH_RESULTS is not set")
-	errInputPublishResultsEmpty  = errors.New("INPUT_PUBLISH_RESULTS is empty")
-	errRequiredENVNotSet         = errors.New("required environment variables are not set")
-	errGitHubEventPath           = errors.New("error getting GITHUB_EVENT_PATH")
-	errGitHubEventPathEmpty      = errors.New("GITHUB_EVENT_PATH is empty")
-	errGitHubEventPathNotSet     = errors.New("GITHUB_EVENT_PATH is not set")
-	errEmptyDefaultBranch        = errors.New("default branch is empty")
+	errInputResultFileNotSet      = errors.New("INPUT_RESULTS_FILE is not set")
+	errInputResultFileEmpty       = errors.New("INPUT_RESULTS_FILE is empty")
+	errInputResultFormatNotSet    = errors.New("INPUT_RESULTS_FORMAT is not set")
+	errInputResultFormatEmtpy     = errors.New("INPUT_RESULTS_FORMAT is empty")
+	errInputPublishResultsNotSet  = errors.New("INPUT_PUBLISH_RESULTS is not set")
+	errInputPublishResultsEmpty   = errors.New("INPUT_PUBLISH_RESULTS is empty")
+	errRequiredENVNotSet          = errors.New("required environment variables are not set")
+	errGitHubEventPath            = errors.New("error getting GITHUB_EVENT_PATH")
+	errGitHubEventPathEmpty       = errors.New("GITHUB_EVENT_PATH is empty")
+	errGitHubEventPathNotSet      = errors.New("GITHUB_EVENT_PATH is not set")
+	errEmptyDefaultBranch         = errors.New("default branch is empty")
+	errEmptyGitHubAuthToken       = errors.New("repo_token variable is empty")
+	errOnlyDefaultBranchSupported = errors.New("only default branch is supported")
+	errEmptyScorecardBin          = errors.New("scorecard_bin variable is empty")
+	enabledChecks                 = ""
+	scorecardPrivateRepository    = ""
+	scorecardDefaultBranch        = ""
+	scorecardPublishResults       = ""
+	scorecardResultsFormat        = ""
+	scorecardResultsFile          = ""
 )
 
 type repositoryInformation struct {
@@ -46,23 +58,20 @@ const (
 	enableSarif             = "ENABLE_SARIF"
 	enableLicense           = "ENABLE_LICENSE"
 	enableDangerousWorkflow = "ENABLE_DANGEROUS_WORKFLOW"
-	enabledChecks           = "ENABLED_CHECKS"
 	githubEventPath         = "GITHUB_EVENT_PATH"
+	githubEventName         = "GITHUB_EVENT_NAME"
 	githubRepository        = "GITHUB_REPOSITORY"
+	githubRef               = "GITHUB_REF"
+	githubWorkspace         = "GITHUB_WORKSPACE"
 	//nolint:gosec
-	githubAuthToken            = "GITHUB_AUTH_TOKEN"
-	inputresultsfile           = "INPUT_RESULTS_FILE"
-	inputresultsformat         = "INPUT_RESULTS_FORMAT"
-	inputpublishresults        = "INPUT_PUBLISH_RESULTS"
-	scorecardBin               = "SCORECARD_BIN"
-	scorecardResultsFormat     = "SCORECARD_RESULTS_FORMAT"
-	scorecardPublishResults    = "SCORECARD_PUBLISH_RESULTS"
-	scorecardPolicyFile        = "SCORECARD_POLICY_FILE"
-	scorecardResultsFile       = "SCORECARD_RESULTS_FILE"
-	scorecardFork              = "SCORECARD_IS_FORK"
-	scorecardDefaultBranch     = "SCORECARD_DEFAULT_BRANCH"
-	scorecardPrivateRepository = "SCORECARD_PRIVATE_REPOSITORY"
-	sarif                      = "sarif"
+	githubAuthToken     = "GITHUB_AUTH_TOKEN"
+	inputresultsfile    = "INPUT_RESULTS_FILE"
+	inputresultsformat  = "INPUT_RESULTS_FORMAT"
+	inputpublishresults = "INPUT_PUBLISH_RESULTS"
+	scorecardBin        = "/scorecard"
+	scorecardPolicyFile = "./policy.yml"
+	scorecardFork       = "SCORECARD_IS_FORK"
+	sarif               = "sarif"
 )
 
 // main is the entrypoint for the action.
@@ -91,6 +100,31 @@ func main() {
 	if err := updateEnvVariables(); err != nil {
 		panic(err)
 	}
+
+	printEnvVariables(os.Stdout)
+
+	if err := validate(os.Stderr); err != nil {
+		panic(err)
+	}
+
+	// gets the cmd run settings
+	cmd, err := runScorecardSettings(os.Getenv(githubEventName),
+		scorecardPolicyFile, scorecardResultsFormat,
+		scorecardBin, scorecardResultsFile, os.Getenv(githubRepository))
+	if err != nil {
+		panic(err)
+	}
+	cmd.Dir = os.Getenv(githubWorkspace)
+	if err := cmd.Run(); err != nil {
+		panic(err)
+	}
+
+	results, err := ioutil.ReadFile(scorecardResultsFile)
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Println(string(results))
 }
 
 // initalizeENVVariables is a function to initialize the environment variables required for the action.
@@ -109,9 +143,6 @@ func initalizeENVVariables() error {
 	envvars[enableSarif] = "1"
 	envvars[enableLicense] = "1"
 	envvars[enableDangerousWorkflow] = "1"
-	envvars[scorecardPolicyFile] = "./policy.yml"
-	envvars[scorecardBin] = "/scorecard"
-	envvars[enabledChecks] = ""
 
 	for key, val := range envvars {
 		if err := os.Setenv(key, val); err != nil {
@@ -125,9 +156,7 @@ func initalizeENVVariables() error {
 		if result == "" {
 			return errInputResultFileEmpty
 		}
-		if err := os.Setenv(scorecardResultsFile, result); err != nil {
-			return fmt.Errorf("error setting %s: %w", scorecardResultsFile, err)
-		}
+		scorecardResultsFile = result
 	}
 
 	if result, exists := os.LookupEnv(inputresultsformat); !exists {
@@ -136,9 +165,7 @@ func initalizeENVVariables() error {
 		if result == "" {
 			return errInputResultFormatEmtpy
 		}
-		if err := os.Setenv(scorecardResultsFormat, result); err != nil {
-			return fmt.Errorf("error setting %s: %w", scorecardResultsFormat, err)
-		}
+		scorecardResultsFormat = result
 	}
 
 	if result, exists := os.LookupEnv(inputpublishresults); !exists {
@@ -147,9 +174,7 @@ func initalizeENVVariables() error {
 		if result == "" {
 			return errInputPublishResultsEmpty
 		}
-		if err := os.Setenv(scorecardPublishResults, result); err != nil {
-			return fmt.Errorf("error setting %s: %w", scorecardPublishResults, err)
-		}
+		scorecardPublishResults = result
 	}
 
 	return gitHubEventPath()
@@ -262,28 +287,116 @@ func updateRepositoryInformation(privateRepo bool, defaultBranch string) error {
 		return errEmptyDefaultBranch
 	}
 
-	if err := os.Setenv(scorecardPrivateRepository, strconv.FormatBool(privateRepo)); err != nil {
-		return fmt.Errorf("error setting %s: %w", scorecardPrivateRepository, err)
-	}
-	if err := os.Setenv(scorecardDefaultBranch, fmt.Sprintf("refs/heads/%s", defaultBranch)); err != nil {
-		return fmt.Errorf("error setting %s: %w", scorecardDefaultBranch, err)
-	}
+	scorecardPrivateRepository = strconv.FormatBool(privateRepo)
+	scorecardDefaultBranch = fmt.Sprintf("refs/heads/%s", defaultBranch)
+
 	return nil
 }
 
 // updateEnvVariables is a function to update the ENV variables based on results format and private repository.
 func updateEnvVariables() error {
-	resultsFileFormat := os.Getenv(scorecardResultsFormat)
-	if resultsFileFormat != sarif {
-		if err := os.Unsetenv(scorecardPolicyFile); err != nil {
-			return fmt.Errorf("error unsetting %s: %w", scorecardPolicyFile, err)
-		}
-	}
-	isPrivateRepo := os.Getenv(scorecardPrivateRepository)
+	isPrivateRepo := scorecardPrivateRepository
 	if isPrivateRepo != "true" {
-		if err := os.Setenv(scorecardPublishResults, "false"); err != nil {
-			return fmt.Errorf("error setting %s: %w", scorecardPublishResults, err)
-		}
+		scorecardPublishResults = "false"
 	}
 	return nil
+}
+
+// printEnvVariables is a function to print the ENV variables.
+func printEnvVariables(writer io.Writer) {
+	fmt.Fprintf(writer, "GITHUB_EVENT_PATH=%s\n", os.Getenv(githubEventPath))
+	fmt.Fprintf(writer, "GITHUB_EVENT_NAME=%s\n", os.Getenv(githubEventName))
+	fmt.Fprintf(writer, "GITHUB_REPOSITORY=%s\n", os.Getenv(githubRepository))
+	fmt.Fprintf(writer, "SCORECARD_IS_FORK=%s\n", os.Getenv(scorecardFork))
+	fmt.Fprintf(writer, "Ref=%s\n", os.Getenv(githubRef))
+}
+
+// validate is a function to validate the scorecard configuration based on the environment variables.
+func validate(writer io.Writer) error {
+	if os.Getenv(githubAuthToken) == "" {
+		fmt.Fprintf(writer, "The 'repo_token' variable is empty.\n")
+		if os.Getenv(scorecardFork) == "true" {
+			fmt.Fprintf(writer, "We have detected you are running on a fork.\n")
+		}
+		//nolint:lll
+		fmt.Fprintf(writer,
+			"Please follow the instructions at https://github.com/ossf/scorecard-action#authentication to create the read-only PAT token.\n")
+		return errEmptyGitHubAuthToken
+	}
+	if strings.Contains(os.Getenv(githubEventName), "pull_request") &&
+		os.Getenv(githubRef) == scorecardDefaultBranch {
+		fmt.Fprintf(writer, "%s not supported with %s event.\n", os.Getenv(githubRef), os.Getenv(githubEventName))
+		fmt.Fprintf(writer, "Only the default branch %s is supported.\n", scorecardDefaultBranch)
+		return errOnlyDefaultBranchSupported
+	}
+	return nil
+}
+
+func runScorecardSettings(githubEventName, scorecardPolicyFile, scorecardResultsFormat, scorecardBin,
+	scorecardResultsFile, githubRepository string) (*exec.Cmd, error) {
+	if scorecardBin == "" {
+		return nil, errEmptyScorecardBin
+	}
+	var result exec.Cmd
+	result.Path = scorecardBin
+	// if pull_request
+	if strings.Contains(githubEventName, "pull_request") {
+		// empty policy file
+		if scorecardPolicyFile == "" {
+			result.Args = []string{
+				"--local",
+				".",
+				"--format",
+				scorecardResultsFormat,
+				"--show-details",
+				">",
+				scorecardResultsFile,
+			}
+			return &result, nil
+		}
+		result.Args = []string{
+			"--local",
+			".",
+			"--format",
+			scorecardResultsFormat,
+			"--policy",
+			scorecardPolicyFile,
+			"--show-details",
+			">",
+			scorecardResultsFile,
+		}
+		return &result, nil
+	}
+
+	enabledChecks = ""
+	if githubEventName == "branch_protection_rule" {
+		enabledChecks = "--checks Branch-Protection"
+	}
+
+	if scorecardPolicyFile == "" {
+		result.Args = []string{
+			"--repo",
+			githubRepository,
+			"--format",
+			enabledChecks,
+			scorecardResultsFormat,
+			"--show-details",
+			">",
+			scorecardResultsFile,
+		}
+		return &result, nil
+	}
+	result.Args = []string{
+		"--repo",
+		githubRepository,
+		"--format",
+		enabledChecks,
+		scorecardResultsFormat,
+		"--policy",
+		scorecardPolicyFile,
+		"--show-details",
+		">",
+		scorecardResultsFile,
+	}
+	return &result, nil
 }
