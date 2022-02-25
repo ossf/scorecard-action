@@ -16,6 +16,7 @@ package main
 import (
 	"bytes"
 	"context"
+	"crypto/rand"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -720,8 +721,21 @@ func Test_runScorecardSettings(t *testing.T) {
 
 func Test_signScorecardResult(t *testing.T) {
 	t.Parallel()
+
+	// Generate random bytes to use as our payload. This is done because signing identical payloads twice
+	// just creates multiple entries under it, so we are keeping this test simple and not comparing timestamps.
+	scorecardResultsFile := "./testdata/sign-random-data.txt"
+	randomData := make([]byte, 20)
+	if _, err := rand.Read(randomData); err != nil {
+		t.Errorf("signScorecardResult() error generating random bytes, %v", err)
+		return
+	}
+	if err := ioutil.WriteFile(scorecardResultsFile, randomData, 0644); err != nil {
+		t.Errorf("signScorecardResult() error writing random bytes to file, %v", err)
+		return
+	}
+
 	// Sign example scorecard results file.
-	scorecardResultsFile := "./testdata/scorecard-results-example.sarif"
 	err := signScorecardResult(scorecardResultsFile)
 	if err != nil {
 		t.Errorf("signScorecardResult() error, %v", err)
