@@ -77,8 +77,6 @@ const (
 	scorecardPolicyFile = "./policy.yml"
 	scorecardFork       = "SCORECARD_IS_FORK"
 	sarif               = "sarif"
-	fulcioURL           = "https://fulcio.sigstore.dev"
-	rekorURL            = "https://rekor.sigstore.dev"
 )
 
 // main is the entrypoint for the action.
@@ -414,16 +412,15 @@ func runScorecardSettings(githubEventName, scorecardPolicyFile, scorecardResults
 }
 
 func signScorecardResult(scorecardResultsFile string) error {
-	err := os.Setenv("COSIGN_EXPERIMENTAL", "true")
-	if err != nil {
+	if err := os.Setenv("COSIGN_EXPERIMENTAL", "true"); err != nil {
 		return fmt.Errorf("error setting COSIGN_EXPERIMENTAL env var: %w", err)
 	}
 	ctx := context.Background()
 
 	// Prepare settings for SignBlobCmd.
 	keyOpts := sign.KeyOpts{
-		FulcioURL:    fulcioURL,                    // Signing certificate provider.
-		RekorURL:     rekorURL,                     // Transparency log.
+		FulcioURL:    options.DefaultFulcioURL,     // Signing certificate provider.
+		RekorURL:     options.DefaultRekorURL,      // Transparency log.
 		OIDCIssuer:   options.DefaultOIDCIssuerURL, // OIDC provider to get ID token to auth for Fulcio.
 		OIDCClientID: "sigstore",
 	}
@@ -432,8 +429,7 @@ func signScorecardResult(scorecardResultsFile string) error {
 	// This command will use the provided OIDCIssuer to authenticate into Fulcio, which will generate the
 	// signing certificate on the scorecard result. This attestation is then uploaded to the Rekor transparency log.
 	// The output bytes (signature) and certificate are discarded since verification can be done with just the payload.
-	_, err = sign.SignBlobCmd(ctx, keyOpts, regOpts, scorecardResultsFile, true, "", "", time.Minute)
-	if err != nil {
+	if _, err := sign.SignBlobCmd(ctx, keyOpts, regOpts, scorecardResultsFile, true, "", "", time.Minute); err != nil {
 		return fmt.Errorf("error signing payload: %w", err)
 	}
 

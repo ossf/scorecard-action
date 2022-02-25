@@ -24,6 +24,7 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
+	"github.com/sigstore/cosign/cmd/cosign/cli/options"
 	"github.com/sigstore/cosign/cmd/cosign/cli/rekor"
 	"github.com/sigstore/cosign/pkg/cosign"
 )
@@ -729,12 +730,12 @@ func Test_signScorecardResult(t *testing.T) {
 
 	// Verify that the signature was created and uploaded to the Rekor tlog by looking up the payload.
 	ctx := context.Background()
-	rekorClient, err := rekor.NewClient("https://rekor.sigstore.dev")
+	rekorClient, err := rekor.NewClient(options.DefaultRekorURL)
 	if err != nil {
 		t.Errorf("signScorecardResult() error getting Rekor client, %v", err)
 		return
 	}
-	scorecardResultData, err := ioutil.ReadFile("./testdata/scorecard-results-example.sarif")
+	scorecardResultData, err := ioutil.ReadFile(scorecardResultsFile)
 	if err != nil {
 		t.Errorf("signScorecardResult() error reading scorecard result file, %v", err)
 		return
