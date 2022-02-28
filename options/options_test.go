@@ -23,11 +23,11 @@ import (
 	scopts "github.com/ossf/scorecard/v4/options"
 )
 
-//nolint:paralleltest // Until/unless we consider providing a fake environment
-// to tests, running these in parallel will have unpredictable results as
-// we're mutating environment variables.
 /*
 func TestNew(t *testing.T) {
+	//nolint:paralleltest // Until/unless we consider providing a fake environment
+	// to tests, running these in parallel will have unpredictable results as
+	// we're mutating environment variables.
 	tests := []struct {
 		want *Options
 		name string

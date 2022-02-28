@@ -25,6 +25,7 @@ import (
 	"strings"
 
 	"github.com/caarlos0/env/v6"
+
 	scaenv "github.com/ossf/scorecard-action/env"
 	scopts "github.com/ossf/scorecard/v4/options"
 )
@@ -72,6 +73,8 @@ type Options struct {
 	// GitHub options.
 	// TODO(github): Consider making this a separate options set so we can
 	//               encapsulate handling
+	// TODO(auth): We probably want to remove the token from options to prevent
+	// it from being easily read.
 	GithubAuthToken  string `env:"GITHUB_AUTH_TOKEN"`
 	GithubEventName  string `env:"GITHUB_EVENT_NAME"`
 	GithubEventPath  string `env:"GITHUB_EVENT_PATH"`
@@ -86,23 +89,6 @@ type Options struct {
 	PrivateRepoStr string `env:"SCORECARD_PRIVATE_REPOSITORY"`
 }
 
-// ScorecardOptions mirrors scorecard/options.Options, which defines common options
-// for configuring scorecard.
-type ScorecardOptions struct {
-	Repo        string
-	Local       string
-	Commit      string
-	LogLevel    string
-	Format      string
-	NPM         string
-	PyPI        string
-	RubyGems    string
-	PolicyFile  string
-	ChecksToRun []string
-	Metadata    []string
-	ShowDetails bool
-}
-
 const (
 	defaultScorecardBin        = "/scorecard"
 	defaultScorecardPolicyFile = "./policy.yml"
@@ -111,19 +97,16 @@ const (
 // New TODO(lint): should have comment or be unexported (revive).
 func New() (*Options, error) {
 	opts := &Options{}
-	tmpScorecardOpts := &ScorecardOptions{}
-
 	if err := env.Parse(opts); err != nil {
 		return opts, fmt.Errorf("parsing entrypoint env vars: %w", err)
 	}
-	if err := env.Parse(tmpScorecardOpts); err != nil {
-		return opts, fmt.Errorf("parsing scorecard env vars: %w", err)
-	}
 
+	// TODO(options): Push options into scorecard.Options once/if it supports
+	//                validation.
 	scOpts := scopts.New()
 
 	// TODO(options): Move this set-or-default logic to its own function.
-	scOpts.PolicyFile = tmpScorecardOpts.PolicyFile
+	scOpts.PolicyFile = opts.PolicyFile
 	if scOpts.PolicyFile == "" {
 		scOpts.PolicyFile = defaultScorecardPolicyFile
 	}
@@ -133,6 +116,25 @@ func New() (*Options, error) {
 	}
 
 	opts.ScorecardOpts = scOpts
+
+	if opts.ResultsFile == "" {
+		opts.ResultsFile = opts.InputResultsFile
+		// TODO(options): We should check if this is empty.
+	}
+
+	if opts.Format == "" {
+		opts.Format = opts.InputResultsFormat
+	}
+	opts.ScorecardOpts.Format = opts.Format
+
+	if opts.PublishResultsStr == "" {
+		opts.PublishResultsStr = opts.InputPublishResults
+		if opts.PublishResultsStr == "" {
+			opts.PublishResultsStr = "false"
+		}
+	}
+
+	// TODO(options): Consider running Initialize() before returning.
 	// TODO(options): Consider running Validate() before returning.
 	return opts, nil
 }
@@ -148,45 +150,18 @@ func (o *Options) Initialize() error {
 	   GITHUB_ACTIONS is true in GitHub env.
 	*/
 
-	envvars := make(map[string]string)
-	envvars[scaenv.EnableSarif] = "1"
-	envvars[scaenv.EnableLicense] = "1"
-	envvars[scaenv.EnableDangerousWorkflow] = "1"
-
-	for key, val := range envvars {
-		if err := os.Setenv(key, val); err != nil {
-			return fmt.Errorf("error setting %s: %w", key, err)
-		}
-	}
-
-	err := setFromEnvVarStrict(&o.ResultsFile, scaenv.InputResultsFile)
-	if err != nil {
-		return fmt.Errorf("setting %s: %w", o.ResultsFile, err)
-	}
-
-	err = setFromEnvVarStrict(&o.ScorecardOpts.Format, scaenv.InputResultsFormat)
-	if err != nil {
-		return fmt.Errorf("setting %s: %w", o.ScorecardOpts.Format, err)
-	}
-
-	err = setFromEnvVarStrict(&o.PrivateRepoStr, scaenv.ScorecardPrivateRepo)
-	if err != nil {
-		return fmt.Errorf("setting %s: %w", o.PrivateRepoStr, err)
-	}
-
-	err = setFromEnvVarStrict(&o.PublishResultsStr, scaenv.InputPublishResults)
-	if err != nil {
-		return fmt.Errorf("setting %s: %w", o.PublishResultsStr, err)
-	}
+	o.EnableSarif = "1"
+	o.EnableLicense = "1"
+	o.EnableDangerousWorkflow = "1"
 
 	return GithubEventPath()
 }
 
 // Validate validates the scorecard configuration.
 func (o *Options) Validate(writer io.Writer) error {
-	if os.Getenv(scaenv.GithubAuthToken) == "" {
+	if o.GithubAuthToken == "" {
 		fmt.Fprintf(writer, "The 'repo_token' variable is empty.\n")
-		if os.Getenv(scaenv.ScorecardFork) == trueStr {
+		if o.IsForkStr == trueStr {
 			fmt.Fprintf(writer, "We have detected you are running on a fork.\n")
 		}
 
@@ -198,9 +173,9 @@ func (o *Options) Validate(writer io.Writer) error {
 		return scaenv.ErrEmptyGitHubAuthToken
 	}
 
-	if strings.Contains(os.Getenv(scaenv.GithubEventName), "pull_request") &&
-		os.Getenv(scaenv.GithubRef) == o.DefaultBranch {
-		fmt.Fprintf(writer, "%s not supported with %s event.\n", os.Getenv(scaenv.GithubRef), os.Getenv(scaenv.GithubEventName))
+	if strings.Contains(os.Getenv(o.GithubEventName), "pull_request") &&
+		os.Getenv(o.GithubRef) == o.DefaultBranch {
+		fmt.Fprintf(writer, "%s not supported with %s event.\n", os.Getenv(o.GithubRef), os.Getenv(o.GithubEventName))
 		fmt.Fprintf(writer, "Only the default branch %s is supported.\n", o.DefaultBranch)
 
 		return errOnlyDefaultBranchSupported
@@ -226,7 +201,7 @@ func (o *Options) Print(writer io.Writer) {
 
 // SetRepository TODO(lint): should have comment or be unexported (revive).
 func (o *Options) SetRepository() {
-	o.ScorecardOpts.Repo = os.Getenv(scaenv.GithubRepository)
+	o.ScorecardOpts.Repo = os.Getenv(o.GithubRepository)
 }
 
 // Repo TODO(lint): should have comment or be unexported (revive).
@@ -323,22 +298,4 @@ func RepoIsFork(ghEventPath string) (bool, error) {
 	}
 
 	return r.Repository.Fork, nil
-}
-
-// setFromEnvVarStrict TODO(lint): should have comment or be unexported (revive).
-func setFromEnvVarStrict(option *string, envVar string) error {
-	return setFromEnvVar(option, envVar, "", true, true)
-}
-
-// TODO(env): Refactor
-//            - Convert to method
-//            - Only fail if both the config value and env var is empty.
-func setFromEnvVar(option *string, envVar, def string, mustExist, mustNotBeEmpty bool) error {
-	value, err := scaenv.Lookup(envVar, def, mustExist, mustNotBeEmpty)
-	if err != nil {
-		return fmt.Errorf("setting value for option %s: %w", *option, err)
-	}
-
-	*option = value
-	return nil
 }
