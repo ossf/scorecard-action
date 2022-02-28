@@ -24,7 +24,8 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/ossf/scorecard-action/env"
+	"github.com/caarlos0/env/v6"
+	scaenv "github.com/ossf/scorecard-action/env"
 	scopts "github.com/ossf/scorecard/v4/options"
 )
 
@@ -38,17 +39,68 @@ var (
 
 // Options TODO(lint): should have comment or be unexported (revive).
 type Options struct {
-	ScorecardOpts   *scopts.Options
-	GithubEventName string
-	ScorecardBin    string
-	DefaultBranch   string
+	// Scorecard options.
+	ScorecardOpts *scopts.Options
 
+	// Scorecard command-line options.
+	ScorecardBin  string `env:"SCORECARD_BIN"`
+	EnabledChecks string `env:"ENABLED_CHECKS"`
+	PolicyFile    string `env:"SCORECARD_POLICY_FILE"`
+	Format        string `env:"SCORECARD_RESULTS_FORMAT"`
+	ResultsFile   string `env:"SCORECARD_RESULTS_FILE"`
 	// TODO(options): This may be better as a bool
-	PrivateRepo string
-	// TODO(options): This may be better as a bool
-	PublishResults string
+	PublishResultsStr string `env:"SCORECARD_PUBLISH_RESULTS"`
 
-	ResultsFile string
+	// Input options.
+	// TODO(options): These input options shadow the some of the SCORECARD_
+	//                env vars:
+	//                export SCORECARD_RESULTS_FILE="$INPUT_RESULTS_FILE"
+	//                export SCORECARD_RESULTS_FORMAT="$INPUT_RESULTS_FORMAT"
+	//                export SCORECARD_PUBLISH_RESULTS="$INPUT_PUBLISH_RESULTS"
+	//
+	//                Let's target them for deletion, but only after confirming
+	//                that there isn't anything that surprisingly needs them.
+	InputResultsFile    string `env:"INPUT_RESULTS_FILE"`
+	InputResultsFormat  string `env:"INPUT_RESULTS_FORMAT"`
+	InputPublishResults string `env:"INPUT_PUBLISH_RESULTS"`
+
+	// Scorecard checks.
+	EnableSarif             string `env:"ENABLE_SARIF"`
+	EnableLicense           string `env:"ENABLE_LICENSE"`
+	EnableDangerousWorkflow string `env:"ENABLE_DANGEROUS_WORKFLOW"`
+
+	// GitHub options.
+	// TODO(github): Consider making this a separate options set so we can
+	//               encapsulate handling
+	GithubAuthToken  string `env:"GITHUB_AUTH_TOKEN"`
+	GithubEventName  string `env:"GITHUB_EVENT_NAME"`
+	GithubEventPath  string `env:"GITHUB_EVENT_PATH"`
+	GithubRef        string `env:"GITHUB_REF"`
+	GithubRepository string `env:"GITHUB_REPOSITORY"`
+	GithubWorkspace  string `env:"GITHUB_WORKSPACE"`
+
+	DefaultBranch string `env:"SCORECARD_DEFAULT_BRANCH"`
+	// TODO(options): This may be better as a bool
+	IsForkStr string `env:"SCORECARD_IS_FORK"`
+	// TODO(options): This may be better as a bool
+	PrivateRepoStr string `env:"SCORECARD_PRIVATE_REPOSITORY"`
+}
+
+// ScorecardOptions mirrors scorecard/options.Options, which defines common options
+// for configuring scorecard.
+type ScorecardOptions struct {
+	Repo        string
+	Local       string
+	Commit      string
+	LogLevel    string
+	Format      string
+	NPM         string
+	PyPI        string
+	RubyGems    string
+	PolicyFile  string
+	ChecksToRun []string
+	Metadata    []string
+	ShowDetails bool
 }
 
 const (
@@ -57,17 +109,32 @@ const (
 )
 
 // New TODO(lint): should have comment or be unexported (revive).
-func New() *Options {
-	scOpts := scopts.New()
-	scOpts.PolicyFile = defaultScorecardPolicyFile
+func New() (*Options, error) {
+	opts := &Options{}
+	tmpScorecardOpts := &ScorecardOptions{}
 
-	// TODO: Populate options constructor
-	opts := &Options{
-		ScorecardOpts: scOpts,
-		ScorecardBin:  defaultScorecardBin,
+	if err := env.Parse(opts); err != nil {
+		return opts, fmt.Errorf("parsing entrypoint env vars: %w", err)
+	}
+	if err := env.Parse(tmpScorecardOpts); err != nil {
+		return opts, fmt.Errorf("parsing scorecard env vars: %w", err)
 	}
 
-	return opts
+	scOpts := scopts.New()
+
+	// TODO(options): Move this set-or-default logic to its own function.
+	scOpts.PolicyFile = tmpScorecardOpts.PolicyFile
+	if scOpts.PolicyFile == "" {
+		scOpts.PolicyFile = defaultScorecardPolicyFile
+	}
+
+	if opts.ScorecardBin == "" {
+		opts.ScorecardBin = defaultScorecardBin
+	}
+
+	opts.ScorecardOpts = scOpts
+	// TODO(options): Consider running Validate() before returning.
+	return opts, nil
 }
 
 // Initialize initializes the environment variables required for the action.
@@ -82,9 +149,9 @@ func (o *Options) Initialize() error {
 	*/
 
 	envvars := make(map[string]string)
-	envvars[env.EnableSarif] = "1"
-	envvars[env.EnableLicense] = "1"
-	envvars[env.EnableDangerousWorkflow] = "1"
+	envvars[scaenv.EnableSarif] = "1"
+	envvars[scaenv.EnableLicense] = "1"
+	envvars[scaenv.EnableDangerousWorkflow] = "1"
 
 	for key, val := range envvars {
 		if err := os.Setenv(key, val); err != nil {
@@ -92,24 +159,24 @@ func (o *Options) Initialize() error {
 		}
 	}
 
-	err := setFromEnvVarStrict(&o.ResultsFile, env.InputResultsFile)
+	err := setFromEnvVarStrict(&o.ResultsFile, scaenv.InputResultsFile)
 	if err != nil {
 		return fmt.Errorf("setting %s: %w", o.ResultsFile, err)
 	}
 
-	err = setFromEnvVarStrict(&o.ScorecardOpts.Format, env.InputResultsFormat)
+	err = setFromEnvVarStrict(&o.ScorecardOpts.Format, scaenv.InputResultsFormat)
 	if err != nil {
 		return fmt.Errorf("setting %s: %w", o.ScorecardOpts.Format, err)
 	}
 
-	err = setFromEnvVarStrict(&o.PrivateRepo, env.ScorecardPrivateRepo)
+	err = setFromEnvVarStrict(&o.PrivateRepoStr, scaenv.ScorecardPrivateRepo)
 	if err != nil {
-		return fmt.Errorf("setting %s: %w", o.PrivateRepo, err)
+		return fmt.Errorf("setting %s: %w", o.PrivateRepoStr, err)
 	}
 
-	err = setFromEnvVarStrict(&o.PublishResults, env.InputPublishResults)
+	err = setFromEnvVarStrict(&o.PublishResultsStr, scaenv.InputPublishResults)
 	if err != nil {
-		return fmt.Errorf("setting %s: %w", o.PublishResults, err)
+		return fmt.Errorf("setting %s: %w", o.PublishResultsStr, err)
 	}
 
 	return GithubEventPath()
@@ -117,9 +184,9 @@ func (o *Options) Initialize() error {
 
 // Validate validates the scorecard configuration.
 func (o *Options) Validate(writer io.Writer) error {
-	if os.Getenv(env.GithubAuthToken) == "" {
+	if os.Getenv(scaenv.GithubAuthToken) == "" {
 		fmt.Fprintf(writer, "The 'repo_token' variable is empty.\n")
-		if os.Getenv(env.ScorecardFork) == trueStr {
+		if os.Getenv(scaenv.ScorecardFork) == trueStr {
 			fmt.Fprintf(writer, "We have detected you are running on a fork.\n")
 		}
 
@@ -128,12 +195,12 @@ func (o *Options) Validate(writer io.Writer) error {
 			"Please follow the instructions at https://github.com/ossf/scorecard-action#authentication to create the read-only PAT token.\n", //nolint:lll
 		)
 
-		return env.ErrEmptyGitHubAuthToken
+		return scaenv.ErrEmptyGitHubAuthToken
 	}
 
-	if strings.Contains(os.Getenv(env.GithubEventName), "pull_request") &&
-		os.Getenv(env.GithubRef) == o.DefaultBranch {
-		fmt.Fprintf(writer, "%s not supported with %s event.\n", os.Getenv(env.GithubRef), os.Getenv(env.GithubEventName))
+	if strings.Contains(os.Getenv(scaenv.GithubEventName), "pull_request") &&
+		os.Getenv(scaenv.GithubRef) == o.DefaultBranch {
+		fmt.Fprintf(writer, "%s not supported with %s event.\n", os.Getenv(scaenv.GithubRef), os.Getenv(scaenv.GithubEventName))
 		fmt.Fprintf(writer, "Only the default branch %s is supported.\n", o.DefaultBranch)
 
 		return errOnlyDefaultBranchSupported
@@ -144,7 +211,7 @@ func (o *Options) Validate(writer io.Writer) error {
 
 // CheckRequired TODO(lint): should have comment or be unexported (revive).
 func (o *Options) CheckRequired() error {
-	err := env.CheckRequired()
+	err := scaenv.CheckRequired()
 	if err != nil {
 		return fmt.Errorf("checking if required env vars are set: %w", err)
 	}
@@ -154,12 +221,12 @@ func (o *Options) CheckRequired() error {
 
 // Print is a function to print options.
 func (o *Options) Print(writer io.Writer) {
-	env.Print(writer)
+	scaenv.Print(writer)
 }
 
 // SetRepository TODO(lint): should have comment or be unexported (revive).
 func (o *Options) SetRepository() {
-	o.ScorecardOpts.Repo = os.Getenv(env.GithubRepository)
+	o.ScorecardOpts.Repo = os.Getenv(scaenv.GithubRepository)
 }
 
 // Repo TODO(lint): should have comment or be unexported (revive).
@@ -169,7 +236,7 @@ func (o *Options) Repo() string {
 
 // SetRepoVisibility sets the repository's visibility.
 func (o *Options) SetRepoVisibility(privateRepo bool) {
-	o.PrivateRepo = strconv.FormatBool(privateRepo)
+	o.PrivateRepoStr = strconv.FormatBool(privateRepo)
 }
 
 // SetDefaultBranch sets the default branch.
@@ -185,22 +252,22 @@ func (o *Options) SetDefaultBranch(defaultBranch string) error {
 // SetPublishResults sets whether results should be published based on a
 // repository's visibility.
 func (o *Options) SetPublishResults() {
-	isPrivateRepo := o.PrivateRepo
+	isPrivateRepo := o.PrivateRepoStr
 	if isPrivateRepo == trueStr || isPrivateRepo == "" {
-		o.PublishResults = "false"
+		o.PublishResultsStr = "false"
 	} else {
-		o.PublishResults = trueStr
+		o.PublishResultsStr = trueStr
 	}
 }
 
 // GetGithubToken retrieves the GitHub auth token from the environment.
 func GetGithubToken() string {
-	return os.Getenv(env.GithubAuthToken)
+	return os.Getenv(scaenv.GithubAuthToken)
 }
 
 // GetGithubWorkspace retrieves the GitHub auth token from the environment.
 func GetGithubWorkspace() string {
-	return os.Getenv(env.GithubWorkspace)
+	return os.Getenv(scaenv.GithubWorkspace)
 }
 
 // GithubEventPath gets the path to the GitHub event and sets the
@@ -210,17 +277,17 @@ func GithubEventPath() error {
 	var result string
 	var exists bool
 
-	if result, exists = os.LookupEnv(env.GithubEventPath); !exists {
-		return env.ErrGitHubEventPathNotSet
+	if result, exists = os.LookupEnv(scaenv.GithubEventPath); !exists {
+		return scaenv.ErrGitHubEventPathNotSet
 	}
 
 	if result == "" {
-		return env.ErrGitHubEventPathEmpty
+		return scaenv.ErrGitHubEventPathEmpty
 	}
 
 	data, err := ioutil.ReadFile(result)
 	if err != nil {
-		return fmt.Errorf("error reading %s: %w", env.GithubEventPath, err)
+		return fmt.Errorf("error reading %s: %w", scaenv.GithubEventPath, err)
 	}
 
 	isFork, err := RepoIsFork(string(data))
@@ -229,8 +296,8 @@ func GithubEventPath() error {
 	}
 
 	isForkStr := strconv.FormatBool(isFork)
-	if err := os.Setenv(env.ScorecardFork, isForkStr); err != nil {
-		return fmt.Errorf("error setting %s: %w", env.ScorecardFork, err)
+	if err := os.Setenv(scaenv.ScorecardFork, isForkStr); err != nil {
+		return fmt.Errorf("error setting %s: %w", scaenv.ScorecardFork, err)
 	}
 
 	return err
@@ -239,7 +306,7 @@ func GithubEventPath() error {
 // RepoIsFork checks if the current repo is a fork.
 func RepoIsFork(ghEventPath string) (bool, error) {
 	if ghEventPath == "" {
-		return false, env.ErrGitHubEventPath
+		return false, scaenv.ErrGitHubEventPath
 	}
 	/*
 	 https://docs.github.com/en/actions/reference/workflow-commands-for-github-actions#github_repository_is_fork
@@ -267,7 +334,7 @@ func setFromEnvVarStrict(option *string, envVar string) error {
 //            - Convert to method
 //            - Only fail if both the config value and env var is empty.
 func setFromEnvVar(option *string, envVar, def string, mustExist, mustNotBeEmpty bool) error {
-	value, err := env.Lookup(envVar, def, mustExist, mustNotBeEmpty)
+	value, err := scaenv.Lookup(envVar, def, mustExist, mustNotBeEmpty)
 	if err != nil {
 		return fmt.Errorf("setting value for option %s: %w", *option, err)
 	}
