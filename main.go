@@ -129,9 +129,11 @@ func main() {
 		panic(err)
 	}
 
-	err = signScorecardResult(scorecardResultsFile)
-	if err != nil {
-		panic(err)
+	if scorecardPublishResults == "true" {
+		err = signScorecardResult(scorecardResultsFile)
+		if err != nil {
+			return
+		}
 	}
 
 	fmt.Println(string(results))
