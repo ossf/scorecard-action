@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package env
+package options
 
 import (
 	"errors"
@@ -25,27 +25,27 @@ import (
 // TODO(env): Remove once environment variables are not used for config.
 //nolint:revive,nolintlint
 const (
-	EnableSarif             = "ENABLE_SARIF"
-	EnableLicense           = "ENABLE_LICENSE"
-	EnableDangerousWorkflow = "ENABLE_DANGEROUS_WORKFLOW"
-	GithubEventPath         = "GITHUB_EVENT_PATH"
-	GithubEventName         = "GITHUB_EVENT_NAME"
-	GithubRepository        = "GITHUB_REPOSITORY"
-	GithubRef               = "GITHUB_REF"
-	GithubWorkspace         = "GITHUB_WORKSPACE"
-	GithubAuthToken         = "GITHUB_AUTH_TOKEN" //nolint:gosec
-	InputResultsFile        = "INPUT_RESULTS_FILE"
-	InputResultsFormat      = "INPUT_RESULTS_FORMAT"
-	InputPublishResults     = "INPUT_PUBLISH_RESULTS"
-	ScorecardFork           = "SCORECARD_IS_FORK"
-	ScorecardPrivateRepo    = "SCORECARD_PRIVATE_REPOSITORY"
+	EnvEnableSarif             = "ENABLE_SARIF"
+	EnvEnableLicense           = "ENABLE_LICENSE"
+	EnvEnableDangerousWorkflow = "ENABLE_DANGEROUS_WORKFLOW"
+	EnvGithubEventPath         = "GITHUB_EVENT_PATH"
+	EnvGithubEventName         = "GITHUB_EVENT_NAME"
+	EnvGithubRepository        = "GITHUB_REPOSITORY"
+	EnvGithubRef               = "GITHUB_REF"
+	EnvGithubWorkspace         = "GITHUB_WORKSPACE"
+	EnvGithubAuthToken         = "GITHUB_AUTH_TOKEN" //nolint:gosec
+	EnvInputResultsFile        = "INPUT_RESULTS_FILE"
+	EnvInputResultsFormat      = "INPUT_RESULTS_FORMAT"
+	EnvInputPublishResults     = "INPUT_PUBLISH_RESULTS"
+	EnvScorecardFork           = "SCORECARD_IS_FORK"
+	EnvScorecardPrivateRepo    = "SCORECARD_PRIVATE_REPOSITORY"
 )
 
-// CheckRequired is a function to check if the required environment variables are set.
-func CheckRequired() error {
+// CheckRequiredEnv is a function to check if the required environment variables are set.
+func CheckRequiredEnv() error {
 	envVariables := make(map[string]bool)
-	envVariables[GithubRepository] = true
-	envVariables[GithubAuthToken] = true
+	envVariables[EnvGithubRepository] = true
+	envVariables[EnvGithubAuthToken] = true
 
 	for key := range envVariables {
 		// TODO(env): Refactor to use helpers
@@ -57,13 +57,13 @@ func CheckRequired() error {
 	return nil
 }
 
-// Print is a function to print the ENV variables.
-func Print(writer io.Writer) {
-	fmt.Fprintf(writer, "GITHUB_EVENT_PATH=%s\n", os.Getenv(GithubEventPath))
-	fmt.Fprintf(writer, "GITHUB_EVENT_NAME=%s\n", os.Getenv(GithubEventName))
-	fmt.Fprintf(writer, "GITHUB_REPOSITORY=%s\n", os.Getenv(GithubRepository))
-	fmt.Fprintf(writer, "SCORECARD_IS_FORK=%s\n", os.Getenv(ScorecardFork))
-	fmt.Fprintf(writer, "Ref=%s\n", os.Getenv(GithubRef))
+// EnvPrint is a function to print the ENV variables.
+func EnvPrint(writer io.Writer) {
+	fmt.Fprintf(writer, "GITHUB_EVENT_PATH=%s\n", os.Getenv(EnvGithubEventPath))
+	fmt.Fprintf(writer, "GITHUB_EVENT_NAME=%s\n", os.Getenv(EnvGithubEventName))
+	fmt.Fprintf(writer, "GITHUB_REPOSITORY=%s\n", os.Getenv(EnvGithubRepository))
+	fmt.Fprintf(writer, "SCORECARD_IS_FORK=%s\n", os.Getenv(EnvScorecardFork))
+	fmt.Fprintf(writer, "Ref=%s\n", os.Getenv(EnvGithubRef))
 }
 
 // Adapted from sigs.k8s.io/release-utils/env
@@ -100,25 +100,16 @@ var (
 	// ErrGitHubEventPath TODO(lint): should have comment or be unexported (revive).
 	ErrGitHubEventPath = errors.New("error getting GITHUB_EVENT_PATH")
 	// ErrGitHubEventPathEmpty TODO(lint): should have comment or be unexported (revive).
-	ErrGitHubEventPathEmpty = errEnvVarIsEmptyWithKey(GithubEventPath)
+	ErrGitHubEventPathEmpty = errEnvVarIsEmptyWithKey(EnvGithubEventPath)
 	// ErrGitHubEventPathNotSet TODO(lint): should have comment or be unexported (revive).
-	ErrGitHubEventPathNotSet = errEnvVarNotSetWithKey(InputPublishResults)
+	ErrGitHubEventPathNotSet = errEnvVarNotSetWithKey(EnvGithubEventPath)
 	// ErrEmptyGitHubAuthToken TODO(lint): should have comment or be unexported (revive).
-	ErrEmptyGitHubAuthToken = errEnvVarIsEmptyWithKey(GithubAuthToken)
+	ErrEmptyGitHubAuthToken = errEnvVarIsEmptyWithKey(EnvGithubAuthToken)
 
 	errEnvVarNotSet  = errors.New("env var is not set")
 	errEnvVarIsEmpty = errors.New("env var is empty")
 
 	errRequiredEnvNotSet = errors.New("required environment variables are not set")
-	// TODO(env): Remove if not needed.
-	/*
-		errInputResultFileNotSet     = errEnvVarNotSet(InputResultsFile)
-		errInputResultFileEmpty      = errEnvVarIsEmpty(InputResultsFile)
-		errInputResultFormatNotSet   = errEnvVarNotSet(InputResultsFormat)
-		errInputResultFormatEmpty    = errEnvVarIsEmpty(InputResultsFormat)
-		errInputPublishResultsNotSet = errEnvVarNotSet(InputPublishResults)
-		errInputPublishResultsEmpty  = errEnvVarIsEmpty(InputPublishResults)
-	*/
 )
 
 func errEnvVarNotSetWithKey(envVar string) error {

@@ -46,7 +46,11 @@ func Run(o *options.Options) error {
 		return fmt.Errorf("checking if required options are set: %w", err)
 	}
 
-	o.SetRepository()
+	// The repository should have already been initialized, so if for whatever
+	// reason it hasn't, we should exit here with an appropriate error
+	if o.RepoIsSet() {
+		return fmt.Errorf("repository cannot be empty") //nolint:goerr113 // TODO(lint): Fix
+	}
 
 	token := options.GetGithubToken()
 	repo, err := getRepo(o.Repo(), token)

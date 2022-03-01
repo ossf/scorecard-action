@@ -26,7 +26,6 @@ import (
 
 	"github.com/caarlos0/env/v6"
 
-	scaenv "github.com/ossf/scorecard-action/env"
 	scopts "github.com/ossf/scorecard/v4/options"
 )
 
@@ -73,14 +72,11 @@ type Options struct {
 	// GitHub options.
 	// TODO(github): Consider making this a separate options set so we can
 	//               encapsulate handling
-	// TODO(auth): We probably want to remove the token from options to prevent
-	// it from being easily read.
-	GithubAuthToken  string `env:"GITHUB_AUTH_TOKEN"`
-	GithubEventName  string `env:"GITHUB_EVENT_NAME"`
-	GithubEventPath  string `env:"GITHUB_EVENT_PATH"`
-	GithubRef        string `env:"GITHUB_REF"`
-	GithubRepository string `env:"GITHUB_REPOSITORY"`
-	GithubWorkspace  string `env:"GITHUB_WORKSPACE"`
+	GithubEventName      string `env:"GITHUB_EVENT_NAME"`
+	CheckGithubEventPath string `env:"GITHUB_EVENT_PATH"`
+	GithubRef            string `env:"GITHUB_REF"`
+	GithubRepository     string `env:"GITHUB_REPOSITORY"`
+	GithubWorkspace      string `env:"GITHUB_WORKSPACE"`
 
 	DefaultBranch string `env:"SCORECARD_DEFAULT_BRANCH"`
 	// TODO(options): This may be better as a bool
@@ -154,12 +150,12 @@ func (o *Options) Initialize() error {
 	o.EnableLicense = "1"
 	o.EnableDangerousWorkflow = "1"
 
-	return GithubEventPath()
+	return CheckGithubEventPath()
 }
 
 // Validate validates the scorecard configuration.
 func (o *Options) Validate(writer io.Writer) error {
-	if o.GithubAuthToken == "" {
+	if os.Getenv(EnvGithubAuthToken) == "" {
 		fmt.Fprintf(writer, "The 'repo_token' variable is empty.\n")
 		if o.IsForkStr == trueStr {
 			fmt.Fprintf(writer, "We have detected you are running on a fork.\n")
@@ -170,7 +166,7 @@ func (o *Options) Validate(writer io.Writer) error {
 			"Please follow the instructions at https://github.com/ossf/scorecard-action#authentication to create the read-only PAT token.\n", //nolint:lll
 		)
 
-		return scaenv.ErrEmptyGitHubAuthToken
+		return ErrEmptyGitHubAuthToken
 	}
 
 	if strings.Contains(os.Getenv(o.GithubEventName), "pull_request") &&
@@ -186,7 +182,7 @@ func (o *Options) Validate(writer io.Writer) error {
 
 // CheckRequired TODO(lint): should have comment or be unexported (revive).
 func (o *Options) CheckRequired() error {
-	err := scaenv.CheckRequired()
+	err := CheckRequiredEnv()
 	if err != nil {
 		return fmt.Errorf("checking if required env vars are set: %w", err)
 	}
@@ -196,7 +192,7 @@ func (o *Options) CheckRequired() error {
 
 // Print is a function to print options.
 func (o *Options) Print(writer io.Writer) {
-	scaenv.Print(writer)
+	EnvPrint(writer)
 }
 
 // SetRepository TODO(lint): should have comment or be unexported (revive).
@@ -207,6 +203,11 @@ func (o *Options) SetRepository() {
 // Repo TODO(lint): should have comment or be unexported (revive).
 func (o *Options) Repo() string {
 	return o.ScorecardOpts.Repo
+}
+
+// RepoIsSet TODO(lint): should have comment or be unexported (revive).
+func (o *Options) RepoIsSet() bool {
+	return o.Repo() != ""
 }
 
 // SetRepoVisibility sets the repository's visibility.
@@ -237,32 +238,32 @@ func (o *Options) SetPublishResults() {
 
 // GetGithubToken retrieves the GitHub auth token from the environment.
 func GetGithubToken() string {
-	return os.Getenv(scaenv.GithubAuthToken)
+	return os.Getenv(EnvGithubAuthToken)
 }
 
 // GetGithubWorkspace retrieves the GitHub auth token from the environment.
 func GetGithubWorkspace() string {
-	return os.Getenv(scaenv.GithubWorkspace)
+	return os.Getenv(EnvGithubWorkspace)
 }
 
-// GithubEventPath gets the path to the GitHub event and sets the
+// CheckGithubEventPath gets the path to the GitHub event and sets the
 // SCORECARD_IS_FORK environment variable.
 // TODO(options): Check if this actually needs to be exported.
-func GithubEventPath() error {
+func CheckGithubEventPath() error {
 	var result string
 	var exists bool
 
-	if result, exists = os.LookupEnv(scaenv.GithubEventPath); !exists {
-		return scaenv.ErrGitHubEventPathNotSet
+	if result, exists = os.LookupEnv(EnvGithubEventPath); !exists {
+		return ErrGitHubEventPathNotSet
 	}
 
 	if result == "" {
-		return scaenv.ErrGitHubEventPathEmpty
+		return ErrGitHubEventPathEmpty
 	}
 
 	data, err := ioutil.ReadFile(result)
 	if err != nil {
-		return fmt.Errorf("error reading %s: %w", scaenv.GithubEventPath, err)
+		return fmt.Errorf("error reading %s: %w", EnvGithubEventPath, err)
 	}
 
 	isFork, err := RepoIsFork(string(data))
@@ -271,8 +272,8 @@ func GithubEventPath() error {
 	}
 
 	isForkStr := strconv.FormatBool(isFork)
-	if err := os.Setenv(scaenv.ScorecardFork, isForkStr); err != nil {
-		return fmt.Errorf("error setting %s: %w", scaenv.ScorecardFork, err)
+	if err := os.Setenv(EnvScorecardFork, isForkStr); err != nil {
+		return fmt.Errorf("error setting %s: %w", EnvScorecardFork, err)
 	}
 
 	return err
@@ -281,7 +282,7 @@ func GithubEventPath() error {
 // RepoIsFork checks if the current repo is a fork.
 func RepoIsFork(ghEventPath string) (bool, error) {
 	if ghEventPath == "" {
-		return false, scaenv.ErrGitHubEventPath
+		return false, ErrGitHubEventPath
 	}
 	/*
 	 https://docs.github.com/en/actions/reference/workflow-commands-for-github-actions#github_repository_is_fork

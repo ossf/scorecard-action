@@ -16,11 +16,17 @@ package options
 
 import (
 	"os"
-	"strconv"
 	"testing"
 
-	"github.com/ossf/scorecard-action/env"
+	"github.com/google/go-cmp/cmp"
+
 	scopts "github.com/ossf/scorecard/v4/options"
+)
+
+var (
+	githubEventPathNonFork   = "testdata/non-fork.json"
+	githubEventPathFork      = "testdata/fork.json"
+	githubEventPathIncorrect = "testdata/incorrect.json"
 )
 
 /*
@@ -65,57 +71,45 @@ func TestOptionsInitialize(t *testing.T) {
 		PublishResults  string
 		ResultsFile     string
 	}
-	tests := []struct {
-		name                 string
-		fields               fields
-		wantErr              bool
-		setEnvResultsFile    bool
-		setEnvResultsFormat  bool
-		setEnvPrivateRepo    bool
-		setEnvPublishResults bool
-		isPrivateRepo        bool
+	tests := []struct { //nolint:govet // TODO(lint): Fix
+		name               string
+		fields             fields
+		wantErr            bool
+		githubEventPath    string
+		setGithubEventPath bool
 	}{
 		{
-			name: "Success",
-			fields: fields{
-				ScorecardOpts: &scopts.Options{
-					PolicyFile: defaultScorecardPolicyFile,
-				},
-				ScorecardBin: defaultScorecardBin,
-			},
-			wantErr:              false,
-			setEnvResultsFile:    true,
-			setEnvResultsFormat:  true,
-			setEnvPrivateRepo:    true,
-			setEnvPublishResults: true,
-			isPrivateRepo:        true,
+			name:               "Success - non-fork",
+			wantErr:            false,
+			githubEventPath:    githubEventPathNonFork,
+			setGithubEventPath: true,
+		},
+		{
+			name:               "Success - fork",
+			wantErr:            false,
+			githubEventPath:    githubEventPathFork,
+			setGithubEventPath: true,
+		},
+		{
+			name:               "Failure - incorrect GitHub events",
+			wantErr:            true,
+			githubEventPath:    githubEventPathIncorrect,
+			setGithubEventPath: true,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if tt.setEnvResultsFile {
-				os.Setenv(env.InputResultsFile, "results-file")
-			}
-			if tt.setEnvResultsFormat {
-				os.Setenv(env.InputResultsFormat, "sarif")
-			}
-			if tt.setEnvPrivateRepo {
-				os.Setenv(env.ScorecardPrivateRepo, strconv.FormatBool(tt.isPrivateRepo))
-			}
-			if tt.setEnvPublishResults {
-				os.Setenv(env.InputPublishResults, strconv.FormatBool(!tt.isPrivateRepo))
+			if tt.setGithubEventPath {
+				os.Setenv(EnvGithubEventPath, tt.githubEventPath)
 			}
 
-			o := &Options{
-				ScorecardOpts:     tt.fields.ScorecardOpts,
-				GithubEventName:   tt.fields.GithubEventName,
-				ScorecardBin:      tt.fields.ScorecardBin,
-				DefaultBranch:     tt.fields.DefaultBranch,
-				PrivateRepoStr:    tt.fields.PrivateRepo,
-				PublishResultsStr: tt.fields.PublishResults,
-				ResultsFile:       tt.fields.ResultsFile,
-			}
+			o, _ := New() //nolint:errcheck // TODO(lint): Fix
+			t.Logf("options before initialization: %+v", o)
+			optsBeforeInit := o
+
 			if err := o.Initialize(); (err != nil) != tt.wantErr {
+				t.Logf("options after initialization: %+v", o)
+				t.Logf("options comparison: %s", cmp.Diff(optsBeforeInit, o))
 				t.Errorf("Options.Initialize() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
