@@ -70,11 +70,11 @@ type Options struct {
 	// GitHub options.
 	// TODO(github): Consider making this a separate options set so we can
 	//               encapsulate handling
-	GithubEventName      string `env:"GITHUB_EVENT_NAME"`
-	CheckGithubEventPath string `env:"GITHUB_EVENT_PATH"`
-	GithubRef            string `env:"GITHUB_REF"`
-	GithubRepository     string `env:"GITHUB_REPOSITORY"`
-	GithubWorkspace      string `env:"GITHUB_WORKSPACE"`
+	GithubEventName  string `env:"GITHUB_EVENT_NAME"`
+	GithubEventPath  string `env:"GITHUB_EVENT_PATH"`
+	GithubRef        string `env:"GITHUB_REF"`
+	GithubRepository string `env:"GITHUB_REPOSITORY"`
+	GithubWorkspace  string `env:"GITHUB_WORKSPACE"`
 
 	DefaultBranch string `env:"SCORECARD_DEFAULT_BRANCH"`
 	// TODO(options): This may be better as a bool
@@ -84,7 +84,7 @@ type Options struct {
 }
 
 const (
-	defaultScorecardPolicyFile = "./policy.yml"
+	defaultScorecardPolicyFile = "policy.yml"
 	defaultFormat              = options.FormatSarif
 )
 
@@ -102,7 +102,7 @@ func New() *Options {
 
 	if err := opts.Initialize(); err != nil {
 		// TODO(options): Consider making this an error.
-		fmt.Printf("initializing scorecard-action options: %+v", err)
+		fmt.Printf("initializing scorecard-action options: %+v\n", err)
 	}
 
 	// TODO(options): Move this set-or-default logic to its own function.
@@ -112,6 +112,10 @@ func New() *Options {
 	}
 
 	opts.ScorecardOpts = scOpts
+	if err := opts.ScorecardOpts.Validate(); err != nil {
+		// TODO(options): Consider making this an error.
+		fmt.Printf("validating scorecard options: %+v\n", err)
+	}
 
 	if opts.ScorecardOpts.ResultsFile == "" {
 		opts.ScorecardOpts.ResultsFile = opts.InputResultsFile
@@ -132,10 +136,6 @@ func New() *Options {
 		}
 	}
 
-	if err := opts.ScorecardOpts.Validate(); err != nil {
-		// TODO(options): Consider making this an error.
-		fmt.Printf("validating scorecard options: %+v", err)
-	}
 	// TODO(options): Consider running Initialize() before returning.
 	// TODO(options): Consider running Validate() before returning.
 	//opts.Print()
@@ -157,7 +157,7 @@ func (o *Options) Initialize() error {
 	o.EnableLicense = "1"
 	o.EnableDangerousWorkflow = "1"
 
-	return CheckGithubEventPath()
+	return o.SetRepoInfo()
 }
 
 // Validate validates the scorecard configuration.
@@ -199,7 +199,7 @@ func (o *Options) CheckRequired() error {
 
 // Print is a function to print options.
 func (o *Options) Print() {
-	fmt.Printf("Event file: %s\n", o.CheckGithubEventPath)
+	fmt.Printf("Event file: %s\n", o.GithubEventPath)
 	fmt.Printf("Event name: %s\n", o.GithubEventName)
 	fmt.Printf("Ref: %s\n", o.ScorecardOpts.Commit)
 	fmt.Printf("Repository: %s\n", o.ScorecardOpts.Repo)
@@ -265,54 +265,37 @@ func GetGithubWorkspace() string {
 // CheckGithubEventPath gets the path to the GitHub event and sets the
 // SCORECARD_IS_FORK environment variable.
 // TODO(options): Check if this actually needs to be exported.
-func CheckGithubEventPath() error {
-	var result string
-	var exists bool
-
-	if result, exists = os.LookupEnv(EnvGithubEventPath); !exists {
-		return ErrGitHubEventPathNotSet
-	}
-
-	if result == "" {
+// TODO(options): Choose a more accurate name for what this does.
+func (o *Options) SetRepoInfo() error {
+	eventPath := o.GithubEventPath
+	if eventPath == "" {
 		return ErrGitHubEventPathEmpty
 	}
 
-	data, err := ioutil.ReadFile(result)
+	repoInfo, err := ioutil.ReadFile(eventPath)
 	if err != nil {
-		return fmt.Errorf("error reading %s: %w", EnvGithubEventPath, err)
+		return fmt.Errorf("reading GitHub event path: %w", err)
 	}
 
-	isFork, err := RepoIsFork(string(data))
-	if err != nil {
-		return fmt.Errorf("error checking if scorecard is a fork: %w", err)
-	}
-
-	isForkStr := strconv.FormatBool(isFork)
-	if err := os.Setenv(EnvScorecardFork, isForkStr); err != nil {
-		return fmt.Errorf("error setting %s: %w", EnvScorecardFork, err)
-	}
-
-	return err
-}
-
-// RepoIsFork checks if the current repo is a fork.
-func RepoIsFork(ghEventPath string) (bool, error) {
-	if ghEventPath == "" {
-		return false, ErrGitHubEventPath
-	}
 	/*
 	 https://docs.github.com/en/actions/reference/workflow-commands-for-github-actions#github_repository_is_fork
 	   GITHUB_REPOSITORY_IS_FORK is true if the repository is a fork.
 	*/
 	type repo struct {
 		Repository struct {
-			Fork bool `json:"fork"`
+			DefaultBranch string `json:"default_branch"`
+			Fork          bool   `json:"fork"`
+			Private       bool   `json:"private"`
 		} `json:"repository"`
 	}
 	var r repo
-	if err := json.Unmarshal([]byte(ghEventPath), &r); err != nil {
-		return false, fmt.Errorf("error unmarshalling ghEventPath: %w", err)
+	if err := json.Unmarshal([]byte(repoInfo), &r); err != nil {
+		return fmt.Errorf("unmarshalling repo info: %w", err)
 	}
 
-	return r.Repository.Fork, nil
+	o.PrivateRepoStr = strconv.FormatBool(r.Repository.Private)
+	o.IsForkStr = strconv.FormatBool(r.Repository.Fork)
+	o.DefaultBranch = r.Repository.DefaultBranch
+
+	return nil
 }

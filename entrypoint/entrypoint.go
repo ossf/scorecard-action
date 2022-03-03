@@ -35,6 +35,7 @@ import (
 // Errors.
 var errEmptyScorecardBin = errors.New("scorecard_bin variable is empty")
 
+// TODO(github): Move to separate package.
 type repo struct {
 	DefaultBranch string `json:"default_branch"`
 	Private       bool   `json:"private"`
@@ -143,6 +144,7 @@ func Run(o *options.Options) error {
 // It is decided to not use the golang GitHub library because of the
 // dependency on the github.com/google/go-github/github library
 // which will in turn require other dependencies.
+// TODO(github): Move to separate package.
 func getRepo(name, token string) (repo, error) {
 	var r repo
 	ctx := context.Background()
