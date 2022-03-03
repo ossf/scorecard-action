@@ -45,9 +45,6 @@ type Options struct {
 
 	// Scorecard command-line options.
 	EnabledChecks string `env:"ENABLED_CHECKS"`
-	PolicyFile    string `env:"SCORECARD_POLICY_FILE"`
-	// TODO(options): This may be better as a bool
-	PublishResultsStr string `env:"SCORECARD_PUBLISH_RESULTS"`
 
 	// Input options.
 	// TODO(options): These input options shadow the some of the SCORECARD_
@@ -63,7 +60,6 @@ type Options struct {
 	InputPublishResults string `env:"INPUT_PUBLISH_RESULTS"`
 
 	// Scorecard checks.
-	EnableSarif             string `env:"ENABLE_SARIF"`
 	EnableLicense           string `env:"ENABLE_LICENSE"`
 	EnableDangerousWorkflow string `env:"ENABLE_DANGEROUS_WORKFLOW"`
 
@@ -85,7 +81,7 @@ type Options struct {
 
 const (
 	defaultScorecardPolicyFile = "policy.yml"
-	defaultFormat              = options.FormatSarif
+	formatSarif                = options.FormatSarif
 )
 
 // New TODO(lint): should have comment or be unexported (revive).
@@ -106,39 +102,37 @@ func New() *Options {
 	}
 
 	// TODO(options): Move this set-or-default logic to its own function.
-	scOpts.PolicyFile = opts.PolicyFile
-	if scOpts.PolicyFile == "" {
-		scOpts.PolicyFile = defaultScorecardPolicyFile
+	if opts.InputResultsFormat != "" {
+		scOpts.Format = opts.InputResultsFormat
+	} else {
+		scOpts.EnableSarif = true
+		scOpts.Format = formatSarif
+		os.Setenv(options.EnvVarEnableSarif, trueStr)
+		if scOpts.Format == "" {
+			// Default the scorecard command to using SARIF format.
+			if scOpts.PolicyFile == "" {
+				// TODO(policy): Should we default or error here?
+				scOpts.PolicyFile = defaultScorecardPolicyFile
+			}
+		}
 	}
 
-	opts.ScorecardOpts = scOpts
-	if err := opts.ScorecardOpts.Validate(); err != nil {
+	if err := scOpts.Validate(); err != nil {
 		// TODO(options): Consider making this an error.
 		fmt.Printf("validating scorecard options: %+v\n", err)
 	}
 
-	if opts.ScorecardOpts.ResultsFile == "" {
-		opts.ScorecardOpts.ResultsFile = opts.InputResultsFile
-		// TODO(options): We should check if this is empty.
-	}
+	opts.ScorecardOpts = scOpts
+	opts.SetPublishResults()
 
-	if opts.ScorecardOpts.Format == "" {
-		opts.ScorecardOpts.Format = opts.InputResultsFormat
-	}
-	if opts.ScorecardOpts.Format == "" {
-		opts.ScorecardOpts.Format = defaultFormat
-	}
-
-	if opts.PublishResultsStr == "" {
-		opts.PublishResultsStr = opts.InputPublishResults
-		if opts.PublishResultsStr == "" {
-			opts.PublishResultsStr = "false"
+	if opts.ScorecardOpts.PublishResults {
+		if scOpts.ResultsFile == "" {
+			scOpts.ResultsFile = opts.InputResultsFile
+			// TODO(options): We should check if this is empty.
 		}
 	}
 
-	// TODO(options): Consider running Initialize() before returning.
 	// TODO(options): Consider running Validate() before returning.
-	//opts.Print()
 	return opts
 }
 
@@ -153,7 +147,6 @@ func (o *Options) Initialize() error {
 	   GITHUB_ACTIONS is true in GitHub env.
 	*/
 
-	o.EnableSarif = "1"
 	o.EnableLicense = "1"
 	o.EnableDangerousWorkflow = "1"
 
@@ -244,11 +237,37 @@ func (o *Options) SetDefaultBranch(defaultBranch string) error {
 // SetPublishResults sets whether results should be published based on a
 // repository's visibility.
 func (o *Options) SetPublishResults() {
-	isPrivateRepo := o.PrivateRepoStr
-	if isPrivateRepo == trueStr || isPrivateRepo == "" {
-		o.PublishResultsStr = "false"
+	// Check INPUT_PUBLISH_RESULTS
+	var inputBool bool
+	var inputErr error
+	input := os.Getenv(EnvInputPublishResults)
+	if input != "" {
+		inputBool, inputErr = strconv.ParseBool(o.InputPublishResults)
+		if inputErr != nil {
+			// TODO(options): Consider making this an error.
+			fmt.Printf(
+				"could not parse a valid bool from %s (%s): %+v\n",
+				input,
+				EnvInputPublishResults,
+				inputErr,
+			)
+		}
+	}
+
+	privateRepo, err := strconv.ParseBool(o.PrivateRepoStr)
+	if err != nil {
+		// TODO(options): Consider making this an error.
+		fmt.Printf(
+			"parsing bool from %s: %+v\n",
+			o.PrivateRepoStr,
+			err,
+		)
+	}
+
+	if privateRepo {
+		o.ScorecardOpts.PublishResults = false
 	} else {
-		o.PublishResultsStr = trueStr
+		o.ScorecardOpts.PublishResults = o.ScorecardOpts.PublishResults || inputBool
 	}
 }
 
