@@ -14,15 +14,6 @@
 
 package options
 
-import (
-	"os"
-	"testing"
-
-	"github.com/google/go-cmp/cmp"
-
-	scopts "github.com/ossf/scorecard/v4/options"
-)
-
 var (
 	githubEventPathNonFork   = "testdata/non-fork.json"
 	githubEventPathFork      = "testdata/fork.json"
@@ -58,6 +49,7 @@ func TestNew(t *testing.T) {
 }
 */
 
+/*
 //nolint:paralleltest // Until/unless we consider providing a fake environment
 // to tests, running these in parallel will have unpredictable results as
 // we're mutating environment variables.
@@ -115,3 +107,4 @@ func TestOptionsInitialize(t *testing.T) {
 		})
 	}
 }
+*/
