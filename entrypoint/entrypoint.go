@@ -15,23 +15,12 @@
 package entrypoint
 
 import (
-	"context"
-	"encoding/json"
-	"fmt"
-	"net/http"
-
 	"github.com/spf13/cobra"
 
 	"github.com/ossf/scorecard-action/options"
 	"github.com/ossf/scorecard/v4/cmd"
 	scopts "github.com/ossf/scorecard/v4/options"
 )
-
-// TODO(github): Move to separate package.
-type repo struct {
-	DefaultBranch string `json:"default_branch"`
-	Private       bool   `json:"private"`
-}
 
 // New creates a new scorecard command which can be used as an entrypoint for
 // GitHub Actions.
@@ -73,36 +62,4 @@ func printConfigCmd(o *options.Options) *cobra.Command {
 	}
 
 	return cmd
-}
-
-// getRepo is a function to get the repository information.
-// It is decided to not use the golang GitHub library because of the
-// dependency on the github.com/google/go-github/github library
-// which will in turn require other dependencies.
-// TODO(github): Move to separate package.
-func getRepo(name, token string) (repo, error) {
-	var r repo
-	ctx := context.Background()
-
-	req, err := http.NewRequestWithContext(ctx, "GET", fmt.Sprintf("https://api.github.com/repos/%s", name), nil)
-	if err != nil {
-		return r, fmt.Errorf("error creating request: %w", err)
-	}
-	req.Header.Set("Authorization", token)
-
-	resp, err := http.DefaultClient.Do(req)
-	if err != nil {
-		return r, fmt.Errorf("error creating request: %w", err)
-	}
-	defer resp.Body.Close()
-	if err != nil {
-		return r, fmt.Errorf("error reading response body: %w", err)
-	}
-
-	err = json.NewDecoder(resp.Body).Decode(&r)
-	if err != nil {
-		return r, fmt.Errorf("error decoding response body: %w", err)
-	}
-
-	return r, nil
 }

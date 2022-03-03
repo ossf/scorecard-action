@@ -26,6 +26,7 @@ import (
 
 	"github.com/caarlos0/env/v6"
 
+	"github.com/ossf/scorecard-action/github"
 	"github.com/ossf/scorecard/v4/options"
 	scopts "github.com/ossf/scorecard/v4/options"
 )
@@ -271,11 +272,6 @@ func (o *Options) SetPublishResults() {
 	}
 }
 
-// GetGithubToken retrieves the GitHub auth token from the environment.
-func GetGithubToken() string {
-	return os.Getenv(EnvGithubAuthToken)
-}
-
 // GetGithubWorkspace retrieves the GitHub auth token from the environment.
 func GetGithubWorkspace() string {
 	return os.Getenv(EnvGithubWorkspace)
@@ -296,25 +292,14 @@ func (o *Options) SetRepoInfo() error {
 		return fmt.Errorf("reading GitHub event path: %w", err)
 	}
 
-	/*
-	 https://docs.github.com/en/actions/reference/workflow-commands-for-github-actions#github_repository_is_fork
-	   GITHUB_REPOSITORY_IS_FORK is true if the repository is a fork.
-	*/
-	type repo struct {
-		Repository struct {
-			DefaultBranch string `json:"default_branch"`
-			Fork          bool   `json:"fork"`
-			Private       bool   `json:"private"`
-		} `json:"repository"`
-	}
-	var r repo
+	var r github.RepoInfo
 	if err := json.Unmarshal([]byte(repoInfo), &r); err != nil {
 		return fmt.Errorf("unmarshalling repo info: %w", err)
 	}
 
-	o.PrivateRepoStr = strconv.FormatBool(r.Repository.Private)
-	o.IsForkStr = strconv.FormatBool(r.Repository.Fork)
-	o.DefaultBranch = r.Repository.DefaultBranch
+	o.PrivateRepoStr = strconv.FormatBool(r.Repo.Private)
+	o.IsForkStr = strconv.FormatBool(r.Repo.Fork)
+	o.DefaultBranch = r.Repo.DefaultBranch
 
 	return nil
 }
