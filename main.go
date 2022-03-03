@@ -15,16 +15,13 @@
 package main
 
 import (
+	"log"
+
 	"github.com/ossf/scorecard-action/entrypoint"
-	"github.com/ossf/scorecard-action/options"
 )
 
-var opts = &options.Options{}
-
 func main() {
-	err := entrypoint.Run(opts)
-	if err != nil {
-		// TODO: Don't panic!
-		panic(err)
+	if err := entrypoint.New().Execute(); err != nil {
+		log.Fatalf("error during command execution: %v", err)
 	}
 }

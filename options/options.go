@@ -26,6 +26,7 @@ import (
 
 	"github.com/caarlos0/env/v6"
 
+	"github.com/ossf/scorecard/v4/options"
 	scopts "github.com/ossf/scorecard/v4/options"
 )
 
@@ -43,11 +44,8 @@ type Options struct {
 	ScorecardOpts *scopts.Options
 
 	// Scorecard command-line options.
-	ScorecardBin  string `env:"SCORECARD_BIN"`
 	EnabledChecks string `env:"ENABLED_CHECKS"`
 	PolicyFile    string `env:"SCORECARD_POLICY_FILE"`
-	Format        string `env:"SCORECARD_RESULTS_FORMAT"`
-	ResultsFile   string `env:"SCORECARD_RESULTS_FILE"`
 	// TODO(options): This may be better as a bool
 	PublishResultsStr string `env:"SCORECARD_PUBLISH_RESULTS"`
 
@@ -86,20 +84,26 @@ type Options struct {
 }
 
 const (
-	defaultScorecardBin        = "/scorecard"
 	defaultScorecardPolicyFile = "./policy.yml"
+	defaultFormat              = options.FormatSarif
 )
 
 // New TODO(lint): should have comment or be unexported (revive).
-func New() (*Options, error) {
+func New() *Options {
 	opts := &Options{}
 	if err := env.Parse(opts); err != nil {
-		return opts, fmt.Errorf("parsing entrypoint env vars: %w", err)
+		// TODO(options): Consider making this an error.
+		fmt.Printf("parsing entrypoint env vars: %+v", err)
 	}
 
 	// TODO(options): Push options into scorecard.Options once/if it supports
 	//                validation.
 	scOpts := scopts.New()
+
+	if err := opts.Initialize(); err != nil {
+		// TODO(options): Consider making this an error.
+		fmt.Printf("initializing scorecard-action options: %+v", err)
+	}
 
 	// TODO(options): Move this set-or-default logic to its own function.
 	scOpts.PolicyFile = opts.PolicyFile
@@ -107,21 +111,19 @@ func New() (*Options, error) {
 		scOpts.PolicyFile = defaultScorecardPolicyFile
 	}
 
-	if opts.ScorecardBin == "" {
-		opts.ScorecardBin = defaultScorecardBin
-	}
-
 	opts.ScorecardOpts = scOpts
 
-	if opts.ResultsFile == "" {
-		opts.ResultsFile = opts.InputResultsFile
+	if opts.ScorecardOpts.ResultsFile == "" {
+		opts.ScorecardOpts.ResultsFile = opts.InputResultsFile
 		// TODO(options): We should check if this is empty.
 	}
 
-	if opts.Format == "" {
-		opts.Format = opts.InputResultsFormat
+	if opts.ScorecardOpts.Format == "" {
+		opts.ScorecardOpts.Format = opts.InputResultsFormat
 	}
-	opts.ScorecardOpts.Format = opts.Format
+	if opts.ScorecardOpts.Format == "" {
+		opts.ScorecardOpts.Format = defaultFormat
+	}
 
 	if opts.PublishResultsStr == "" {
 		opts.PublishResultsStr = opts.InputPublishResults
@@ -130,9 +132,13 @@ func New() (*Options, error) {
 		}
 	}
 
+	if err := opts.ScorecardOpts.Validate(); err != nil {
+		// TODO(options): Consider making this an error.
+		fmt.Printf("validating scorecard options: %+v", err)
+	}
 	// TODO(options): Consider running Initialize() before returning.
 	// TODO(options): Consider running Validate() before returning.
-	return opts, nil
+	return opts
 }
 
 // Initialize initializes the environment variables required for the action.

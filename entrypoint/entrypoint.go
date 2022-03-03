@@ -25,7 +25,11 @@ import (
 	"os/exec"
 	"strings"
 
+	"github.com/spf13/cobra"
+
 	"github.com/ossf/scorecard-action/options"
+	"github.com/ossf/scorecard/v4/cmd"
+	scopts "github.com/ossf/scorecard/v4/options"
 )
 
 // Errors.
@@ -34,6 +38,34 @@ var errEmptyScorecardBin = errors.New("scorecard_bin variable is empty")
 type repo struct {
 	DefaultBranch string `json:"default_branch"`
 	Private       bool   `json:"private"`
+}
+
+// New creates a new scorecard command which can be used as an entrypoint for
+// GitHub Actions.
+func New() *cobra.Command {
+	opts := options.New()
+	opts.Initialize()
+	scOpts := opts.ScorecardOpts
+
+	actionCmd := cmd.New(scOpts)
+
+	actionCmd.Flags().StringVar(
+		&scOpts.ResultsFile,
+		"output-file",
+		scOpts.ResultsFile,
+		"path to output results to",
+	)
+
+	hiddenFlags := []string{
+		scopts.FlagNPM,
+		scopts.FlagPyPI,
+		scopts.FlagRubyGems,
+	}
+	for _, f := range hiddenFlags {
+		actionCmd.Flags().MarkHidden(f)
+	}
+
+	return actionCmd
 }
 
 // Run is the entrypoint for the action.
@@ -83,7 +115,7 @@ func Run(o *options.Options) error {
 		return fmt.Errorf("running scorecard command: %w", err)
 	}
 
-	results, err := ioutil.ReadFile(o.ResultsFile)
+	results, err := ioutil.ReadFile(o.ScorecardOpts.ResultsFile)
 	if err != nil {
 		return fmt.Errorf("reading results file: %w", err)
 	}
@@ -125,11 +157,13 @@ func getRepo(name, token string) (repo, error) {
 }
 
 func getScorecardCmd(o *options.Options) (*exec.Cmd, error) {
-	if o.ScorecardBin == "" {
-		return nil, errEmptyScorecardBin
-	}
+	/*
+		if o.ScorecardBin == "" {
+			return nil, errEmptyScorecardBin
+		}
+	*/
 	var result exec.Cmd
-	result.Path = o.ScorecardBin
+	//result.Path = o.ScorecardBin
 
 	// if pull_request
 	if strings.Contains(o.GithubEventName, "pull_request") {
@@ -142,7 +176,7 @@ func getScorecardCmd(o *options.Options) (*exec.Cmd, error) {
 				o.ScorecardOpts.Format,
 				"--show-details",
 				">",
-				o.ResultsFile,
+				o.ScorecardOpts.ResultsFile,
 			}
 			return &result, nil
 		}
@@ -156,7 +190,7 @@ func getScorecardCmd(o *options.Options) (*exec.Cmd, error) {
 			o.ScorecardOpts.PolicyFile,
 			"--show-details",
 			">",
-			o.ResultsFile,
+			o.ScorecardOpts.ResultsFile,
 		}
 		return &result, nil
 	}
@@ -175,7 +209,7 @@ func getScorecardCmd(o *options.Options) (*exec.Cmd, error) {
 			enabledChecks,
 			"--show-details",
 			">",
-			o.ResultsFile,
+			o.ScorecardOpts.ResultsFile,
 		}
 		return &result, nil
 	}
@@ -190,7 +224,7 @@ func getScorecardCmd(o *options.Options) (*exec.Cmd, error) {
 		o.ScorecardOpts.PolicyFile,
 		"--show-details",
 		">",
-		o.ResultsFile,
+		o.ScorecardOpts.ResultsFile,
 	}
 
 	return &result, nil
