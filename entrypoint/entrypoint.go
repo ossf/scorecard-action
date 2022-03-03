@@ -15,6 +15,9 @@
 package entrypoint
 
 import (
+	"fmt"
+	"os"
+
 	"github.com/spf13/cobra"
 
 	"github.com/ossf/scorecard-action/options"
@@ -37,6 +40,40 @@ func New() *cobra.Command {
 		scOpts.ResultsFile,
 		"path to output results to",
 	)
+
+	// Adapt scorecard's PreRunE to support an output file
+	// TODO(scorecard): Move this into scorecard
+	var out, stdout *os.File
+	actionCmd.PreRunE = func(cmd *cobra.Command, args []string) error {
+		err := scOpts.Validate()
+		if err != nil {
+			return fmt.Errorf("validating options: %w", err)
+		}
+
+		if scOpts.ResultsFile != "" {
+			var err error
+			out, err = os.Create(scOpts.ResultsFile)
+			if err != nil {
+				return fmt.Errorf(
+					"creating output file (%s): %w",
+					scOpts.ResultsFile,
+					err,
+				)
+			}
+			stdout = os.Stdout
+			os.Stdout = out
+			cmd.SetOut(out)
+		}
+
+		return nil
+	}
+
+	actionCmd.PersistentPostRun = func(cmd *cobra.Command, args []string) {
+		if out != nil {
+			_ = out.Close()
+		}
+		os.Stdout = stdout
+	}
 
 	hiddenFlags := []string{
 		scopts.FlagNPM,
