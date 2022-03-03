@@ -138,6 +138,7 @@ func New() *Options {
 	}
 	// TODO(options): Consider running Initialize() before returning.
 	// TODO(options): Consider running Validate() before returning.
+	//opts.Print()
 	return opts
 }
 
@@ -197,8 +198,17 @@ func (o *Options) CheckRequired() error {
 }
 
 // Print is a function to print options.
-func (o *Options) Print(writer io.Writer) {
-	EnvPrint(writer)
+func (o *Options) Print() {
+	fmt.Printf("Event file: %s\n", o.CheckGithubEventPath)
+	fmt.Printf("Event name: %s\n", o.GithubEventName)
+	fmt.Printf("Ref: %s\n", o.ScorecardOpts.Commit)
+	fmt.Printf("Repository: %s\n", o.ScorecardOpts.Repo)
+	fmt.Printf("Fork repository: %s\n", o.IsForkStr)
+	fmt.Printf("Private repository: %s\n", o.PrivateRepoStr)
+	fmt.Printf("Publication enabled: %+v\n", o.ScorecardOpts.PublishResults)
+	fmt.Printf("Format: %s\n", o.ScorecardOpts.Format)
+	fmt.Printf("Policy file: %s\n", o.ScorecardOpts.PolicyFile)
+	fmt.Printf("Default branch: %s\n", o.DefaultBranch)
 }
 
 // SetRepository TODO(lint): should have comment or be unexported (revive).

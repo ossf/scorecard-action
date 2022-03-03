@@ -57,8 +57,8 @@ func CheckRequiredEnv() error {
 	return nil
 }
 
-// EnvPrint is a function to print the ENV variables.
-func EnvPrint(writer io.Writer) {
+// envPrint is a function to print the ENV variables.
+func envPrint(writer io.Writer) {
 	fmt.Fprintf(writer, "GITHUB_EVENT_PATH=%s\n", os.Getenv(EnvGithubEventPath))
 	fmt.Fprintf(writer, "GITHUB_EVENT_NAME=%s\n", os.Getenv(EnvGithubEventName))
 	fmt.Fprintf(writer, "GITHUB_REPOSITORY=%s\n", os.Getenv(EnvGithubRepository))

@@ -65,7 +65,21 @@ func New() *cobra.Command {
 		actionCmd.Flags().MarkHidden(f)
 	}
 
+	// Add sub-commands.
+	actionCmd.AddCommand(printConfigCmd(opts))
+
 	return actionCmd
+}
+
+func printConfigCmd(o *options.Options) *cobra.Command {
+	cmd := &cobra.Command{
+		Use: "print-config",
+		Run: func(cmd *cobra.Command, args []string) {
+			o.Print()
+		},
+	}
+
+	return cmd
 }
 
 // Run is the entrypoint for the action.
@@ -98,7 +112,7 @@ func Run(o *options.Options) error {
 	o.SetRepoVisibility(repo.Private)
 	o.SetPublishResults()
 
-	o.Print(os.Stdout)
+	o.Print()
 
 	if err := o.Validate(os.Stderr); err != nil {
 		return fmt.Errorf("validating options: %w", err)
