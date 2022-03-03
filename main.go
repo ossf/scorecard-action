@@ -132,7 +132,7 @@ func main() {
 	if scorecardPublishResults == "true" {
 		err = signScorecardResult(scorecardResultsFile)
 		if err != nil {
-			fmt.Printf("Error signing scorecard result: %v", err)
+			fmt.Fprintf(os.Stderr, "Error signing scorecard result: %v", err)
 			return
 		}
 	}
