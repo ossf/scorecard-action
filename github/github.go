@@ -48,11 +48,13 @@ type repo struct {
 	Private       bool   `json:"private"`
 }
 
+// Client holds a context and roundtripper for querying repo info from GitHub.
 type Client struct {
 	ctx context.Context
 	rt  http.RoundTripper
 }
 
+// NewClient returns a new Client for querying repo info from GitHub.
 func NewClient(ctx context.Context) *Client {
 	c := &Client{}
 
@@ -66,20 +68,24 @@ func NewClient(ctx context.Context) *Client {
 	return c
 }
 
+// SetContext sets a context for a GitHub client.
 func (c *Client) SetContext(ctx context.Context) {
 	c.ctx = ctx
 }
 
+// SetTransport sets a http.RoundTripper for a GitHub client.
 func (c *Client) SetTransport(rt http.RoundTripper) {
 	c.rt = rt
 }
 
+// SetDefaultTransport sets the scorecard roundtripper for a GitHub client.
 func (c *Client) SetDefaultTransport() {
 	logger := log.NewLogger(log.DefaultLevel)
 	rt := roundtripper.NewTransport(c.ctx, logger)
 	c.rt = rt
 }
 
+// WriteRepoInfo queries GitHub for repo info and writes it to a file.
 func WriteRepoInfo(ctx context.Context, repoName, path string) error {
 	c := NewClient(ctx)
 	repoInfo, err := c.RepoInfo(repoName)
@@ -94,12 +100,15 @@ func WriteRepoInfo(ctx context.Context, repoName, path string) error {
 	defer repoFile.Close()
 
 	resp := repoInfo.respBytes
-	repoFile.Write(resp)
+	_, writeErr := repoFile.Write(resp)
+	if writeErr != nil {
+		return fmt.Errorf("writing repo info: %w", writeErr)
+	}
 
 	return nil
 }
 
-// getRepo is a function to get the repository information.
+// RepoInfo is a function to get the repository information.
 // It is decided to not use the golang GitHub library because of the
 // dependency on the github.com/google/go-github/github library
 // which will in turn require other dependencies.
@@ -138,12 +147,12 @@ func (c *Client) RepoInfo(repoName string) (RepoInfo, error) {
 
 	respBytes, err := io.ReadAll(resp.Body)
 	if err != nil {
-		fmt.Printf("error reading response body: %w", err)
+		return r, fmt.Errorf("error reading response body: %w", err)
 	}
 
 	r.respBytes = respBytes
 
-	err = json.Unmarshal(respBytes, r)
+	err = json.Unmarshal(respBytes, &r)
 	if err != nil {
 		return r, fmt.Errorf("error decoding response body: %w", err)
 	}

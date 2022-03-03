@@ -17,8 +17,6 @@ package options
 import (
 	"errors"
 	"fmt"
-	"io"
-	"os"
 )
 
 // Environment variables.
@@ -41,80 +39,15 @@ const (
 	EnvScorecardPrivateRepo    = "SCORECARD_PRIVATE_REPOSITORY"
 )
 
-// CheckRequiredEnv is a function to check if the required environment variables are set.
-func CheckRequiredEnv() error {
-	envVariables := make(map[string]bool)
-	envVariables[EnvGithubRepository] = true
-	envVariables[EnvGithubAuthToken] = true
-
-	for key := range envVariables {
-		// TODO(env): Refactor to use helpers
-		if _, exists := os.LookupEnv(key); !exists {
-			return errRequiredEnvNotSet
-		}
-	}
-
-	return nil
-}
-
-// envPrint is a function to print the ENV variables.
-func envPrint(writer io.Writer) {
-	fmt.Fprintf(writer, "GITHUB_EVENT_PATH=%s\n", os.Getenv(EnvGithubEventPath))
-	fmt.Fprintf(writer, "GITHUB_EVENT_NAME=%s\n", os.Getenv(EnvGithubEventName))
-	fmt.Fprintf(writer, "GITHUB_REPOSITORY=%s\n", os.Getenv(EnvGithubRepository))
-	fmt.Fprintf(writer, "SCORECARD_IS_FORK=%s\n", os.Getenv(EnvScorecardFork))
-	fmt.Fprintf(writer, "Ref=%s\n", os.Getenv(EnvGithubRef))
-}
-
-// Adapted from sigs.k8s.io/release-utils/env
-
-// TODO(env): Consider making these methods on an env var type.
-
-// Lookup returns either the provided environment variable for the given key
-// or the default value def if not set.
-func Lookup(envVar, def string, mustExist, mustNotBeEmpty bool) (string, error) {
-	value, ok := os.LookupEnv(envVar)
-	if !ok {
-		if mustExist {
-			return value, errEnvVarNotSetWithKey(envVar)
-		}
-	}
-
-	if value == "" {
-		if mustNotBeEmpty {
-			return value, errEnvVarIsEmptyWithKey(envVar)
-		}
-
-		return def, nil
-	}
-
-	return value, nil
-}
-
 // Errors
 
 var (
 	// Errors.
-	// TODO(env): Determine if these errors actually need to be named.
+	errGitHubEventPathEmpty = errEnvVarIsEmptyWithKey(EnvGithubEventPath)
+	errEmptyGitHubAuthToken = errEnvVarIsEmptyWithKey(EnvGithubAuthToken)
 
-	// ErrGitHubEventPath TODO(lint): should have comment or be unexported (revive).
-	ErrGitHubEventPath = errors.New("error getting GITHUB_EVENT_PATH")
-	// ErrGitHubEventPathEmpty TODO(lint): should have comment or be unexported (revive).
-	ErrGitHubEventPathEmpty = errEnvVarIsEmptyWithKey(EnvGithubEventPath)
-	// ErrGitHubEventPathNotSet TODO(lint): should have comment or be unexported (revive).
-	ErrGitHubEventPathNotSet = errEnvVarNotSetWithKey(EnvGithubEventPath)
-	// ErrEmptyGitHubAuthToken TODO(lint): should have comment or be unexported (revive).
-	ErrEmptyGitHubAuthToken = errEnvVarIsEmptyWithKey(EnvGithubAuthToken)
-
-	errEnvVarNotSet  = errors.New("env var is not set")
 	errEnvVarIsEmpty = errors.New("env var is empty")
-
-	errRequiredEnvNotSet = errors.New("required environment variables are not set")
 )
-
-func errEnvVarNotSetWithKey(envVar string) error {
-	return fmt.Errorf("%w: %s", errEnvVarNotSet, envVar)
-}
 
 func errEnvVarIsEmptyWithKey(envVar string) error {
 	return fmt.Errorf("%w: %s", errEnvVarIsEmpty, envVar)

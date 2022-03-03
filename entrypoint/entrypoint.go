@@ -15,6 +15,7 @@
 package entrypoint
 
 import (
+	"errors"
 	"fmt"
 	"os"
 
@@ -27,9 +28,12 @@ import (
 
 // New creates a new scorecard command which can be used as an entrypoint for
 // GitHub Actions.
-func New() *cobra.Command {
+func New() (*cobra.Command, error) {
 	opts := options.New()
-	opts.Initialize()
+	if err := opts.Initialize(); err != nil {
+		return nil, fmt.Errorf("initializing options: %w", err)
+	}
+
 	scOpts := opts.ScorecardOpts
 
 	actionCmd := cmd.New(scOpts)
@@ -62,7 +66,7 @@ func New() *cobra.Command {
 			}
 			stdout = os.Stdout
 			os.Stdout = out
-			cmd.SetOut(out)
+			actionCmd.SetOut(out)
 		}
 
 		return nil
@@ -75,28 +79,43 @@ func New() *cobra.Command {
 		os.Stdout = stdout
 	}
 
+	var hideErrs []error
 	hiddenFlags := []string{
 		scopts.FlagNPM,
 		scopts.FlagPyPI,
 		scopts.FlagRubyGems,
 	}
+
 	for _, f := range hiddenFlags {
-		actionCmd.Flags().MarkHidden(f)
+		err := actionCmd.Flags().MarkHidden(f)
+		if err != nil {
+			hideErrs = append(hideErrs, err)
+		}
+	}
+
+	if len(hideErrs) > 0 {
+		return nil, fmt.Errorf(
+			"%w: %+v",
+			errHideFlags,
+			hideErrs,
+		)
 	}
 
 	// Add sub-commands.
 	actionCmd.AddCommand(printConfigCmd(opts))
 
-	return actionCmd
+	return actionCmd, nil
 }
 
 func printConfigCmd(o *options.Options) *cobra.Command {
-	cmd := &cobra.Command{
+	c := &cobra.Command{
 		Use: "print-config",
 		Run: func(cmd *cobra.Command, args []string) {
 			o.Print()
 		},
 	}
 
-	return cmd
+	return c
 }
+
+var errHideFlags = errors.New("errors occurred while trying to hide scorecard flags")

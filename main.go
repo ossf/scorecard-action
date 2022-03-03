@@ -21,7 +21,12 @@ import (
 )
 
 func main() {
-	if err := entrypoint.New().Execute(); err != nil {
+	action, err := entrypoint.New()
+	if err != nil {
+		log.Fatalf("creating scorecard entrypoint: %v", err)
+	}
+
+	if err := action.Execute(); err != nil {
 		log.Fatalf("error during command execution: %v", err)
 	}
 }

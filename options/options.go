@@ -28,12 +28,10 @@ import (
 
 	"github.com/ossf/scorecard-action/github"
 	"github.com/ossf/scorecard/v4/options"
-	scopts "github.com/ossf/scorecard/v4/options"
 )
 
 var (
 	// Errors.
-	errDefaultBranchEmpty         = errors.New("default branch is empty")
 	errOnlyDefaultBranchSupported = errors.New("only default branch is supported")
 
 	trueStr = "true"
@@ -42,7 +40,7 @@ var (
 // Options TODO(lint): should have comment or be unexported (revive).
 type Options struct {
 	// Scorecard options.
-	ScorecardOpts *scopts.Options
+	ScorecardOpts *options.Options
 
 	// Scorecard command-line options.
 	EnabledChecks string `env:"ENABLED_CHECKS"`
@@ -95,7 +93,7 @@ func New() *Options {
 
 	// TODO(options): Push options into scorecard.Options once/if it supports
 	//                validation.
-	scOpts := scopts.New()
+	scOpts := options.New()
 
 	if err := opts.Initialize(); err != nil {
 		// TODO(options): Consider making this an error.
@@ -167,7 +165,7 @@ func (o *Options) Validate(writer io.Writer) error {
 			"Please follow the instructions at https://github.com/ossf/scorecard-action#authentication to create the read-only PAT token.\n", //nolint:lll
 		)
 
-		return ErrEmptyGitHubAuthToken
+		return errEmptyGitHubAuthToken
 	}
 
 	if strings.Contains(os.Getenv(o.GithubEventName), "pull_request") &&
@@ -176,16 +174,6 @@ func (o *Options) Validate(writer io.Writer) error {
 		fmt.Fprintf(writer, "Only the default branch %s is supported.\n", o.DefaultBranch)
 
 		return errOnlyDefaultBranchSupported
-	}
-
-	return nil
-}
-
-// CheckRequired TODO(lint): should have comment or be unexported (revive).
-func (o *Options) CheckRequired() error {
-	err := CheckRequiredEnv()
-	if err != nil {
-		return fmt.Errorf("checking if required env vars are set: %w", err)
 	}
 
 	return nil
@@ -203,36 +191,6 @@ func (o *Options) Print() {
 	fmt.Printf("Format: %s\n", o.ScorecardOpts.Format)
 	fmt.Printf("Policy file: %s\n", o.ScorecardOpts.PolicyFile)
 	fmt.Printf("Default branch: %s\n", o.DefaultBranch)
-}
-
-// SetRepository TODO(lint): should have comment or be unexported (revive).
-func (o *Options) SetRepository() {
-	o.ScorecardOpts.Repo = os.Getenv(o.GithubRepository)
-}
-
-// Repo TODO(lint): should have comment or be unexported (revive).
-func (o *Options) Repo() string {
-	return o.ScorecardOpts.Repo
-}
-
-// RepoIsSet TODO(lint): should have comment or be unexported (revive).
-func (o *Options) RepoIsSet() bool {
-	return o.Repo() != ""
-}
-
-// SetRepoVisibility sets the repository's visibility.
-func (o *Options) SetRepoVisibility(privateRepo bool) {
-	o.PrivateRepoStr = strconv.FormatBool(privateRepo)
-}
-
-// SetDefaultBranch sets the default branch.
-func (o *Options) SetDefaultBranch(defaultBranch string) error {
-	if defaultBranch == "" {
-		return errDefaultBranchEmpty
-	}
-
-	o.DefaultBranch = fmt.Sprintf("refs/heads/%s", defaultBranch)
-	return nil
 }
 
 // SetPublishResults sets whether results should be published based on a
@@ -272,19 +230,14 @@ func (o *Options) SetPublishResults() {
 	}
 }
 
-// GetGithubWorkspace retrieves the GitHub auth token from the environment.
-func GetGithubWorkspace() string {
-	return os.Getenv(EnvGithubWorkspace)
-}
-
-// CheckGithubEventPath gets the path to the GitHub event and sets the
+// SetRepoInfo gets the path to the GitHub event and sets the
 // SCORECARD_IS_FORK environment variable.
 // TODO(options): Check if this actually needs to be exported.
 // TODO(options): Choose a more accurate name for what this does.
 func (o *Options) SetRepoInfo() error {
 	eventPath := o.GithubEventPath
 	if eventPath == "" {
-		return ErrGitHubEventPathEmpty
+		return errGitHubEventPathEmpty
 	}
 
 	repoInfo, err := ioutil.ReadFile(eventPath)
@@ -293,7 +246,7 @@ func (o *Options) SetRepoInfo() error {
 	}
 
 	var r github.RepoInfo
-	if err := json.Unmarshal([]byte(repoInfo), &r); err != nil {
+	if err := json.Unmarshal(repoInfo, &r); err != nil {
 		return fmt.Errorf("unmarshalling repo info: %w", err)
 	}
 
