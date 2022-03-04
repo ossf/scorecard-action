@@ -15,97 +15,93 @@
 //nolint
 package options
 
-var (
+import (
+	"testing"
+
+	"github.com/ossf/scorecard/v4/options"
+)
+
+const (
+	testRepo = "good/repo"
+
 	githubEventPathNonFork   = "testdata/non-fork.json"
 	githubEventPathFork      = "testdata/fork.json"
 	githubEventPathIncorrect = "testdata/incorrect.json"
+	githubEventPathBadPath   = "testdata/bad-path.json"
+	githubEventPathBadData   = "testdata/bad-data.json"
 )
 
-/*
-func TestNew(t *testing.T) {
-	//nolint:paralleltest // Until/unless we consider providing a fake environment
-	// to tests, running these in parallel will have unpredictable results as
-	// we're mutating environment variables.
+func TestInitialize(t *testing.T) {
+	type fields struct {
+		ScorecardOpts           *options.Options
+		EnabledChecks           string
+		InputResultsFile        string
+		InputResultsFormat      string
+		InputPublishResults     string
+		EnableLicense           string
+		EnableDangerousWorkflow string
+		GithubEventName         string
+		GithubEventPath         string
+		GithubRef               string
+		GithubRepository        string
+		GithubWorkspace         string
+		DefaultBranch           string
+		IsForkStr               string
+		PrivateRepoStr          string
+	}
 	tests := []struct {
-		want *Options
-		name string
+		name    string
+		fields  fields
+		wantErr bool
 	}{
 		{
 			name: "Success",
-			want: &Options{
-				ScorecardOpts: &scopts.Options{
-					PolicyFile: defaultScorecardPolicyFile,
-				},
-				ScorecardBin: defaultScorecardBin,
+			fields: fields{
+				GithubEventPath: githubEventPathNonFork,
 			},
+			wantErr: false,
+		},
+		{
+			name:    "FailureNoFieldsSet",
+			wantErr: true,
+		},
+		{
+			name: "FailureBadEventPath",
+			fields: fields{
+				GithubEventPath: githubEventPathBadPath,
+			},
+			wantErr: true,
+		},
+		{
+			name: "FailureBadEventData",
+			fields: fields{
+				GithubEventPath: githubEventPathBadData,
+			},
+			wantErr: true,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := New(); !cmp.Equal(got, tt.want) {
-				t.Errorf("New() = %v, want %v: %v", got, tt.want, cmp.Diff(got, tt.want))
+			o := &Options{
+				ScorecardOpts:           tt.fields.ScorecardOpts,
+				EnabledChecks:           tt.fields.EnabledChecks,
+				InputResultsFile:        tt.fields.InputResultsFile,
+				InputResultsFormat:      tt.fields.InputResultsFormat,
+				InputPublishResults:     tt.fields.InputPublishResults,
+				EnableLicense:           tt.fields.EnableLicense,
+				EnableDangerousWorkflow: tt.fields.EnableDangerousWorkflow,
+				GithubEventName:         tt.fields.GithubEventName,
+				GithubEventPath:         tt.fields.GithubEventPath,
+				GithubRef:               tt.fields.GithubRef,
+				GithubRepository:        tt.fields.GithubRepository,
+				GithubWorkspace:         tt.fields.GithubWorkspace,
+				DefaultBranch:           tt.fields.DefaultBranch,
+				IsForkStr:               tt.fields.IsForkStr,
+				PrivateRepoStr:          tt.fields.PrivateRepoStr,
 			}
-		})
-	}
-}
-*/
-
-/*
-//nolint:paralleltest // Until/unless we consider providing a fake environment
-// to tests, running these in parallel will have unpredictable results as
-// we're mutating environment variables.
-func TestOptionsInitialize(t *testing.T) {
-	type fields struct {
-		ScorecardOpts   *scopts.Options
-		GithubEventName string
-		ScorecardBin    string
-		DefaultBranch   string
-		PrivateRepo     string
-		PublishResults  string
-		ResultsFile     string
-	}
-	tests := []struct { //nolint:govet // TODO(lint): Fix
-		name               string
-		fields             fields
-		wantErr            bool
-		githubEventPath    string
-		setGithubEventPath bool
-	}{
-		{
-			name:               "Success - non-fork",
-			wantErr:            false,
-			githubEventPath:    githubEventPathNonFork,
-			setGithubEventPath: true,
-		},
-		{
-			name:               "Success - fork",
-			wantErr:            false,
-			githubEventPath:    githubEventPathFork,
-			setGithubEventPath: true,
-		},
-		{
-			name:               "Failure - incorrect GitHub events",
-			wantErr:            true,
-			githubEventPath:    githubEventPathIncorrect,
-			setGithubEventPath: true,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if tt.setGithubEventPath {
-				os.Setenv(EnvGithubEventPath, tt.githubEventPath)
-			}
-
-			o, _ := New() //nolint:errcheck // TODO(lint): Fix
-			t.Logf("options before initialization: %+v", o)
-			optsBeforeInit := o
-
 			if err := o.Initialize(); (err != nil) != tt.wantErr {
-				t.Logf("options after initialization: %+v", o)
-				t.Logf("options comparison: %s", cmp.Diff(optsBeforeInit, o))
 				t.Errorf("Options.Initialize() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
 	}
 }
-*/

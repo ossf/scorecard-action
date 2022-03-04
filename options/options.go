@@ -32,6 +32,7 @@ import (
 
 var (
 	// Errors.
+	errGithubEventPathEmpty       = errors.New("GitHub event path is empty")
 	errOnlyDefaultBranchSupported = errors.New("only default branch is supported")
 
 	trueStr = "true"
@@ -237,7 +238,7 @@ func (o *Options) SetPublishResults() {
 func (o *Options) SetRepoInfo() error {
 	eventPath := o.GithubEventPath
 	if eventPath == "" {
-		return errGitHubEventPathEmpty
+		return errGithubEventPathEmpty
 	}
 
 	repoInfo, err := ioutil.ReadFile(eventPath)

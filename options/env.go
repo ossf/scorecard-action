@@ -43,7 +43,6 @@ const (
 
 var (
 	// Errors.
-	errGitHubEventPathEmpty = errEnvVarIsEmptyWithKey(EnvGithubEventPath)
 	errEmptyGitHubAuthToken = errEnvVarIsEmptyWithKey(EnvGithubAuthToken)
 
 	errEnvVarIsEmpty = errors.New("env var is empty")
