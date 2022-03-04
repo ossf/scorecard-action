@@ -33,31 +33,19 @@ import (
 var (
 	// Errors.
 	errGithubEventPathEmpty       = errors.New("GitHub event path is empty")
+	errResultsPathEmpty           = errors.New("results path is empty")
 	errOnlyDefaultBranchSupported = errors.New("only default branch is supported")
 
 	trueStr = "true"
 )
 
-// Options TODO(lint): should have comment or be unexported (revive).
+// Options are options for running scorecard via GitHub Actions.
 type Options struct {
 	// Scorecard options.
 	ScorecardOpts *options.Options
 
 	// Scorecard command-line options.
 	EnabledChecks string `env:"ENABLED_CHECKS"`
-
-	// Input options.
-	// TODO(options): These input options shadow the some of the SCORECARD_
-	//                env vars:
-	//                export SCORECARD_RESULTS_FILE="$INPUT_RESULTS_FILE"
-	//                export SCORECARD_RESULTS_FORMAT="$INPUT_RESULTS_FORMAT"
-	//                export SCORECARD_PUBLISH_RESULTS="$INPUT_PUBLISH_RESULTS"
-	//
-	//                Let's target them for deletion, but only after confirming
-	//                that there isn't anything that surprisingly needs them.
-	InputResultsFile    string `env:"INPUT_RESULTS_FILE"`
-	InputResultsFormat  string `env:"INPUT_RESULTS_FORMAT"`
-	InputPublishResults string `env:"INPUT_PUBLISH_RESULTS"`
 
 	// Scorecard checks.
 	EnableLicense           string `env:"ENABLE_LICENSE"`
@@ -84,56 +72,45 @@ const (
 	formatSarif                = options.FormatSarif
 )
 
-// New TODO(lint): should have comment or be unexported (revive).
-func New() *Options {
-	opts := &Options{}
+// New creates a new options set for running scorecard via GitHub Actions.
+func New() (*Options, error) {
+	// Enable scorecard command to use SARIF format.
+	os.Setenv(options.EnvVarEnableSarif, trueStr)
+
+	opts := &Options{
+		ScorecardOpts: options.New(),
+	}
 	if err := env.Parse(opts); err != nil {
-		// TODO(options): Consider making this an error.
-		fmt.Printf("parsing entrypoint env vars: %+v", err)
+		return opts, fmt.Errorf("parsing entrypoint env vars: %w", err)
 	}
 
-	// TODO(options): Push options into scorecard.Options once/if it supports
-	//                validation.
-	scOpts := options.New()
-
 	if err := opts.Initialize(); err != nil {
-		// TODO(options): Consider making this an error.
-		fmt.Printf("initializing scorecard-action options: %+v\n", err)
+		return opts, fmt.Errorf(
+			"initializing scorecard-action options: %w",
+			err,
+		)
 	}
 
 	// TODO(options): Move this set-or-default logic to its own function.
-	if opts.InputResultsFormat != "" {
-		scOpts.Format = opts.InputResultsFormat
-	} else {
-		scOpts.EnableSarif = true
-		scOpts.Format = formatSarif
-		os.Setenv(options.EnvVarEnableSarif, trueStr)
-		if scOpts.Format == "" {
-			// Default the scorecard command to using SARIF format.
-			if scOpts.PolicyFile == "" {
-				// TODO(policy): Should we default or error here?
-				scOpts.PolicyFile = defaultScorecardPolicyFile
-			}
+	opts.ScorecardOpts.EnableSarif = true
+	if opts.ScorecardOpts.Format == formatSarif {
+		if opts.ScorecardOpts.PolicyFile == "" {
+			// TODO(policy): Should we default or error here?
+			opts.ScorecardOpts.PolicyFile = defaultScorecardPolicyFile
 		}
 	}
 
-	if err := scOpts.Validate(); err != nil {
-		// TODO(options): Consider making this an error.
-		fmt.Printf("validating scorecard options: %+v\n", err)
+	if err := opts.ScorecardOpts.Validate(); err != nil {
+		return opts, fmt.Errorf("validating scorecard options: %w", err)
 	}
 
-	opts.ScorecardOpts = scOpts
 	opts.SetPublishResults()
-
-	if opts.ScorecardOpts.PublishResults {
-		if scOpts.ResultsFile == "" {
-			scOpts.ResultsFile = opts.InputResultsFile
-			// TODO(options): We should check if this is empty.
-		}
+	if opts.ScorecardOpts.ResultsFile == "" {
+		return opts, errResultsPathEmpty
 	}
 
 	// TODO(options): Consider running Validate() before returning.
-	return opts
+	return opts, nil
 }
 
 // Initialize initializes the environment variables required for the action.
@@ -147,8 +124,9 @@ func (o *Options) Initialize() error {
 	   GITHUB_ACTIONS is true in GitHub env.
 	*/
 
-	o.EnableLicense = "1"
-	o.EnableDangerousWorkflow = "1"
+	// TODO(checks): Do we actually expect to use these?
+	// o.EnableLicense = "1"
+	// o.EnableDangerousWorkflow = "1"
 
 	return o.SetRepoInfo()
 }
@@ -197,23 +175,6 @@ func (o *Options) Print() {
 // SetPublishResults sets whether results should be published based on a
 // repository's visibility.
 func (o *Options) SetPublishResults() {
-	// Check INPUT_PUBLISH_RESULTS
-	var inputBool bool
-	var inputErr error
-	input := os.Getenv(EnvInputPublishResults)
-	if input != "" {
-		inputBool, inputErr = strconv.ParseBool(o.InputPublishResults)
-		if inputErr != nil {
-			// TODO(options): Consider making this an error.
-			fmt.Printf(
-				"could not parse a valid bool from %s (%s): %+v\n",
-				input,
-				EnvInputPublishResults,
-				inputErr,
-			)
-		}
-	}
-
 	privateRepo, err := strconv.ParseBool(o.PrivateRepoStr)
 	if err != nil {
 		// TODO(options): Consider making this an error.
@@ -226,8 +187,6 @@ func (o *Options) SetPublishResults() {
 
 	if privateRepo {
 		o.ScorecardOpts.PublishResults = false
-	} else {
-		o.ScorecardOpts.PublishResults = o.ScorecardOpts.PublishResults || inputBool
 	}
 }
 

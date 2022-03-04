@@ -16,13 +16,17 @@
 package options
 
 import (
+	"os"
 	"testing"
+
+	"github.com/google/go-cmp/cmp"
 
 	"github.com/ossf/scorecard/v4/options"
 )
 
 const (
-	testRepo = "good/repo"
+	testRepo        = "good/repo"
+	testResultsFile = "results.sarif"
 
 	githubEventPathNonFork   = "testdata/non-fork.json"
 	githubEventPathFork      = "testdata/fork.json"
@@ -31,13 +35,90 @@ const (
 	githubEventPathBadData   = "testdata/bad-data.json"
 )
 
+func TestNew(t *testing.T) {
+	tests := []struct {
+		name            string
+		githubEventPath string
+		repo            string
+		resultsFile     string
+		resultsFormat   string
+		publishResults  string
+		want            options.Options
+		wantErr         bool
+	}{
+		{
+			name:            "SuccessFormatSARIF",
+			githubEventPath: githubEventPathNonFork,
+			repo:            testRepo,
+			resultsFormat:   "sarif",
+			resultsFile:     testResultsFile,
+			want: options.Options{
+				Repo:        testRepo,
+				EnableSarif: true,
+				Format:      formatSarif,
+				PolicyFile:  defaultScorecardPolicyFile,
+				ResultsFile: testResultsFile,
+				Commit:      options.DefaultCommit,
+				LogLevel:    options.DefaultLogLevel,
+			},
+			wantErr: false,
+		},
+		{
+			name:            "SuccessFormatJSON",
+			githubEventPath: githubEventPathNonFork,
+			repo:            testRepo,
+			resultsFormat:   "json",
+			resultsFile:     testResultsFile,
+			want: options.Options{
+				Repo:        testRepo,
+				EnableSarif: true,
+				Format:      options.FormatJSON,
+				ResultsFile: testResultsFile,
+				Commit:      options.DefaultCommit,
+				LogLevel:    options.DefaultLogLevel,
+			},
+			wantErr: false,
+		},
+		/*
+			{
+				name:    "FailureNoEnvVars",
+				want:    options.Options{},
+				wantErr: true,
+			},
+		*/
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.githubEventPath != "" {
+				os.Setenv(EnvGithubEventPath, tt.githubEventPath)
+			}
+			if tt.repo != "" {
+				os.Setenv(EnvGithubRepository, tt.repo)
+			}
+			if tt.resultsFile != "" {
+				os.Setenv("SCORECARD_RESULTS_FILE", tt.resultsFile)
+			}
+			if tt.resultsFormat != "" {
+				os.Setenv("SCORECARD_RESULTS_FORMAT", tt.resultsFormat)
+			}
+
+			opts, err := New()
+			got := *opts.ScorecardOpts
+			if (err != nil) != tt.wantErr {
+				t.Errorf("New() error = %+v, wantErr %+v", err, tt.wantErr)
+				return
+			}
+			if !cmp.Equal(tt.want, got) {
+				t.Errorf("New(): -want, +got:\n%s", cmp.Diff(tt.want, got))
+			}
+		})
+	}
+}
+
 func TestInitialize(t *testing.T) {
 	type fields struct {
 		ScorecardOpts           *options.Options
 		EnabledChecks           string
-		InputResultsFile        string
-		InputResultsFormat      string
-		InputPublishResults     string
 		EnableLicense           string
 		EnableDangerousWorkflow string
 		GithubEventName         string
@@ -85,9 +166,6 @@ func TestInitialize(t *testing.T) {
 			o := &Options{
 				ScorecardOpts:           tt.fields.ScorecardOpts,
 				EnabledChecks:           tt.fields.EnabledChecks,
-				InputResultsFile:        tt.fields.InputResultsFile,
-				InputResultsFormat:      tt.fields.InputResultsFormat,
-				InputPublishResults:     tt.fields.InputPublishResults,
 				EnableLicense:           tt.fields.EnableLicense,
 				EnableDangerousWorkflow: tt.fields.EnableDangerousWorkflow,
 				GithubEventName:         tt.fields.GithubEventName,

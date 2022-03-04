@@ -29,7 +29,11 @@ import (
 // New creates a new scorecard command which can be used as an entrypoint for
 // GitHub Actions.
 func New() (*cobra.Command, error) {
-	opts := options.New()
+	opts, err := options.New()
+	if err != nil {
+		return nil, fmt.Errorf("creating new options: %w", err)
+	}
+
 	if err := opts.Initialize(); err != nil {
 		return nil, fmt.Errorf("initializing options: %w", err)
 	}
