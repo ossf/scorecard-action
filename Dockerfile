@@ -39,5 +39,5 @@ COPY policies/template.yml  /policy.yml
 # Our entry point.
 # Note: the file is executable in the repo
 # and permission carry over to the image.
-COPY entrypoint.sh /entrypoint.sh
-ENTRYPOINT ["/entrypoint.sh"]
+COPY entrypoint/entrypoint.go /entrypoint.go
+ENTRYPOINT ["/entrypoint.go"]
