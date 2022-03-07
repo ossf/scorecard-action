@@ -100,6 +100,9 @@ func New() (*Options, error) {
 		}
 	}
 
+	// TODO(scorecard): Reset commit options. Fix this in scorecard.
+	opts.ScorecardOpts.Commit = options.DefaultCommit
+
 	if err := opts.ScorecardOpts.Validate(); err != nil {
 		return opts, fmt.Errorf("validating scorecard options: %w", err)
 	}

@@ -36,6 +36,14 @@ const (
 )
 
 func TestNew(t *testing.T) {
+	type fields struct {
+		EnableSarif bool
+		Format      string
+		PolicyFile  string
+		ResultsFile string
+		Commit      string
+		LogLevel    string
+	}
 	tests := []struct {
 		name            string
 		githubEventPath string
@@ -43,7 +51,7 @@ func TestNew(t *testing.T) {
 		resultsFile     string
 		resultsFormat   string
 		publishResults  string
-		want            options.Options
+		want            fields
 		wantErr         bool
 	}{
 		{
@@ -52,8 +60,7 @@ func TestNew(t *testing.T) {
 			repo:            testRepo,
 			resultsFormat:   "sarif",
 			resultsFile:     testResultsFile,
-			want: options.Options{
-				Repo:        testRepo,
+			want: fields{
 				EnableSarif: true,
 				Format:      formatSarif,
 				PolicyFile:  defaultScorecardPolicyFile,
@@ -69,8 +76,7 @@ func TestNew(t *testing.T) {
 			repo:            testRepo,
 			resultsFormat:   "json",
 			resultsFile:     testResultsFile,
-			want: options.Options{
-				Repo:        testRepo,
+			want: fields{
 				EnableSarif: true,
 				Format:      options.FormatJSON,
 				ResultsFile: testResultsFile,
@@ -79,22 +85,23 @@ func TestNew(t *testing.T) {
 			},
 			wantErr: false,
 		},
-		/*
-			{
-				name:    "FailureNoEnvVars",
-				want:    options.Options{},
-				wantErr: true,
-			},
-		*/
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if tt.githubEventPath != "" {
-				os.Setenv(EnvGithubEventPath, tt.githubEventPath)
+			_, pathEnvExists := os.LookupEnv(EnvGithubEventPath)
+			if !pathEnvExists {
+				if tt.githubEventPath != "" {
+					os.Setenv(EnvGithubEventPath, tt.githubEventPath)
+				}
 			}
-			if tt.repo != "" {
-				os.Setenv(EnvGithubRepository, tt.repo)
+
+			_, repoEnvExists := os.LookupEnv(EnvGithubRepository)
+			if !repoEnvExists {
+				if tt.repo != "" {
+					os.Setenv(EnvGithubRepository, tt.repo)
+				}
 			}
+
 			if tt.resultsFile != "" {
 				os.Setenv("SCORECARD_RESULTS_FILE", tt.resultsFile)
 			}
@@ -103,11 +110,24 @@ func TestNew(t *testing.T) {
 			}
 
 			opts, err := New()
-			got := *opts.ScorecardOpts
+			scOpts := *opts.ScorecardOpts
+			got := fields{
+				EnableSarif: scOpts.EnableSarif,
+				Format:      scOpts.Format,
+				PolicyFile:  scOpts.PolicyFile,
+				ResultsFile: scOpts.ResultsFile,
+				Commit:      scOpts.Commit,
+				LogLevel:    scOpts.LogLevel,
+			}
+
 			if (err != nil) != tt.wantErr {
+				for _, e := range os.Environ() {
+					t.Logf(e)
+				}
 				t.Errorf("New() error = %+v, wantErr %+v", err, tt.wantErr)
 				return
 			}
+
 			if !cmp.Equal(tt.want, got) {
 				t.Errorf("New(): -want, +got:\n%s", cmp.Diff(tt.want, got))
 			}
