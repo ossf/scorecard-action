@@ -78,7 +78,10 @@ linters-settings:
       - FIXME
       - HACK
   gci:
-    local-prefixes: github.com/ossf/scorecard-action
+    sections:
+      - standard
+      - default
+      - prefix(github.com/ossf)
   gocritic:
     enabled-checks:
       # Diagnostic
