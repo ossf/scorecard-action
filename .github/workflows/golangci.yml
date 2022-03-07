@@ -8,7 +8,7 @@ on:
 permissions: read-all
 
 jobs:
-   lint:
+  lint:
     name: Run golangci lint
     runs-on: ${{ matrix.os }}
     strategy:
@@ -32,10 +32,9 @@ jobs:
           key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
           restore-keys: |
             ${{ runner.os }}-go-
-      - uses: actions/setup-go@bfdd3570ce990073878bf10f6b2d79082de49492 #v2.1.5
+      - uses: actions/setup-go@f6164bd8c8acb4a71fb2791a8b6c4024ff038dab #v2.1.5
         with:
           go-version: '1.17.x'
-      - uses: golangci/golangci-lint-action@c675eb70db3aa26b496bc4e64da320480338d41b
+      - uses: golangci/golangci-lint-action@b517f99ae23d86ecc4c0dec08dcf48d2336abc29
         with:
-         version: v1.44.0
-         only-new-issues: true
+          only-new-issues: true
