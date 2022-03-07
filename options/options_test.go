@@ -20,13 +20,13 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
-
 	"github.com/ossf/scorecard/v4/options"
 )
 
 const (
 	testRepo        = "good/repo"
 	testResultsFile = "results.sarif"
+	testToken       = "test-token"
 
 	githubEventPathNonFork   = "testdata/non-fork.json"
 	githubEventPathFork      = "testdata/fork.json"
@@ -52,6 +52,7 @@ func TestNew(t *testing.T) {
 		resultsFormat   string
 		publishResults  string
 		want            fields
+		unsetToken      bool
 		wantErr         bool
 	}{
 		{
@@ -85,9 +86,34 @@ func TestNew(t *testing.T) {
 			},
 			wantErr: false,
 		},
+		{
+			name:            "FailureTokenIsNotSet",
+			githubEventPath: githubEventPathNonFork,
+			repo:            testRepo,
+			resultsFormat:   "sarif",
+			resultsFile:     testResultsFile,
+			want: fields{
+				EnableSarif: true,
+				Format:      formatSarif,
+				PolicyFile:  defaultScorecardPolicyFile,
+				ResultsFile: testResultsFile,
+				Commit:      options.DefaultCommit,
+				LogLevel:    options.DefaultLogLevel,
+			},
+			unsetToken: true,
+			wantErr:    true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			_, tokenEnvExists := os.LookupEnv(EnvGithubAuthToken)
+			if !tokenEnvExists {
+				os.Setenv(EnvGithubAuthToken, testToken)
+			}
+			if tt.unsetToken {
+				os.Unsetenv(EnvGithubAuthToken)
+			}
+
 			_, pathEnvExists := os.LookupEnv(EnvGithubEventPath)
 			if !pathEnvExists {
 				if tt.githubEventPath != "" {
@@ -200,6 +226,53 @@ func TestInitialize(t *testing.T) {
 			if err := o.Initialize(); (err != nil) != tt.wantErr {
 				t.Errorf("Options.Initialize() error = %v, wantErr %v", err, tt.wantErr)
 			}
+		})
+	}
+}
+
+func TestPrint(t *testing.T) {
+	type fields struct {
+		ScorecardOpts           *options.Options
+		EnabledChecks           string
+		EnableLicense           string
+		EnableDangerousWorkflow string
+		GithubEventName         string
+		GithubEventPath         string
+		GithubRef               string
+		GithubRepository        string
+		GithubWorkspace         string
+		DefaultBranch           string
+		IsForkStr               string
+		PrivateRepoStr          string
+	}
+	tests := []struct {
+		name   string
+		fields fields
+	}{
+		{
+			name: "Success",
+			fields: fields{
+				ScorecardOpts: options.New(),
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			o := &Options{
+				ScorecardOpts:           tt.fields.ScorecardOpts,
+				EnabledChecks:           tt.fields.EnabledChecks,
+				EnableLicense:           tt.fields.EnableLicense,
+				EnableDangerousWorkflow: tt.fields.EnableDangerousWorkflow,
+				GithubEventName:         tt.fields.GithubEventName,
+				GithubEventPath:         tt.fields.GithubEventPath,
+				GithubRef:               tt.fields.GithubRef,
+				GithubRepository:        tt.fields.GithubRepository,
+				GithubWorkspace:         tt.fields.GithubWorkspace,
+				DefaultBranch:           tt.fields.DefaultBranch,
+				IsForkStr:               tt.fields.IsForkStr,
+				PrivateRepoStr:          tt.fields.PrivateRepoStr,
+			}
+			o.Print()
 		})
 	}
 }

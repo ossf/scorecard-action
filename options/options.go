@@ -18,7 +18,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io"
 	"io/ioutil"
 	"os"
 	"strconv"
@@ -112,7 +111,10 @@ func New() (*Options, error) {
 		return opts, errResultsPathEmpty
 	}
 
-	// TODO(options): Consider running Validate() before returning.
+	if err := opts.Validate(); err != nil {
+		return opts, fmt.Errorf("validating scorecard-action options: %w", err)
+	}
+
 	return opts, nil
 }
 
@@ -135,15 +137,14 @@ func (o *Options) Initialize() error {
 }
 
 // Validate validates the scorecard configuration.
-func (o *Options) Validate(writer io.Writer) error {
+func (o *Options) Validate() error {
 	if os.Getenv(EnvGithubAuthToken) == "" {
-		fmt.Fprintf(writer, "The 'repo_token' variable is empty.\n")
+		fmt.Printf("The 'repo_token' variable is empty.\n")
 		if o.IsForkStr == trueStr {
-			fmt.Fprintf(writer, "We have detected you are running on a fork.\n")
+			fmt.Printf("We have detected you are running on a fork.\n")
 		}
 
-		fmt.Fprintf(
-			writer,
+		fmt.Printf(
 			"Please follow the instructions at https://github.com/ossf/scorecard-action#authentication to create the read-only PAT token.\n", //nolint:lll
 		)
 
@@ -152,8 +153,8 @@ func (o *Options) Validate(writer io.Writer) error {
 
 	if strings.Contains(os.Getenv(o.GithubEventName), "pull_request") &&
 		os.Getenv(o.GithubRef) == o.DefaultBranch {
-		fmt.Fprintf(writer, "%s not supported with %s event.\n", os.Getenv(o.GithubRef), os.Getenv(o.GithubEventName))
-		fmt.Fprintf(writer, "Only the default branch %s is supported.\n", o.DefaultBranch)
+		fmt.Printf("%s not supported with %s event.\n", os.Getenv(o.GithubRef), os.Getenv(o.GithubEventName))
+		fmt.Printf("Only the default branch %s is supported.\n", o.DefaultBranch)
 
 		return errOnlyDefaultBranchSupported
 	}
