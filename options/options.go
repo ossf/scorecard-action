@@ -64,9 +64,6 @@ type Options struct {
 	IsForkStr string `env:"SCORECARD_IS_FORK"`
 	// TODO(options): This may be better as a bool
 	PrivateRepoStr string `env:"SCORECARD_PRIVATE_REPOSITORY"`
-
-	EnvInputResultsFile   string `env:"INPUT_RESULTS_FILE"`
-	EnvInputResultsFormat string `env:"INPUT_RESULTS_FORMAT"`
 }
 
 const (
@@ -110,6 +107,9 @@ func New() (*Options, error) {
 	}
 
 	opts.SetPublishResults()
+
+	opts.ScorecardOpts.ResultsFile = os.Getenv("INPUT_RESULTS_FILE")
+
 	if opts.ScorecardOpts.ResultsFile == "" {
 		return opts, errResultsPathEmpty
 	}
