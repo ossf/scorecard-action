@@ -61,7 +61,7 @@ func New() (*cobra.Command, error) {
 
 		if scOpts.ResultsFile != "" {
 			var err error
-			cmd := exec.Command("/bin/sh", fmt.Sprintf("sudo touch %s", scOpts.ResultsFile))
+			cmd := exec.Command("/bin/sh", "-c", fmt.Sprintf("sudo touch %s", scOpts.ResultsFile))
 			err = cmd.Run()
 			if err != nil {
 				return fmt.Errorf(
