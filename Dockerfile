@@ -12,7 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-FROM golang@sha256:3c4de86eec9cbc619cdd72424abd88326ffcf5d813a8338a7743c55e5898734f AS base
+# ----------
+
+#v1.17 go
+FROM golang@sha256:bd9823cdad5700fb4abe983854488749421d5b4fc84154c30dae474100468b85 AS base
 WORKDIR /src
 ENV CGO_ENABLED=0
 COPY go.* ./
@@ -22,11 +25,13 @@ COPY . ./
 FROM base AS build
 ARG TARGETOS
 ARG TARGETARCH
-RUN CGO_ENABLED=0 make build-scorecard
+RUN CGO_ENABLED=0 make build-scorecard-action
 
 FROM gcr.io/distroless/base:nonroot@sha256:02f667185ccf78dbaaf79376b6904aea6d832638e1314387c2c2932f217ac5cb
-COPY --from=build /src/scorecard /
-ENTRYPOINT [ "/scorecard" ]
+COPY --from=build /src/scorecard-action /
+ENTRYPOINT [ "/scorecard-action" ]
+
+# ----------
 
 # FROM gcr.io/openssf/scorecard:v4.1.0@sha256:a1e9bb4a0976e800e977c986522b0e1c4e0466601642a84470ec1458b9fa6006 as base
 
