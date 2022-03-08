@@ -18,7 +18,6 @@ import (
 	"errors"
 	"fmt"
 	"os"
-	"os/exec"
 
 	"github.com/spf13/cobra"
 
@@ -61,8 +60,10 @@ func New() (*cobra.Command, error) {
 
 		if scOpts.ResultsFile != "" {
 			var err error
-			cmd := exec.Command("/bin/sh", "-c", fmt.Sprintf("sudo touch %s", scOpts.ResultsFile))
-			err = cmd.Run()
+			// cmd := exec.Command("/bin/sh", "-c", fmt.Sprintf("sudo touch %s", scOpts.ResultsFile))
+			// err = cmd.Run()
+			_, err = os.OpenFile(scOpts.ResultsFile, os.O_CREATE, 0755)
+
 			if err != nil {
 				return fmt.Errorf(
 					"creating output file (%s): %w",
@@ -70,6 +71,7 @@ func New() (*cobra.Command, error) {
 					err,
 				)
 			}
+
 			// out, err = os.Create(scOpts.ResultsFile)
 			// if err != nil {
 			// 	return fmt.Errorf(
