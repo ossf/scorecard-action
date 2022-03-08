@@ -110,6 +110,9 @@ func New() (*Options, error) {
 
 	opts.ScorecardOpts.ResultsFile = os.Getenv("INPUT_RESULTS_FILE")
 
+	// Set PAT
+	os.Setenv("GITHUB_AUTH_TOKEN", os.Getenv("INPUT_REPO_TOKEN"))
+
 	if opts.ScorecardOpts.ResultsFile == "" {
 		return opts, errResultsPathEmpty
 	}
