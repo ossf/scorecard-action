@@ -67,7 +67,7 @@ type Options struct {
 }
 
 const (
-	defaultScorecardPolicyFile = "policies/template.yml"
+	defaultScorecardPolicyFile = "/policies/template.yml"
 	formatSarif                = options.FormatSarif
 )
 
