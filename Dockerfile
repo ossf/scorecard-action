@@ -27,7 +27,11 @@ ARG TARGETOS
 ARG TARGETARCH
 RUN CGO_ENABLED=0 make build-scorecard-action
 
-FROM gcr.io/distroless/base:nonroot@sha256:02f667185ccf78dbaaf79376b6904aea6d832638e1314387c2c2932f217ac5cb
+# FROM gcr.io/distroless/base:nonroot@sha256:02f667185ccf78dbaaf79376b6904aea6d832638e1314387c2c2932f217ac5cb
+FROM debian:11.2-slim@sha256:d5cd7e54530a8523168473a2dcc30215f2c863bfa71e09f77f58a085c419155b
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+    jq ca-certificates curl
 COPY --from=build /src/scorecard-action /
 ENTRYPOINT [ "/scorecard-action" ]
 
