@@ -33,6 +33,10 @@ RUN apt-get update && \
     apt-get install -y --no-install-recommends \
     jq ca-certificates curl
 COPY --from=build /src/scorecard-action /
+
+# Copy a test policy for local testing.
+COPY policies/template.yml  /policy.yml
+
 ENTRYPOINT [ "/scorecard-action" ]
 
 # ----------
