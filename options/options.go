@@ -91,6 +91,8 @@ func New() (*Options, error) {
 	}
 
 	// TODO(options): Move this set-or-default logic to its own function.
+	// Fix: get format from env var.
+	opts.ScorecardOpts.Format = os.Getenv(EnvInputResultsFormat)
 	opts.ScorecardOpts.EnableSarif = true
 	if opts.ScorecardOpts.Format == formatSarif {
 		if opts.ScorecardOpts.PolicyFile == "" {
