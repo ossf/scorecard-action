@@ -67,7 +67,7 @@ type Options struct {
 }
 
 const (
-	defaultScorecardPolicyFile = "policy.yml"
+	defaultScorecardPolicyFile = "/policy.yml"
 	formatSarif                = options.FormatSarif
 )
 
@@ -91,6 +91,7 @@ func New() (*Options, error) {
 	}
 
 	// TODO(options): Move this set-or-default logic to its own function.
+	opts.ScorecardOpts.Format = os.Getenv(EnvInputResultsFormat)
 	opts.ScorecardOpts.EnableSarif = true
 	if opts.ScorecardOpts.Format == formatSarif {
 		if opts.ScorecardOpts.PolicyFile == "" {
@@ -107,6 +108,12 @@ func New() (*Options, error) {
 	}
 
 	opts.SetPublishResults()
+
+	opts.ScorecardOpts.ResultsFile = os.Getenv("INPUT_RESULTS_FILE")
+
+	// Set PAT.
+	os.Setenv("GITHUB_AUTH_TOKEN", os.Getenv("INPUT_REPO_TOKEN"))
+
 	if opts.ScorecardOpts.ResultsFile == "" {
 		return opts, errResultsPathEmpty
 	}

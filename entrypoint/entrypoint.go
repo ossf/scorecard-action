@@ -60,7 +60,8 @@ func New() (*cobra.Command, error) {
 
 		if scOpts.ResultsFile != "" {
 			var err error
-			out, err = os.Create(scOpts.ResultsFile)
+			resultsFilePath := fmt.Sprintf("%v/%v", opts.GithubWorkspace, scOpts.ResultsFile)
+			out, err = os.Create(resultsFilePath)
 			if err != nil {
 				return fmt.Errorf(
 					"creating output file (%s): %w",
