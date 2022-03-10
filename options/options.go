@@ -111,12 +111,6 @@ func New() (*Options, error) {
 
 	opts.ScorecardOpts.ResultsFile = os.Getenv(EnvInputResultsFile)
 
-	// Set PAT if not provided (locally).
-	// _, repoTokenExists := os.LookupEnv(EnvGithubAuthToken)
-	// if !repoTokenExists {
-	// 	os.Setenv(EnvGithubAuthToken, os.Getenv("INPUT_REPO_TOKEN"))
-	// }
-
 	if opts.ScorecardOpts.ResultsFile == "" {
 		return opts, errResultsPathEmpty
 	}
