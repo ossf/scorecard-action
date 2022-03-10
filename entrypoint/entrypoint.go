@@ -65,7 +65,7 @@ func New() (*cobra.Command, error) {
 			if err != nil {
 				return fmt.Errorf(
 					"creating output file (%s): %w",
-					scOpts.ResultsFile,
+					resultsFilePath,
 					err,
 				)
 			}

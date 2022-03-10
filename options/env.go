@@ -31,7 +31,7 @@ const (
 	EnvGithubRepository        = "GITHUB_REPOSITORY"
 	EnvGithubRef               = "GITHUB_REF"
 	EnvGithubWorkspace         = "GITHUB_WORKSPACE"
-	EnvGithubAuthToken         = "GITHUB_AUTH_TOKEN" //nolint:gosec
+	EnvGithubAuthToken         = "INPUT_REPO_TOKEN" //nolint:gosec
 	EnvInputResultsFile        = "INPUT_RESULTS_FILE"
 	EnvInputResultsFormat      = "INPUT_RESULTS_FORMAT"
 	EnvInputPublishResults     = "INPUT_PUBLISH_RESULTS"
