@@ -132,11 +132,8 @@ func TestNew(t *testing.T) {
 				os.Setenv(EnvInputResultsFormat, tt.resultsFormat)
 			}
 
-			_, resultsfileEnvExists := os.LookupEnv(EnvInputResultsFile)
-			if !resultsfileEnvExists {
-				if tt.repo != "" {
-					os.Setenv(EnvInputResultsFile, tt.resultsFile)
-				}
+			if tt.repo != "" {
+				os.Setenv(EnvInputResultsFile, tt.resultsFile)
 			}
 
 			if tt.resultsFile != "" {
