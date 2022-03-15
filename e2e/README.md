@@ -19,4 +19,4 @@ The actions primarily run out of https://github.com/ossf-tests organization.
 
 1. Create a new repository in the `ossf-tests` organization
 2. Clone this workflow https://github.com/ossf-tests/scorecard-action-non-main-branch/blob/other/.github/workflows/scorecard-analysis.yml which has the steps to create an issue if the action fails to run.
-3. Update the Title on the issue creation commandline https://github.com/ossf-tests/scorecard-action-non-main-branch/blob/457e0b56ed2b2764fbfa60ce68fdbce315ae3732/.github/workflows/scorecard-analysis.yml#L67. In this example replace `Failed to run automated scorecard-action@main ossf-tests/scorecard-action-non-main-branch` with `Failed to run automated scorecard-action@main with the new org/reponame`
+3. Update the Title on the issue creation commandline https://github.com/ossf-tests/scorecard-action-non-main-branch/blob/457e0b56ed2b2764fbfa60ce68fdbce315ae3732/.github/workflows/scorecard-analysis.yml#L67. In this example replace `Failed to run automated scorecard-action@main ${{ github.repository }}` with `Failed to run automated scorecard-action@main with the new org/reponame`
