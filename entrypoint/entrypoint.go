@@ -74,6 +74,20 @@ func New() (*cobra.Command, error) {
 			actionCmd.SetOut(out)
 		}
 
+		// Generate json.
+		if scOpts.PublishResults {
+			resultsFilePath := fmt.Sprintf("%v/%v", opts.GithubWorkspace, "results.json")
+			out, err = os.Create(resultsFilePath)
+			if err != nil {
+				return fmt.Errorf(
+					"creating output file (%s): %w",
+					"results.json",
+					err,
+				)
+			}
+
+		}
+
 		return nil
 	}
 
