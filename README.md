@@ -31,7 +31,7 @@ To install the Scorecards GitHub Action, you need to:
 3) Set up the workflow via the GitHub UI
 
 ### Authentication
-1. [Create a Personal Access Token](https://github.com/settings/tokens/new) with the following read permissions:
+1. [Create a Personal Access Token](https://github.com/settings/tokens/new?scopes=public_repo,read:org,read:repo_hook,read:discussion) with the following read permissions:
     - Note: `Read-only token for OSSF Scorecard Action - myorg/myrepo` (Note: replace `myorg/myrepo` with the names of your organization and repository so you can keep track of your tokens.)
     - Expiration: `No expiration`
     - Scopes: 
