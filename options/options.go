@@ -147,7 +147,7 @@ func (o *Options) Initialize() error {
 
 // Validate validates the scorecard configuration.
 func (o *Options) Validate() error {
-	if os.Getenv("INPUT_REPO_TOKEN") == "" {
+	if os.Getenv(EnvGithubAuthToken) == "" {
 		fmt.Printf("The 'repo_token' variable is empty.\n")
 		if o.IsForkStr == trueStr {
 			fmt.Printf("We have detected you are running on a fork.\n")
