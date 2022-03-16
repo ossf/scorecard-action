@@ -109,6 +109,7 @@ func TestNew(t *testing.T) {
 			_, tokenEnvExists := os.LookupEnv(EnvGithubAuthToken)
 			if !tokenEnvExists {
 				os.Setenv(EnvGithubAuthToken, testToken)
+				defer os.Unsetenv(EnvGithubAuthToken)
 			}
 			if tt.unsetToken {
 				os.Unsetenv(EnvGithubAuthToken)
@@ -118,6 +119,7 @@ func TestNew(t *testing.T) {
 			if !pathEnvExists {
 				if tt.githubEventPath != "" {
 					os.Setenv(EnvGithubEventPath, tt.githubEventPath)
+					defer os.Unsetenv(EnvGithubEventPath)
 				}
 			}
 
@@ -125,22 +127,18 @@ func TestNew(t *testing.T) {
 			if !repoEnvExists {
 				if tt.repo != "" {
 					os.Setenv(EnvGithubRepository, tt.repo)
+					defer os.Unsetenv(EnvGithubRepository)
 				}
 			}
 
 			if tt.repo != "" {
 				os.Setenv(EnvInputResultsFormat, tt.resultsFormat)
+				defer os.Unsetenv(EnvInputResultsFormat)
 			}
 
 			if tt.repo != "" {
 				os.Setenv(EnvInputResultsFile, tt.resultsFile)
-			}
-
-			if tt.resultsFile != "" {
-				os.Setenv("SCORECARD_RESULTS_FILE", tt.resultsFile)
-			}
-			if tt.resultsFormat != "" {
-				os.Setenv("SCORECARD_RESULTS_FORMAT", tt.resultsFormat)
+				defer os.Unsetenv(EnvInputResultsFile)
 			}
 
 			opts, err := New()
