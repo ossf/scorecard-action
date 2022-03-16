@@ -65,12 +65,13 @@ type Options struct {
 	// TODO(options): This may be better as a bool
 	PrivateRepoStr string `env:"SCORECARD_PRIVATE_REPOSITORY"`
 
-	// GitHub workflow parameters
-	EnvInputResultsFile    string `env:"INPUT_RESULTS_FILE"`
-	EnvInputResultsFormat  string `env:"INPUT_RESULTS_FORMAT"`
-	EnvInputPublishResults string `env:"INPUT_PUBLISH_RESULTS"`
+	// Input parameters
+	InputResultsFile    string `env:"INPUT_RESULTS_FILE"`
+	InputResultsFormat  string `env:"INPUT_RESULTS_FORMAT"`
+	InputPublishResults string `env:"INPUT_PUBLISH_RESULTS"`
 
 	// Repo tokens
+	// TODO(auth): DO NOT STORE AUTH
 	EnvGithubAuthToken string `env:"GITHUB_AUTH_TOKEN"`
 	EnvInputRepoToken  string `env:"INPUT_REPO_TOKEN"`
 }
