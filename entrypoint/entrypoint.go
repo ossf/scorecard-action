@@ -58,6 +58,7 @@ func New() (*cobra.Command, error) {
 			return fmt.Errorf("validating options: %w", err)
 		}
 
+		// TODO: the results file should be completed and validated by the time we get it.
 		if scOpts.ResultsFile != "" {
 			var err error
 			resultsFilePath := fmt.Sprintf("%v/%v", opts.GithubWorkspace, scOpts.ResultsFile)
