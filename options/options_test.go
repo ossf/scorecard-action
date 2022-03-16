@@ -45,15 +45,16 @@ func TestNew(t *testing.T) {
 		LogLevel    string
 	}
 	tests := []struct {
-		name            string
-		githubEventPath string
-		repo            string
-		resultsFile     string
-		resultsFormat   string
-		publishResults  string
-		want            fields
-		unsetToken      bool
-		wantErr         bool
+		name             string
+		githubEventPath  string
+		repo             string
+		resultsFile      string
+		resultsFormat    string
+		publishResults   string
+		want             fields
+		unsetResultsPath bool
+		unsetToken       bool
+		wantErr          bool
 	}{
 		{
 			name:            "SuccessFormatSARIF",
@@ -103,6 +104,33 @@ func TestNew(t *testing.T) {
 			unsetToken: true,
 			wantErr:    true,
 		},
+		{
+			name:            "FailureResultsPathNotSet",
+			githubEventPath: githubEventPathNonFork,
+			want: fields{
+				EnableSarif: true,
+				Format:      formatSarif,
+				PolicyFile:  defaultScorecardPolicyFile,
+				Commit:      options.DefaultCommit,
+				LogLevel:    options.DefaultLogLevel,
+			},
+			unsetResultsPath: true,
+			wantErr:          true,
+		},
+		{
+			name:            "FailureResultsPathEmpty",
+			githubEventPath: githubEventPathNonFork,
+			resultsFile:     "",
+			want: fields{
+				EnableSarif: true,
+				Format:      formatSarif,
+				PolicyFile:  defaultScorecardPolicyFile,
+				ResultsFile: "",
+				Commit:      options.DefaultCommit,
+				LogLevel:    options.DefaultLogLevel,
+			},
+			wantErr: true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -131,12 +159,12 @@ func TestNew(t *testing.T) {
 				}
 			}
 
-			if tt.repo != "" {
-				os.Setenv(EnvInputResultsFormat, tt.resultsFormat)
-				defer os.Unsetenv(EnvInputResultsFormat)
-			}
+			os.Setenv(EnvInputResultsFormat, tt.resultsFormat)
+			defer os.Unsetenv(EnvInputResultsFormat)
 
-			if tt.repo != "" {
+			if tt.unsetResultsPath {
+				os.Unsetenv(EnvInputResultsFile)
+			} else {
 				os.Setenv(EnvInputResultsFile, tt.resultsFile)
 				defer os.Unsetenv(EnvInputResultsFile)
 			}

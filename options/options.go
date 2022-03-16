@@ -101,12 +101,12 @@ func New() (*Options, error) {
 	}
 
 	// TODO(options): Move this set-or-default logic to its own function.
-	opts.ScorecardOpts.Format = opts.EnvInputResultsFormat
-	if opts.ScorecardOpts.Format == "" {
-		opts.ScorecardOpts.Format = formatSarif
+	opts.ScorecardOpts.Format = formatSarif
+	opts.ScorecardOpts.EnableSarif = true
+	if opts.InputResultsFormat != "" {
+		opts.ScorecardOpts.Format = opts.InputResultsFormat
 	}
 
-	opts.ScorecardOpts.EnableSarif = true
 	if opts.ScorecardOpts.Format == formatSarif {
 		if opts.ScorecardOpts.PolicyFile == "" {
 			// TODO(policy): Should we default or error here?
@@ -123,11 +123,12 @@ func New() (*Options, error) {
 
 	opts.SetPublishResults()
 
-	if opts.EnvInputResultsFile != "" {
-		opts.ScorecardOpts.ResultsFile = opts.EnvInputResultsFile
+	if opts.ScorecardOpts.ResultsFile == "" {
+		opts.ScorecardOpts.ResultsFile = opts.InputResultsFile
 	}
 
 	if opts.ScorecardOpts.ResultsFile == "" {
+		// TODO(test): Reassess test case for this code path
 		return opts, errResultsPathEmpty
 	}
 
