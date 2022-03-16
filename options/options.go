@@ -24,6 +24,7 @@ import (
 	"strings"
 
 	"github.com/caarlos0/env/v6"
+
 	"github.com/ossf/scorecard-action/github"
 	"github.com/ossf/scorecard/v4/options"
 )
@@ -70,9 +71,8 @@ type Options struct {
 	EnvInputPublishResults string `env:"INPUT_PUBLISH_RESULTS"`
 
 	// Repo tokens
-	EnvGithubAuthToken string `env:"GITHUB_AUTH_TOKEN"` //nolint:gosec
-	EnvInputRepoToken  string `env:"INPUT_REPO_TOKEN"`  //nolint:gosec
-
+	EnvGithubAuthToken string `env:"GITHUB_AUTH_TOKEN"`
+	EnvInputRepoToken  string `env:"INPUT_REPO_TOKEN"`
 }
 
 const (
