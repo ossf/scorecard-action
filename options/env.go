@@ -31,30 +31,14 @@ const (
 	EnvGithubRepository        = "GITHUB_REPOSITORY"
 	EnvGithubRef               = "GITHUB_REF"
 	EnvGithubWorkspace         = "GITHUB_WORKSPACE"
-	EnvGithubAuthToken         = "INPUT_REPO_TOKEN" //nolint:gosec
+	EnvGithubAuthToken         = "GITHUB_AUTH_TOKEN" //nolint:gosec
+	EnvInputRepoToken          = "INPUT_REPO_TOKEN"  //nolint:gosec
 	EnvInputResultsFile        = "INPUT_RESULTS_FILE"
 	EnvInputResultsFormat      = "INPUT_RESULTS_FORMAT"
 	EnvInputPublishResults     = "INPUT_PUBLISH_RESULTS"
 	EnvScorecardFork           = "SCORECARD_IS_FORK"
 	EnvScorecardPrivateRepo    = "SCORECARD_PRIVATE_REPOSITORY"
 )
-
-type Env struct {
-	EnvEnableSarif             string `env:"ENABLE_SARIF"`
-	EnvEnableLicense           string `env:"ENABLE_LICENSE"`
-	EnvEnableDangerousWorkflow string `env:"ENABLE_DANGEROUS_WORKFLOW"`
-	EnvGithubEventPath         string `env:"GITHUB_EVENT_PATH"`
-	EnvGithubEventName         string `env:"GITHUB_EVENT_NAME"`
-	EnvGithubRepository        string `env:"GITHUB_REPOSITORY"`
-	EnvGithubRef               string `env:"GITHUB_REF"`
-	EnvGithubWorkspace         string `env:"GITHUB_WORKSPACE"`
-	EnvGithubAuthToken         string `env:"INPUT_REPO_TOKEN"` //nolint:gosec
-	EnvInputResultsFile        string `env:"INPUT_RESULTS_FILE"`
-	EnvInputResultsFormat      string `env:"INPUT_RESULTS_FORMAT"`
-	EnvInputPublishResults     string `env:"INPUT_PUBLISH_RESULTS"`
-	EnvScorecardFork           string `env:"SCORECARD_IS_FORK"`
-	EnvScorecardPrivateRepo    string `env:"SCORECARD_PRIVATE_REPOSITORY"`
-}
 
 // Errors
 

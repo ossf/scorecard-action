@@ -34,8 +34,7 @@ var (
 	errResultsPathEmpty           = errors.New("results path is empty")
 	errOnlyDefaultBranchSupported = errors.New("only default branch is supported")
 
-	trueStr      = "true"
-	envVars *Env = &Env{}
+	trueStr = "true"
 )
 
 // Options are options for running scorecard via GitHub Actions.
@@ -64,6 +63,16 @@ type Options struct {
 	IsForkStr string `env:"SCORECARD_IS_FORK"`
 	// TODO(options): This may be better as a bool
 	PrivateRepoStr string `env:"SCORECARD_PRIVATE_REPOSITORY"`
+
+	// GitHub workflow parameters
+	EnvInputResultsFile    string `env:"INPUT_RESULTS_FILE"`
+	EnvInputResultsFormat  string `env:"INPUT_RESULTS_FORMAT"`
+	EnvInputPublishResults string `env:"INPUT_PUBLISH_RESULTS"`
+
+	// Repo tokens
+	EnvGithubAuthToken string `env:"GITHUB_AUTH_TOKEN"` //nolint:gosec
+	EnvInputRepoToken  string `env:"INPUT_REPO_TOKEN"`  //nolint:gosec
+
 }
 
 const (
@@ -75,11 +84,6 @@ const (
 func New() (*Options, error) {
 	// Enable scorecard command to use SARIF format.
 	os.Setenv(options.EnvVarEnableSarif, trueStr)
-
-	// Parse relevant env vars.
-	if err := env.Parse(envVars); err != nil {
-		return nil, fmt.Errorf("parsing entrypoint env vars: %w", err)
-	}
 
 	opts := &Options{
 		ScorecardOpts: options.New(),
@@ -96,7 +100,11 @@ func New() (*Options, error) {
 	}
 
 	// TODO(options): Move this set-or-default logic to its own function.
-	opts.ScorecardOpts.Format = envVars.EnvInputResultsFormat
+	opts.ScorecardOpts.Format = opts.EnvInputResultsFormat
+	if opts.ScorecardOpts.Format == "" {
+		opts.ScorecardOpts.Format = formatSarif
+	}
+
 	opts.ScorecardOpts.EnableSarif = true
 	if opts.ScorecardOpts.Format == formatSarif {
 		if opts.ScorecardOpts.PolicyFile == "" {
@@ -114,10 +122,16 @@ func New() (*Options, error) {
 
 	opts.SetPublishResults()
 
-	opts.ScorecardOpts.ResultsFile = envVars.EnvInputResultsFile
+	if opts.EnvInputResultsFile != "" {
+		opts.ScorecardOpts.ResultsFile = opts.EnvInputResultsFile
+	}
 
 	if opts.ScorecardOpts.ResultsFile == "" {
 		return opts, errResultsPathEmpty
+	}
+
+	if opts.EnvGithubAuthToken == "" {
+		opts.EnvGithubAuthToken = opts.EnvInputRepoToken
 	}
 
 	if err := opts.Validate(); err != nil {
@@ -160,9 +174,9 @@ func (o *Options) Validate() error {
 		return errEmptyGitHubAuthToken
 	}
 
-	if strings.Contains(envVars.EnvGithubEventName, "pull_request") &&
-		envVars.EnvGithubRef == o.DefaultBranch {
-		fmt.Printf("%s not supported with %s event.\n", envVars.EnvGithubRef, envVars.EnvGithubEventName)
+	if strings.Contains(o.GithubEventName, "pull_request") &&
+		o.GithubRef == o.DefaultBranch {
+		fmt.Printf("%s not supported with %s event.\n", o.GithubRef, o.GithubEventName)
 		fmt.Printf("Only the default branch %s is supported.\n", o.DefaultBranch)
 
 		return errOnlyDefaultBranchSupported
