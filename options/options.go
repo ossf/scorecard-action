@@ -69,11 +69,6 @@ type Options struct {
 	InputResultsFile    string `env:"INPUT_RESULTS_FILE"`
 	InputResultsFormat  string `env:"INPUT_RESULTS_FORMAT"`
 	InputPublishResults string `env:"INPUT_PUBLISH_RESULTS"`
-
-	// Repo tokens
-	// TODO(auth): DO NOT STORE AUTH
-	EnvGithubAuthToken string `env:"GITHUB_AUTH_TOKEN"`
-	EnvInputRepoToken  string `env:"INPUT_REPO_TOKEN"`
 }
 
 const (
@@ -132,10 +127,6 @@ func New() (*Options, error) {
 		return opts, errResultsPathEmpty
 	}
 
-	if opts.EnvGithubAuthToken == "" {
-		opts.EnvGithubAuthToken = opts.EnvInputRepoToken
-	}
-
 	if err := opts.Validate(); err != nil {
 		return opts, fmt.Errorf("validating scorecard-action options: %w", err)
 	}
@@ -157,6 +148,12 @@ func (o *Options) Initialize() error {
 	// TODO(checks): Do we actually expect to use these?
 	// o.EnableLicense = "1"
 	// o.EnableDangerousWorkflow = "1"
+
+	_, tokenSet := os.LookupEnv(EnvGithubAuthToken)
+	if !tokenSet {
+		inputToken := os.Getenv(EnvInputRepoToken)
+		os.Setenv(EnvGithubAuthToken, inputToken)
+	}
 
 	return o.SetRepoInfo()
 }
