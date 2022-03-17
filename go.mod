@@ -7,7 +7,7 @@ require (
 	github.com/google/go-cmp v0.5.7
 	github.com/ossf/scorecard/v4 v4.1.1-0.20220306220811-4b9f0389c6f6
 	github.com/sigstore/cosign v1.6.0
-	github.com/spf13/cobra v1.3.0
+	github.com/spf13/cobra v1.4.0
 )
 
 require (

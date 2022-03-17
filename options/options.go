@@ -64,6 +64,11 @@ type Options struct {
 	IsForkStr string `env:"SCORECARD_IS_FORK"`
 	// TODO(options): This may be better as a bool
 	PrivateRepoStr string `env:"SCORECARD_PRIVATE_REPOSITORY"`
+
+	// Input parameters
+	InputResultsFile    string `env:"INPUT_RESULTS_FILE"`
+	InputResultsFormat  string `env:"INPUT_RESULTS_FORMAT"`
+	InputPublishResults string `env:"INPUT_PUBLISH_RESULTS"`
 }
 
 const (
@@ -91,9 +96,12 @@ func New() (*Options, error) {
 	}
 
 	// TODO(options): Move this set-or-default logic to its own function.
-	// Fix: get format from env var.
-	opts.ScorecardOpts.Format = os.Getenv(EnvInputResultsFormat)
+	opts.ScorecardOpts.Format = formatSarif
 	opts.ScorecardOpts.EnableSarif = true
+	if opts.InputResultsFormat != "" {
+		opts.ScorecardOpts.Format = opts.InputResultsFormat
+	}
+
 	if opts.ScorecardOpts.Format == formatSarif {
 		if opts.ScorecardOpts.PolicyFile == "" {
 			// TODO(policy): Should we default or error here?
@@ -110,12 +118,12 @@ func New() (*Options, error) {
 
 	opts.SetPublishResults()
 
-	opts.ScorecardOpts.ResultsFile = os.Getenv("INPUT_RESULTS_FILE")
-
-	// Set PAT
-	os.Setenv("GITHUB_AUTH_TOKEN", os.Getenv("INPUT_REPO_TOKEN"))
+	if opts.ScorecardOpts.ResultsFile == "" {
+		opts.ScorecardOpts.ResultsFile = opts.InputResultsFile
+	}
 
 	if opts.ScorecardOpts.ResultsFile == "" {
+		// TODO(test): Reassess test case for this code path
 		return opts, errResultsPathEmpty
 	}
 
@@ -141,6 +149,12 @@ func (o *Options) Initialize() error {
 	// o.EnableLicense = "1"
 	// o.EnableDangerousWorkflow = "1"
 
+	_, tokenSet := os.LookupEnv(EnvGithubAuthToken)
+	if !tokenSet {
+		inputToken := os.Getenv(EnvInputRepoToken)
+		os.Setenv(EnvGithubAuthToken, inputToken)
+	}
+
 	return o.SetRepoInfo()
 }
 
@@ -159,9 +173,9 @@ func (o *Options) Validate() error {
 		return errEmptyGitHubAuthToken
 	}
 
-	if strings.Contains(os.Getenv(o.GithubEventName), "pull_request") &&
-		os.Getenv(o.GithubRef) == o.DefaultBranch {
-		fmt.Printf("%s not supported with %s event.\n", os.Getenv(o.GithubRef), os.Getenv(o.GithubEventName))
+	if strings.Contains(o.GithubEventName, "pull_request") &&
+		o.GithubRef == o.DefaultBranch {
+		fmt.Printf("%s not supported with %s event.\n", o.GithubRef, o.GithubEventName)
 		fmt.Printf("Only the default branch %s is supported.\n", o.DefaultBranch)
 
 		return errOnlyDefaultBranchSupported
