@@ -8,7 +8,7 @@ import (
 	"github.com/sigstore/cosign/cmd/cosign/cli/sign"
 )
 
-func signScorecardResult(scorecardResultsFile string) error {
+func SignScorecardResult(scorecardResultsFile string) error {
 	if err := os.Setenv("COSIGN_EXPERIMENTAL", "true"); err != nil {
 		return fmt.Errorf("error setting COSIGN_EXPERIMENTAL env var: %w", err)
 	}

@@ -20,6 +20,8 @@ import (
 	"os"
 
 	"github.com/ossf/scorecard-action/entrypoint"
+	"github.com/ossf/scorecard-action/options"
+	"github.com/ossf/scorecard-action/signing"
 )
 
 func main() {
@@ -33,8 +35,8 @@ func main() {
 	}
 
 	// Run again to create json output.
-	os.Setenv("INPUT_RESULTS_FILE", "results.json")
-	os.Setenv("INPUT_RESULTS_FORMAT", "json")
+	os.Setenv(options.EnvInputResultsFile, "results.json")
+	os.Setenv(options.EnvInputResultsFormat, "json")
 	actionJson, err := entrypoint.New()
 	fmt.Printf("%v", actionJson)
 	if err != nil {
@@ -44,4 +46,6 @@ func main() {
 	if err := actionJson.Execute(); err != nil {
 		log.Fatalf("error during command execution: %v", err)
 	}
+
+	signing.SignScorecardResult("results.json")
 }
