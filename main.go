@@ -31,7 +31,7 @@ func main() {
 	// }
 
 	// Run again to create json output.
-	actionJson, err := entrypoint.New()
+	actionJson, err := entrypoint.NewJson()
 	if err != nil {
 		log.Fatalf("creating scorecard entrypoint: %v", err)
 	}
