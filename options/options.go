@@ -131,9 +131,6 @@ func New() (*Options, error) {
 		return opts, fmt.Errorf("validating scorecard-action options: %w", err)
 	}
 
-	fmt.Printf("OUTPUT HERE")
-	fmt.Printf("%+v\n", opts)
-
 	return opts, nil
 }
 
