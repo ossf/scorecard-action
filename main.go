@@ -15,6 +15,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 
 	"github.com/ossf/scorecard-action/entrypoint"
@@ -32,6 +33,7 @@ func main() {
 
 	// Run again to create json output.
 	actionJson, err := entrypoint.NewJson()
+	fmt.Printf("%v", actionJson)
 	if err != nil {
 		log.Fatalf("creating scorecard entrypoint: %v", err)
 	}
