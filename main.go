@@ -21,14 +21,14 @@ import (
 )
 
 func main() {
-	action, err := entrypoint.New()
-	if err != nil {
-		log.Fatalf("creating scorecard entrypoint: %v", err)
-	}
+	// action, err := entrypoint.New()
+	// if err != nil {
+	// 	log.Fatalf("creating scorecard entrypoint: %v", err)
+	// }
 
-	if err := action.Execute(); err != nil {
-		log.Fatalf("error during command execution: %v", err)
-	}
+	// if err := action.Execute(); err != nil {
+	// 	log.Fatalf("error during command execution: %v", err)
+	// }
 
 	// Run again to create json output.
 	actionJson, err := entrypoint.New()
