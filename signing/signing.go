@@ -52,7 +52,7 @@ func ProcessSignature() error {
 	os.Setenv(options.EnvInputResultsFile, "results.json")
 	os.Setenv(options.EnvInputResultsFormat, "json")
 	actionJson, err := entrypoint.New()
-	fmt.Printf("%v", actionJson)
+
 	if err != nil {
 		return fmt.Errorf("creating scorecard entrypoint: %v", err)
 	}
@@ -87,8 +87,10 @@ func ProcessSignature() error {
 	url := "https://api.securityscorecards.dev/verify"
 	req, _ := http.NewRequest("POST", url, bytes.NewBuffer(payloadBytes))
 	// TODO: don't hardcode these.
-	req.Header.Set("Repository", "rohankh532/scorecard-OIDC-test")
-	req.Header.Set("Branch", "refs/heads/main")
+	fmt.Println(os.Getenv(options.EnvGithubRepository))
+	fmt.Println(os.Getenv(options.EnvGithubRef))
+	req.Header.Set("Repository", os.Getenv(options.EnvGithubRepository))
+	req.Header.Set("Branch", os.Getenv(options.EnvGithubRef))
 
 	client := &http.Client{}
 	resp, err := client.Do(req)
