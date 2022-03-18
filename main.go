@@ -41,7 +41,7 @@ func main() {
 	// Run again to create json output to sign result.
 	if os.Getenv(options.EnvInputPublishResults) == "true" {
 		// Save sarif output.
-		sarifPayload, err := ioutil.ReadFile(options.EnvInputResultsFile)
+		sarifPayload, err := ioutil.ReadFile(os.Getenv(options.EnvInputResultsFile))
 		if err != nil {
 			log.Fatalf("reading scorecard sarif results from file: %v", err)
 		}
@@ -61,7 +61,7 @@ func main() {
 			log.Fatalf("error signing scorecard results: %v", err)
 		}
 
-		jsonPayload, err := ioutil.ReadFile(options.EnvInputResultsFile)
+		jsonPayload, err := ioutil.ReadFile(os.Getenv(options.EnvInputResultsFile))
 		if err != nil {
 			log.Fatalf("reading scorecard json results from file: %v", err)
 		}
