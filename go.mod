@@ -10,8 +10,6 @@ require (
 	github.com/spf13/cobra v1.4.0
 )
 
-require github.com/gorilla/mux v1.8.0 // indirect
-
 require (
 	bitbucket.org/creachadair/shell v0.0.6 // indirect
 	cloud.google.com/go v0.100.2 // indirect
@@ -180,7 +178,6 @@ require (
 	github.com/opencontainers/go-digest v1.0.0 // indirect
 	github.com/opencontainers/image-spec v1.0.3-0.20220114050600-8b9d41f48198 // indirect
 	github.com/opentracing/opentracing-go v1.2.0 // indirect
-	github.com/ossf/scorecard-webapp v0.0.0-20220318210146-457fe958db53
 	github.com/pelletier/go-toml v1.9.4 // indirect
 	github.com/pierrec/lz4 v2.6.1+incompatible // indirect
 	github.com/pkg/errors v0.9.1 // indirect
