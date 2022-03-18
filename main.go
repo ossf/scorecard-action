@@ -94,8 +94,12 @@ func main() {
 		}
 		defer resp.Body.Close()
 
+		if resp.StatusCode != 200 {
+			log.Fatalf("http response error: %v", err)
+		}
+
 		// For testing.
-		body, _ := ioutil.ReadAll(resp.Body)
-		fmt.Println("response body:", body)
+		body, err := ioutil.ReadAll(resp.Body)
+		fmt.Println("response body:", string(body))
 	}
 }
