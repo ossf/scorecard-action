@@ -15,12 +15,7 @@
 package main
 
 import (
-	"bytes"
-	"encoding/json"
-	"fmt"
-	"io/ioutil"
 	"log"
-	"net/http"
 	"os"
 
 	"github.com/ossf/scorecard-action/entrypoint"
@@ -38,68 +33,10 @@ func main() {
 		log.Fatalf("error during command execution: %v", err)
 	}
 
-	// Run again to create json output to sign result.
+	// Process signature using scorecard-api.
 	if os.Getenv(options.EnvInputPublishResults) == "true" {
-		// Save sarif output.
-		sarifPayload, err := ioutil.ReadFile(os.Getenv(options.EnvInputResultsFile))
-		if err != nil {
-			log.Fatalf("reading scorecard sarif results from file: %v", err)
+		if err := signing.ProcessSignature(); err != nil {
+			log.Fatalf("error processing signature: %v", err)
 		}
-
-		// Change output settings to json and run scorecard again.
-		os.Setenv(options.EnvInputResultsFile, "results.json")
-		os.Setenv(options.EnvInputResultsFormat, "json")
-		actionJson, err := entrypoint.New()
-		fmt.Printf("%v", actionJson)
-		if err != nil {
-			log.Fatalf("creating scorecard entrypoint: %v", err)
-		}
-		if err := actionJson.Execute(); err != nil {
-			log.Fatalf("error during command execution: %v", err)
-		}
-		if err = signing.SignScorecardResult("results.sarif"); err != nil {
-			log.Fatalf("error signing scorecard sarif results: %v", err)
-		}
-
-		jsonPayload, err := ioutil.ReadFile(os.Getenv(options.EnvInputResultsFile))
-		if err != nil {
-			log.Fatalf("reading scorecard json results from file: %v", err)
-		}
-
-		// Prepare HTTP request body for scorecard-webapp-api call.
-		resultsPayload := struct {
-			SarifOutput string
-			JsonOutput  string
-		}{
-			SarifOutput: string(sarifPayload),
-			JsonOutput:  string(jsonPayload),
-		}
-
-		payloadBytes, err := json.Marshal(resultsPayload)
-		if err != nil {
-			log.Fatalf("reading scorecard json results from file: %v", err)
-		}
-
-		// Call scorecard-webapp-api to process and upload signature.
-		url := "https://api.securityscorecards.dev/verify"
-		req, _ := http.NewRequest("POST", url, bytes.NewBuffer(payloadBytes))
-		// TODO: don't hardcode these.
-		req.Header.Set("Repository", "rohankh532/scorecard-OIDC-test")
-		req.Header.Set("Branch", "refs/heads/main")
-
-		client := &http.Client{}
-		resp, err := client.Do(req)
-		if err != nil {
-			log.Fatalf("executing scorecard-api call: %v", err)
-		}
-		defer resp.Body.Close()
-
-		if resp.StatusCode != 200 {
-			log.Fatalf("http response error: %v", err)
-		}
-
-		// For testing.
-		body, err := ioutil.ReadAll(resp.Body)
-		fmt.Println("response body:", string(body))
 	}
 }
