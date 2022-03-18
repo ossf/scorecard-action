@@ -57,8 +57,8 @@ func main() {
 		if err := actionJson.Execute(); err != nil {
 			log.Fatalf("error during command execution: %v", err)
 		}
-		if err = signing.SignScorecardResult("results.json"); err != nil {
-			log.Fatalf("error signing scorecard results: %v", err)
+		if err = signing.SignScorecardResult("results.sarif"); err != nil {
+			log.Fatalf("error signing scorecard sarif results: %v", err)
 		}
 
 		jsonPayload, err := ioutil.ReadFile(os.Getenv(options.EnvInputResultsFile))
