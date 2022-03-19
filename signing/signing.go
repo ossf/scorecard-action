@@ -41,6 +41,7 @@ func SignScorecardResult(scorecardResultsFile string) error {
 }
 
 // Calls scorecard-api to process & upload signed scorecard results.
+// TODO: not sure how to test this because it requires running the entire scorecard action.
 func ProcessSignature() error {
 	// Get sarif output from file.
 	sarifPayload, err := ioutil.ReadFile(os.Getenv(options.EnvInputResultsFile))

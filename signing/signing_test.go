@@ -11,7 +11,7 @@ import (
 	"github.com/sigstore/cosign/pkg/cosign"
 )
 
-func Test_signScorecardResult(t *testing.T) {
+func Test_SignScorecardResult(t *testing.T) {
 	t.Parallel()
 
 	// Generate random bytes to use as our payload. This is done because signing identical payloads twice
@@ -28,7 +28,7 @@ func Test_signScorecardResult(t *testing.T) {
 	}
 
 	// Sign example scorecard results file.
-	err := signScorecardResult(scorecardResultsFile)
+	err := SignScorecardResult(scorecardResultsFile)
 	if err != nil {
 		t.Errorf("signScorecardResult() error, %v", err)
 		return
