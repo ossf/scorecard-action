@@ -86,9 +86,6 @@ func ProcessSignature() error {
 	// Call scorecard-webapp-api to process and upload signature.
 	url := "https://api.securityscorecards.dev/verify"
 	req, _ := http.NewRequest("POST", url, bytes.NewBuffer(payloadBytes))
-	// TODO: don't hardcode these.
-	fmt.Println(os.Getenv(options.EnvGithubRepository))
-	fmt.Println(os.Getenv(options.EnvGithubRef))
 	req.Header.Set("Repository", os.Getenv(options.EnvGithubRepository))
 	req.Header.Set("Branch", os.Getenv(options.EnvGithubRef))
 
@@ -102,10 +99,6 @@ func ProcessSignature() error {
 	if resp.StatusCode != 200 {
 		return fmt.Errorf("http response error: %v", err)
 	}
-
-	// For testing.
-	body, err := ioutil.ReadAll(resp.Body)
-	fmt.Println("response body:", string(body))
 
 	return nil
 }
