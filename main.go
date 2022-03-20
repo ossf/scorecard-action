@@ -15,6 +15,7 @@
 package main
 
 import (
+	"io/ioutil"
 	"log"
 	"os"
 
@@ -35,7 +36,20 @@ func main() {
 
 	// Process signature using scorecard-api.
 	if os.Getenv(options.EnvInputPublishResults) == "true" {
-		if err := signing.ProcessSignature(); err != nil {
+		// Get sarif output from file.
+		sarifPayload, err := ioutil.ReadFile(os.Getenv(options.EnvInputResultsFile))
+		if err != nil {
+			log.Fatalf("error reading from sarif output file: %v", err)
+		}
+
+		// Get json results by re-running scorecard.
+		jsonPayload, err := signing.GetJsonScorecardResults()
+		if err != nil {
+			log.Fatalf("error generating json scorecard results: %v", err)
+		}
+
+		// Sign & upload scorecard results.
+		if err := signing.ProcessSignature(sarifPayload, jsonPayload); err != nil {
 			log.Fatalf("error processing signature: %v", err)
 		}
 	}

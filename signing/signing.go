@@ -40,36 +40,37 @@ func signScorecardResult(scorecardResultsFile string) error {
 	return nil
 }
 
-// Calls scorecard-api to process & upload signed scorecard results.
-// TODO: not sure how to test this because it requires running the entire scorecard action.
-func ProcessSignature() error {
-	// Get sarif output from file.
-	sarifPayload, err := ioutil.ReadFile(os.Getenv(options.EnvInputResultsFile))
-	if err != nil {
-		return fmt.Errorf("reading scorecard sarif results from file: %v", err)
-	}
-
-	// Change output settings to json and run scorecard again.
-	// TODO: run scorecard only once and generate multiple formats together.
+// Changes output settings to json and runs scorecard again.
+// TODO: run scorecard only once and generate multiple formats together.
+func GetJsonScorecardResults() ([]byte, error) {
+	// TODO: defer unsetenv
 	os.Setenv(options.EnvInputResultsFile, "results.json")
 	os.Setenv(options.EnvInputResultsFormat, "json")
 	actionJson, err := entrypoint.New()
 
 	if err != nil {
-		return fmt.Errorf("creating scorecard entrypoint: %v", err)
+		return nil, fmt.Errorf("creating scorecard entrypoint: %v", err)
 	}
 	if err := actionJson.Execute(); err != nil {
-		return fmt.Errorf("error during command execution: %v", err)
+		return nil, fmt.Errorf("error during command execution: %v", err)
 	}
+	// TODO: sign both sarif & json.
 	if err = signScorecardResult("results.sarif"); err != nil {
-		return fmt.Errorf("error signing scorecard sarif results: %v", err)
+		return nil, fmt.Errorf("error signing scorecard sarif results: %v", err)
 	}
 
-	// Get json output from file.
+	// Get json output data from file.
 	jsonPayload, err := ioutil.ReadFile(os.Getenv(options.EnvInputResultsFile))
 	if err != nil {
-		return fmt.Errorf("reading scorecard json results from file: %v", err)
+		return nil, fmt.Errorf("reading scorecard json results from file: %v", err)
 	}
+
+	return jsonPayload, nil
+}
+
+// Calls scorecard-api to process & upload signed scorecard results.
+// TODO: not sure how to test this because it requires running the entire scorecard action.
+func ProcessSignature(sarifPayload []byte, jsonPayload []byte) error {
 
 	// Prepare HTTP request body for scorecard-webapp-api call.
 	resultsPayload := struct {
