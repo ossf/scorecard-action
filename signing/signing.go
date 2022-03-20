@@ -14,7 +14,7 @@ import (
 	"github.com/sigstore/cosign/cmd/cosign/cli/sign"
 )
 
-func SignScorecardResult(scorecardResultsFile string) error {
+func signScorecardResult(scorecardResultsFile string) error {
 	if err := os.Setenv("COSIGN_EXPERIMENTAL", "true"); err != nil {
 		return fmt.Errorf("error setting COSIGN_EXPERIMENTAL env var: %w", err)
 	}
@@ -50,6 +50,7 @@ func ProcessSignature() error {
 	}
 
 	// Change output settings to json and run scorecard again.
+	// TODO: run scorecard only once and generate multiple formats together.
 	os.Setenv(options.EnvInputResultsFile, "results.json")
 	os.Setenv(options.EnvInputResultsFormat, "json")
 	actionJson, err := entrypoint.New()
@@ -60,7 +61,7 @@ func ProcessSignature() error {
 	if err := actionJson.Execute(); err != nil {
 		return fmt.Errorf("error during command execution: %v", err)
 	}
-	if err = SignScorecardResult("results.sarif"); err != nil {
+	if err = signScorecardResult("results.sarif"); err != nil {
 		return fmt.Errorf("error signing scorecard sarif results: %v", err)
 	}
 
