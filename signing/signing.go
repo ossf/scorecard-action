@@ -14,7 +14,7 @@ import (
 	"github.com/sigstore/cosign/cmd/cosign/cli/sign"
 )
 
-func signScorecardResult(scorecardResultsFile string) error {
+func SignScorecardResult(scorecardResultsFile string) error {
 	if err := os.Setenv("COSIGN_EXPERIMENTAL", "true"); err != nil {
 		return fmt.Errorf("error setting COSIGN_EXPERIMENTAL env var: %w", err)
 	}
@@ -43,9 +43,11 @@ func signScorecardResult(scorecardResultsFile string) error {
 // Changes output settings to json and runs scorecard again.
 // TODO: run scorecard only once and generate multiple formats together.
 func GetJsonScorecardResults() ([]byte, error) {
-	// TODO: defer unsetenv
+	defer os.Setenv(options.EnvInputResultsFile, os.Getenv(options.EnvInputResultsFile))
+	defer os.Setenv(options.EnvInputResultsFormat, os.Getenv(options.EnvInputResultsFormat))
 	os.Setenv(options.EnvInputResultsFile, "results.json")
 	os.Setenv(options.EnvInputResultsFormat, "json")
+
 	actionJson, err := entrypoint.New()
 
 	if err != nil {
@@ -54,10 +56,8 @@ func GetJsonScorecardResults() ([]byte, error) {
 	if err := actionJson.Execute(); err != nil {
 		return nil, fmt.Errorf("error during command execution: %v", err)
 	}
-	// TODO: sign both sarif & json.
-	if err = signScorecardResult("results.sarif"); err != nil {
-		return nil, fmt.Errorf("error signing scorecard sarif results: %v", err)
-	}
+
+	// Sign sarif & json results.
 
 	// Get json output data from file.
 	jsonPayload, err := ioutil.ReadFile(os.Getenv(options.EnvInputResultsFile))
@@ -69,8 +69,7 @@ func GetJsonScorecardResults() ([]byte, error) {
 }
 
 // Calls scorecard-api to process & upload signed scorecard results.
-// TODO: not sure how to test this because it requires running the entire scorecard action.
-func ProcessSignature(sarifPayload []byte, jsonPayload []byte) error {
+func ProcessSignature(sarifPayload []byte, jsonPayload []byte, repoName string, repoRef string) error {
 
 	// Prepare HTTP request body for scorecard-webapp-api call.
 	resultsPayload := struct {
@@ -89,8 +88,8 @@ func ProcessSignature(sarifPayload []byte, jsonPayload []byte) error {
 	// Call scorecard-webapp-api to process and upload signature.
 	url := "https://api.securityscorecards.dev/verify"
 	req, _ := http.NewRequest("POST", url, bytes.NewBuffer(payloadBytes))
-	req.Header.Set("Repository", os.Getenv(options.EnvGithubRepository))
-	req.Header.Set("Branch", os.Getenv(options.EnvGithubRef))
+	req.Header.Set("Repository", repoName)
+	req.Header.Set("Branch", repoRef)
 
 	client := &http.Client{}
 	resp, err := client.Do(req)

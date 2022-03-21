@@ -11,9 +11,8 @@ import (
 	"github.com/sigstore/cosign/pkg/cosign"
 )
 
-func Test_signScorecardResult(t *testing.T) {
+func Test_SignScorecardResult(t *testing.T) {
 	t.Parallel()
-
 	// Generate random bytes to use as our payload. This is done because signing identical payloads twice
 	// just creates multiple entries under it, so we are keeping this test simple and not comparing timestamps.
 	scorecardResultsFile := "./sign-random-data.txt"
@@ -28,7 +27,7 @@ func Test_signScorecardResult(t *testing.T) {
 	}
 
 	// Sign example scorecard results file.
-	err := signScorecardResult(scorecardResultsFile)
+	err := SignScorecardResult(scorecardResultsFile)
 	if err != nil {
 		t.Errorf("signScorecardResult() error, %v", err)
 		return
@@ -56,4 +55,22 @@ func Test_signScorecardResult(t *testing.T) {
 		t.Errorf("signScorecardResult() error finding signature in Rekor tlog, %v", err)
 		return
 	}
+}
+
+// Test using scorecard results that have already been signed & uploaded.
+func Test_processSignature(t *testing.T) {
+	t.Parallel()
+
+	sarifPayload, serr := ioutil.ReadFile("testdata/results.sarif")
+	jsonPayload, jerr := ioutil.ReadFile("testdata/results.json")
+
+	if serr != nil || jerr != nil {
+		t.Errorf("Error reading testdata:, %v, %v", serr, jerr)
+	}
+
+	if err := ProcessSignature(sarifPayload, jsonPayload, "rohankh532/scorecard-OIDC-test", "refs/heads/main"); err != nil {
+		t.Errorf("ProcessSignature() error:, %v", err)
+		return
+	}
+
 }
