@@ -82,7 +82,7 @@ The scorecard workflow can be automatically added to every repository under an o
 3) Create another Personal Access Token with the following scopes:
     - `repo > public_repo`
     - `admin:org > read:org`
-4) Set the parameters in `org-workflow-add.go ` using the token from step #3
+4) Set the parameters in `org-workflow-add.go ` using the token from step 3
 5) Run ` go run org-workflow-add.go`
 
 
