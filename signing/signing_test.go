@@ -58,7 +58,7 @@ func Test_SignScorecardResult(t *testing.T) {
 }
 
 // Test using scorecard results that have already been signed & uploaded.
-func Test_processSignature(t *testing.T) {
+func Test_ProcessSignature(t *testing.T) {
 	t.Parallel()
 
 	sarifPayload, serr := ioutil.ReadFile("testdata/results.sarif")

@@ -36,13 +36,13 @@ func main() {
 
 	if os.Getenv(options.EnvInputPublishResults) == "true" {
 		sarifOutputFile := os.Getenv(options.EnvInputResultsFile)
-		// Get sarif output from file.
+		// Get sarif results from file.
 		sarifPayload, err := ioutil.ReadFile(sarifOutputFile)
 		if err != nil {
 			log.Fatalf("error reading from sarif output file: %v", err)
 		}
 
-		// Sign sarif output.
+		// Sign sarif results.
 		if err = signing.SignScorecardResult(sarifOutputFile); err != nil {
 			log.Fatalf("error signing scorecard sarif results: %v", err)
 		}
@@ -53,7 +53,12 @@ func main() {
 			log.Fatalf("error generating json scorecard results: %v", err)
 		}
 
-		// Sign & upload scorecard results.
+		// Sign json results.
+		if err = signing.SignScorecardResult("results.json"); err != nil {
+			log.Fatalf("error signing scorecard json results: %v", err)
+		}
+
+		// Processs sarif & json results.
 		repoName := os.Getenv(options.EnvGithubRepository)
 		repoRef := os.Getenv(options.EnvGithubRef)
 		if err := signing.ProcessSignature(sarifPayload, jsonPayload, repoName, repoRef); err != nil {

@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"net/http"
 	"os"
@@ -57,8 +58,6 @@ func GetJsonScorecardResults() ([]byte, error) {
 		return nil, fmt.Errorf("error during command execution: %v", err)
 	}
 
-	// Sign sarif & json results.
-
 	// Get json output data from file.
 	jsonPayload, err := ioutil.ReadFile(os.Getenv(options.EnvInputResultsFile))
 	if err != nil {
@@ -88,8 +87,8 @@ func ProcessSignature(sarifPayload []byte, jsonPayload []byte, repoName string, 
 	// Call scorecard-webapp-api to process and upload signature.
 	url := "https://api.securityscorecards.dev/verify"
 	req, _ := http.NewRequest("POST", url, bytes.NewBuffer(payloadBytes))
-	req.Header.Set("Repository", repoName)
-	req.Header.Set("Branch", repoRef)
+	req.Header.Set("X-Repository", repoName)
+	req.Header.Set("X-Branch", repoRef)
 
 	client := &http.Client{}
 	resp, err := client.Do(req)
@@ -99,7 +98,8 @@ func ProcessSignature(sarifPayload []byte, jsonPayload []byte, repoName string, 
 	defer resp.Body.Close()
 
 	if resp.StatusCode != 200 {
-		return fmt.Errorf("http response error: %v", err)
+		bodyBytes, _ := io.ReadAll(resp.Body)
+		return fmt.Errorf("http response error: %v", string(bodyBytes))
 	}
 
 	return nil
