@@ -43,7 +43,7 @@ func main() {
 		}
 
 		// Sign sarif output.
-		if err = SignScorecardResult(sarifOutputFile); err != nil {
+		if err = signing.SignScorecardResult(sarifOutputFile); err != nil {
 			log.Fatalf("error signing scorecard sarif results: %v", err)
 		}
 
