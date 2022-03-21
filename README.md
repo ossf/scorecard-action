@@ -50,7 +50,7 @@ To install the Scorecards GitHub Action, you need to:
 
 4. (Optional) If you install Scorecard on a repository owned by an organization that uses [SAML SSO](https://docs.github.com/en/enterprise-cloud@latest/authentication/authenticating-with-saml-single-sign-on/about-authentication-with-saml-single-sign-on), be sure to [enable SSO](https://docs.github.com/en/enterprise-cloud@latest/authentication/authenticating-with-saml-single-sign-on/authorizing-a-personal-access-token-for-use-with-saml-single-sign-on) for your PAT token.
 
-### Workflow Setup
+### Workflow Setup - Single Repository
 1) From your GitHub project's main page, click “Security” in the top ribbon. 
 
 ![image](/images/install01.png)
@@ -74,6 +74,17 @@ Then click "Add More Scanning Tools."
 4) Commit the changes.
 
 ![image](/images/install04.png)
+
+### Workflow Setup - Organization Wide
+The scorecard workflow can be automatically added to every repository under an organization using the [multi-repo-action](https://github.com/ossf/scorecard-action/tree/main/multi-repo-action) tool.
+1) `git clone ` this repository & `cd multi-repo-action`
+2) Create an organization Personal Access Token with the same scopes defined [above](#authentication) and set it as an organization secret on GitHub
+3) Create another Personal Access Token with the following scopes:
+    - `repo > public_repo`
+    - `admin:org > read:org`
+4) Set the parameters in `org-workflow-add.go ` using the token from step #3
+5) Run ` go run org-workflow-add.go`
+
 
 ## View Results
 
