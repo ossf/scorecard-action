@@ -4,7 +4,7 @@
    "runs": [
       {
          "automationDetails": {
-            "id": "supply-chain/branch-protection/unknown-20 Mar 22 23:44 +0000"
+            "id": "supply-chain/branch-protection/unknown-21 Mar 22 18:35 +0000"
          },
          "tool": {
             "driver": {
@@ -69,7 +69,7 @@
       },
       {
          "automationDetails": {
-            "id": "supply-chain/local/unknown-20 Mar 22 23:44 +0000"
+            "id": "supply-chain/local/unknown-21 Mar 22 18:35 +0000"
          },
          "tool": {
             "driver": {
@@ -311,7 +311,7 @@
       },
       {
          "automationDetails": {
-            "id": "supply-chain/online-scm/unknown-20 Mar 22 23:44 +0000"
+            "id": "supply-chain/online-scm/unknown-21 Mar 22 18:35 +0000"
          },
          "tool": {
             "driver": {
@@ -652,7 +652,7 @@
                "ruleId": "CodeReviewID",
                "ruleIndex": 2,
                "message": {
-                  "text": "score is 0: no reviews found:\nWarn: no reviews found for commit: 93b22e8e2e8980be498bd35d44e511b11c0716ea\nWarn: no reviews found for commit: 21f2a2dd2f4250aef4f27f4cad13c600d2b4026c\nWarn: no reviews found for commit: 8cd6350eeb246ef169ff4483c243a4e1f1f92592\nWarn: no reviews found for commit: 78b7a094947b93cd25adb90c9640c4f66017f74f\nWarn: no reviews found for commit: 88c11612d4f7b86506e4bce2cafd90699425adbd\nWarn: no reviews found for commit: 84feb19250ed6eede3621e6d6d84a633f305e766\nWarn: no reviews found for commit: 90424686a90cfbbd23448fafd5e9de6a97c29c06\nWarn: no reviews found for commit: 590c7ad6d4e228a729d90efce25b00b4235d6fa4\nWarn: no reviews found for commit: d682f30752af1e4ddfc9def4a985671bc915544c\nWarn: no reviews found for commit: 56bf8157e7c794db048c08d72c771277d3f7b385\nWarn: no reviews found for commit: 46797e04dbee278cb0b79de0ef18b2a43a90e4c2\nWarn: no reviews found for commit: ab79b44d701c2abe206a611410765bf9049da50e\nWarn: no reviews found for commit: 1225df606f407d9edb3dc401f041d1897898c673\nWarn: no reviews found for commit: 838d335af45bfcab6698df8a23fffe5190f5bdd3\nWarn: no reviews found for commit: de7dc23dee37ede20642d91a9b482d38e3d3c25b\nWarn: no reviews found for commit: 117c490a7eae739f2657198a7757a5a07280cea5\nWarn: no reviews found for commit: 5c199386c657291adbb06324341cca7418cb6c21\nWarn: no reviews found for commit: 042a7580f944f7cacacd9c7aa8eb369e9d082601\nWarn: no reviews found for commit: 0c79d2acbc18e3bf1bbca0acb668684f1c6d36f9\nWarn: no reviews found for commit: 25c181ce3e30c211c3b8e7112c4be7bf0a2846d0\nWarn: no reviews found for commit: b83cd0030e006b406dd010f3bd2968b5b50e1b97\nWarn: no reviews found for commit: 8e6dd5656a2c17c1357634ebf414dd1c0895b5c0\nWarn: no reviews found for commit: 74f988637e8d218a02e2913c1f77133a70d44f56\nWarn: no reviews found for commit: 24161380a692583bdb1d4d406116d17da20c8931\nWarn: no reviews found for commit: 1b0020300a04025232b486ed39712847e68bff52\nWarn: no reviews found for commit: a26edaf789bbb2350b1658d1fdf1675c6cb262e4\nWarn: no reviews found for commit: e248756ffa03989d93c215b860e408ab5144a3f9\nWarn: no reviews found for commit: d0b2965f9ccc8d30bd72734d753c96669692eeec\nWarn: no reviews found for commit: 9e97b6e5b925523d4ad13c8c8f956e05730da772\nWarn: no reviews found for commit: 7b7920aabc2040083e1954b3887912a3503e0216\nClick Remediation section below to solve this issue"
+                  "text": "score is 0: no reviews found:\nWarn: no reviews found for commit: 80ec5079f66133cb6cefb09aad9b4565456b7f70\nWarn: no reviews found for commit: 6f242f91747b2db5eff455d291b99e4476666a27\nWarn: no reviews found for commit: 93b22e8e2e8980be498bd35d44e511b11c0716ea\nWarn: no reviews found for commit: 21f2a2dd2f4250aef4f27f4cad13c600d2b4026c\nWarn: no reviews found for commit: 8cd6350eeb246ef169ff4483c243a4e1f1f92592\nWarn: no reviews found for commit: 78b7a094947b93cd25adb90c9640c4f66017f74f\nWarn: no reviews found for commit: 88c11612d4f7b86506e4bce2cafd90699425adbd\nWarn: no reviews found for commit: 84feb19250ed6eede3621e6d6d84a633f305e766\nWarn: no reviews found for commit: 90424686a90cfbbd23448fafd5e9de6a97c29c06\nWarn: no reviews found for commit: 590c7ad6d4e228a729d90efce25b00b4235d6fa4\nWarn: no reviews found for commit: d682f30752af1e4ddfc9def4a985671bc915544c\nWarn: no reviews found for commit: 56bf8157e7c794db048c08d72c771277d3f7b385\nWarn: no reviews found for commit: 46797e04dbee278cb0b79de0ef18b2a43a90e4c2\nWarn: no reviews found for commit: ab79b44d701c2abe206a611410765bf9049da50e\nWarn: no reviews found for commit: 1225df606f407d9edb3dc401f041d1897898c673\nWarn: no reviews found for commit: 838d335af45bfcab6698df8a23fffe5190f5bdd3\nWarn: no reviews found for commit: de7dc23dee37ede20642d91a9b482d38e3d3c25b\nWarn: no reviews found for commit: 117c490a7eae739f2657198a7757a5a07280cea5\nWarn: no reviews found for commit: 5c199386c657291adbb06324341cca7418cb6c21\nWarn: no reviews found for commit: 042a7580f944f7cacacd9c7aa8eb369e9d082601\nWarn: no reviews found for commit: 0c79d2acbc18e3bf1bbca0acb668684f1c6d36f9\nWarn: no reviews found for commit: 25c181ce3e30c211c3b8e7112c4be7bf0a2846d0\nWarn: no reviews found for commit: b83cd0030e006b406dd010f3bd2968b5b50e1b97\nWarn: no reviews found for commit: 8e6dd5656a2c17c1357634ebf414dd1c0895b5c0\nWarn: no reviews found for commit: 74f988637e8d218a02e2913c1f77133a70d44f56\nWarn: no reviews found for commit: 24161380a692583bdb1d4d406116d17da20c8931\nWarn: no reviews found for commit: 1b0020300a04025232b486ed39712847e68bff52\nWarn: no reviews found for commit: a26edaf789bbb2350b1658d1fdf1675c6cb262e4\nWarn: no reviews found for commit: e248756ffa03989d93c215b860e408ab5144a3f9\nWarn: no reviews found for commit: d0b2965f9ccc8d30bd72734d753c96669692eeec\nClick Remediation section below to solve this issue"
                },
                "locations": [
                   {

@@ -68,7 +68,7 @@ func GetJsonScorecardResults() ([]byte, error) {
 }
 
 // Calls scorecard-api to process & upload signed scorecard results.
-func ProcessSignature(sarifPayload []byte, jsonPayload []byte, repoName string, repoRef string) error {
+func ProcessSignature(sarifPayload, jsonPayload []byte, repoName, repoRef string) error {
 
 	// Prepare HTTP request body for scorecard-webapp-api call.
 	resultsPayload := struct {
@@ -99,7 +99,7 @@ func ProcessSignature(sarifPayload []byte, jsonPayload []byte, repoName string, 
 
 	if resp.StatusCode != 200 {
 		bodyBytes, _ := io.ReadAll(resp.Body)
-		return fmt.Errorf("http response error: %v", string(bodyBytes))
+		return fmt.Errorf("http response %d, status: %v, error: %v", resp.StatusCode, resp.Status, string(bodyBytes))
 	}
 
 	return nil
