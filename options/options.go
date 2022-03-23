@@ -228,15 +228,6 @@ func (o *Options) SetRepoInfo() error {
 	if eventPath == "" {
 		return errGithubEventPathEmpty
 	}
-	/*var b bytes.Buffer
-	    foo := bufio.NewWriter(&b)
-		repoInfo, err := ioutil.ReadFile(eventPath)
-		if err != nil {
-			return fmt.Errorf("reading GitHub event path: %w", err)
-		}
-
-
-		}*/
 
 	ios := bytes.NewBufferString(o.RepoInfoStr)
 	if err := github.WriteRepoInfo(context.Background(), o.ScorecardOpts.Repo, ios); err != nil {
