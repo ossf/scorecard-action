@@ -21,7 +21,6 @@ import (
 	"io"
 	"net/http"
 	"net/url"
-	"os"
 
 	"github.com/ossf/scorecard/v4/clients/githubrepo/roundtripper"
 	"github.com/ossf/scorecard/v4/log"
@@ -85,22 +84,16 @@ func (c *Client) SetDefaultTransport() {
 	c.rt = rt
 }
 
-// WriteRepoInfo queries GitHub for repo info and writes it to a file.
-func WriteRepoInfo(ctx context.Context, repoName, path string) error {
+// WriteRepoInfo queries GitHub for repo info and writes it to an io.Writer.
+func WriteRepoInfo(ctx context.Context, repoName string, writer io.Writer) error {
 	c := NewClient(ctx)
 	repoInfo, err := c.RepoInfo(repoName)
 	if err != nil {
 		return fmt.Errorf("getting repo info: %w", err)
 	}
 
-	repoFile, err := os.Create(path)
-	if err != nil {
-		return fmt.Errorf("creating repo info file: %w", err)
-	}
-	defer repoFile.Close()
-
 	resp := repoInfo.respBytes
-	_, writeErr := repoFile.Write(resp)
+	_, writeErr := writer.Write(resp)
 	if writeErr != nil {
 		return fmt.Errorf("writing repo info: %w", writeErr)
 	}

@@ -15,10 +15,11 @@
 package options
 
 import (
+	"bytes"
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"strconv"
 	"strings"
@@ -64,6 +65,7 @@ type Options struct {
 	IsForkStr string `env:"SCORECARD_IS_FORK"`
 	// TODO(options): This may be better as a bool
 	PrivateRepoStr string `env:"SCORECARD_PRIVATE_REPOSITORY"`
+	RepoInfoStr    string
 
 	// Input parameters
 	InputResultsFile    string `env:"INPUT_RESULTS_FILE"`
@@ -196,6 +198,7 @@ func (o *Options) Print() {
 	fmt.Printf("Format: %s\n", o.ScorecardOpts.Format)
 	fmt.Printf("Policy file: %s\n", o.ScorecardOpts.PolicyFile)
 	fmt.Printf("Default branch: %s\n", o.DefaultBranch)
+	fmt.Printf("repo_info:\n%s\n", o.RepoInfoStr)
 }
 
 // SetPublishResults sets whether results should be published based on a
@@ -225,14 +228,23 @@ func (o *Options) SetRepoInfo() error {
 	if eventPath == "" {
 		return errGithubEventPathEmpty
 	}
+	/*var b bytes.Buffer
+	    foo := bufio.NewWriter(&b)
+		repoInfo, err := ioutil.ReadFile(eventPath)
+		if err != nil {
+			return fmt.Errorf("reading GitHub event path: %w", err)
+		}
 
-	repoInfo, err := ioutil.ReadFile(eventPath)
-	if err != nil {
-		return fmt.Errorf("reading GitHub event path: %w", err)
+
+		}*/
+
+	ios := bytes.NewBufferString(o.RepoInfoStr)
+	if err := github.WriteRepoInfo(context.Background(), o.ScorecardOpts.Repo, ios); err != nil {
+		return fmt.Errorf("github.WriteRepoInfo: %w", err)
 	}
 
 	var r github.RepoInfo
-	if err := json.Unmarshal(repoInfo, &r); err != nil {
+	if err := json.Unmarshal([]byte(o.RepoInfoStr), &r); err != nil {
 		return fmt.Errorf("unmarshalling repo info: %w", err)
 	}
 
