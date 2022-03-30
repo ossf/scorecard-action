@@ -52,16 +52,16 @@ func GetJsonScorecardResults() ([]byte, error) {
 	actionJson, err := entrypoint.New()
 
 	if err != nil {
-		return nil, fmt.Errorf("creating scorecard entrypoint: %v", err)
+		return nil, fmt.Errorf("creating scorecard entrypoint: %w", err)
 	}
 	if err := actionJson.Execute(); err != nil {
-		return nil, fmt.Errorf("error during command execution: %v", err)
+		return nil, fmt.Errorf("error during command execution: %w", err)
 	}
 
 	// Get json output data from file.
 	jsonPayload, err := ioutil.ReadFile(os.Getenv(options.EnvInputResultsFile))
 	if err != nil {
-		return nil, fmt.Errorf("reading scorecard json results from file: %v", err)
+		return nil, fmt.Errorf("reading scorecard json results from file: %w", err)
 	}
 
 	return jsonPayload, nil
@@ -81,24 +81,30 @@ func ProcessSignature(sarifPayload, jsonPayload []byte, repoName, repoRef string
 
 	payloadBytes, err := json.Marshal(resultsPayload)
 	if err != nil {
-		return fmt.Errorf("reading scorecard json results from file: %v", err)
+		return fmt.Errorf("reading scorecard json results from file: %w", err)
 	}
 
 	// Call scorecard-webapp-api to process and upload signature.
 	url := "https://api.securityscorecards.dev/verify"
-	req, _ := http.NewRequest("POST", url, bytes.NewBuffer(payloadBytes))
+	req, err := http.NewRequest("POST", url, bytes.NewBuffer(payloadBytes))
+	if err != nil {
+		return fmt.Errorf("creating HTTP request: %w", err)
+	}
 	req.Header.Set("X-Repository", repoName)
 	req.Header.Set("X-Branch", repoRef)
 
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
-		return fmt.Errorf("executing scorecard-api call: %v", err)
+		return fmt.Errorf("executing scorecard-api call: %w", err)
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != 200 {
-		bodyBytes, _ := io.ReadAll(resp.Body)
+		bodyBytes, err := io.ReadAll(resp.Body)
+		if err != nil {
+			return fmt.Errorf("reading response body: %w", err)
+		}
 		return fmt.Errorf("http response %d, status: %v, error: %v", resp.StatusCode, resp.Status, string(bodyBytes))
 	}
 

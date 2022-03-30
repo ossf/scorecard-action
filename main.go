@@ -58,7 +58,7 @@ func main() {
 			log.Fatalf("error signing scorecard json results: %v", err)
 		}
 
-		// Processs sarif & json results.
+		// Processes sarif & json results.
 		repoName := os.Getenv(options.EnvGithubRepository)
 		repoRef := os.Getenv(options.EnvGithubRef)
 		if err := signing.ProcessSignature(sarifPayload, jsonPayload, repoName, repoRef); err != nil {
