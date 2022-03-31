@@ -15,6 +15,7 @@ import (
 	"github.com/sigstore/cosign/cmd/cosign/cli/sign"
 )
 
+// SignScorecardResult signs the results file and uploads the attestation to the Rekor transparency log.
 func SignScorecardResult(scorecardResultsFile string) error {
 	if err := os.Setenv("COSIGN_EXPERIMENTAL", "true"); err != nil {
 		return fmt.Errorf("error setting COSIGN_EXPERIMENTAL env var: %w", err)
@@ -41,20 +42,20 @@ func SignScorecardResult(scorecardResultsFile string) error {
 	return nil
 }
 
-// Changes output settings to json and runs scorecard again.
+// GetJSONScorecardResults changes output settings to json and runs scorecard again.
 // TODO: run scorecard only once and generate multiple formats together.
-func GetJsonScorecardResults() ([]byte, error) {
+func GetJSONScorecardResults() ([]byte, error) {
 	defer os.Setenv(options.EnvInputResultsFile, os.Getenv(options.EnvInputResultsFile))
 	defer os.Setenv(options.EnvInputResultsFormat, os.Getenv(options.EnvInputResultsFormat))
 	os.Setenv(options.EnvInputResultsFile, "results.json")
 	os.Setenv(options.EnvInputResultsFormat, "json")
 
-	actionJson, err := entrypoint.New()
+	actionJSON, err := entrypoint.New()
 
 	if err != nil {
 		return nil, fmt.Errorf("creating scorecard entrypoint: %w", err)
 	}
-	if err := actionJson.Execute(); err != nil {
+	if err := actionJSON.Execute(); err != nil {
 		return nil, fmt.Errorf("error during command execution: %w", err)
 	}
 
@@ -67,16 +68,16 @@ func GetJsonScorecardResults() ([]byte, error) {
 	return jsonPayload, nil
 }
 
-// Calls scorecard-api to process & upload signed scorecard results.
+// ProcessSignature calls scorecard-api to process & upload signed scorecard results.
 func ProcessSignature(sarifPayload, jsonPayload []byte, repoName, repoRef string) error {
 
 	// Prepare HTTP request body for scorecard-webapp-api call.
 	resultsPayload := struct {
 		SarifOutput string
-		JsonOutput  string
+		JSONOutput  string
 	}{
 		SarifOutput: string(sarifPayload),
-		JsonOutput:  string(jsonPayload),
+		JSONOutput:  string(jsonPayload),
 	}
 
 	payloadBytes, err := json.Marshal(resultsPayload)

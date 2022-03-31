@@ -48,7 +48,7 @@ func main() {
 		}
 
 		// Get json results by re-running scorecard.
-		jsonPayload, err := signing.GetJsonScorecardResults()
+		jsonPayload, err := signing.GetJSONScorecardResults()
 		if err != nil {
 			log.Fatalf("error generating json scorecard results: %v", err)
 		}
