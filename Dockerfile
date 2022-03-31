@@ -37,7 +37,7 @@ RUN CGO_ENABLED=0 make build
 
 # TODO: use distroless:
 # FROM gcr.io/distroless/base:nonroot@sha256:02f667185ccf78dbaaf79376b6904aea6d832638e1314387c2c2932f217ac5cb
-FROM debian:11.2-slim@sha256:40f90ead34f61f38c69fd604878c73c75ec944055328b9883f3b643c1b8886f0
+FROM debian:11.3-slim@sha256:78fd65998de7a59a001d792fe2d3a6d2ea25b6f3f068e5c84881250373577414
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
     # For debugging.
