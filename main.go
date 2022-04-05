@@ -34,7 +34,7 @@ func main() {
 		log.Fatalf("error during command execution: %v", err)
 	}
 
-	if os.Getenv(options.EnvInputPublishResults) == "true" {
+	if os.Getenv(options.EnvInputPublishResults) == "true" { //nolint
 		sarifOutputFile := os.Getenv(options.EnvInputResultsFile)
 		// Get sarif results from file.
 		sarifPayload, err := ioutil.ReadFile(sarifOutputFile)

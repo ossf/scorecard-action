@@ -21,7 +21,7 @@ func Test_SignScorecardResult(t *testing.T) {
 		t.Errorf("signScorecardResult() error generating random bytes, %v", err)
 		return
 	}
-	if err := ioutil.WriteFile(scorecardResultsFile, randomData, 0644); err != nil {
+	if err := ioutil.WriteFile(scorecardResultsFile, randomData, 0o600); err != nil {
 		t.Errorf("signScorecardResult() error writing random bytes to file, %v", err)
 		return
 	}
@@ -63,14 +63,15 @@ func Test_ProcessSignature(t *testing.T) {
 
 	sarifPayload, serr := ioutil.ReadFile("testdata/results.sarif")
 	jsonPayload, jerr := ioutil.ReadFile("testdata/results.json")
+	repoName := "rohankh532/scorecard-OIDC-test"
+	repoRef := "refs/heads/main"
 
 	if serr != nil || jerr != nil {
 		t.Errorf("Error reading testdata:, %v, %v", serr, jerr)
 	}
 
-	if err := ProcessSignature(sarifPayload, jsonPayload, "rohankh532/scorecard-OIDC-test", "refs/heads/main"); err != nil {
+	if err := ProcessSignature(sarifPayload, jsonPayload, repoName, repoRef); err != nil {
 		t.Errorf("ProcessSignature() error:, %v", err)
 		return
 	}
-
 }

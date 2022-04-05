@@ -2,14 +2,16 @@ package signing
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
 	"io/ioutil"
 	"net/http"
 	"os"
+	"time"
 
-	"github.com/ossf/scorecard-action/entrypoint"
+	"github.com/ossf/scorecard-action/entrypoint" //nolint
 	"github.com/ossf/scorecard-action/options"
 	sigOpts "github.com/sigstore/cosign/cmd/cosign/cli/options"
 	"github.com/sigstore/cosign/cmd/cosign/cli/sign"
@@ -51,7 +53,6 @@ func GetJSONScorecardResults() ([]byte, error) {
 	os.Setenv(options.EnvInputResultsFormat, "json")
 
 	actionJSON, err := entrypoint.New()
-
 	if err != nil {
 		return nil, fmt.Errorf("creating scorecard entrypoint: %w", err)
 	}
@@ -70,7 +71,6 @@ func GetJSONScorecardResults() ([]byte, error) {
 
 // ProcessSignature calls scorecard-api to process & upload signed scorecard results.
 func ProcessSignature(sarifPayload, jsonPayload []byte, repoName, repoRef string) error {
-
 	// Prepare HTTP request body for scorecard-webapp-api call.
 	resultsPayload := struct {
 		SarifOutput string
@@ -86,14 +86,20 @@ func ProcessSignature(sarifPayload, jsonPayload []byte, repoName, repoRef string
 	}
 
 	// Call scorecard-webapp-api to process and upload signature.
+	// Setup HTTP request and context.
 	url := "https://api.securityscorecards.dev/verify"
-	req, err := http.NewRequest("POST", url, bytes.NewBuffer(payloadBytes))
+	req, err := http.NewRequest("POST", url, bytes.NewBuffer(payloadBytes)) //nolint
 	if err != nil {
 		return fmt.Errorf("creating HTTP request: %w", err)
 	}
 	req.Header.Set("X-Repository", repoName)
 	req.Header.Set("X-Branch", repoRef)
 
+	ctx, cancel := context.WithTimeout(req.Context(), 10*time.Second)
+	defer cancel()
+	req = req.WithContext(ctx)
+
+	// Execute request.
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
@@ -106,7 +112,7 @@ func ProcessSignature(sarifPayload, jsonPayload []byte, repoName, repoRef string
 		if err != nil {
 			return fmt.Errorf("reading response body: %w", err)
 		}
-		return fmt.Errorf("http response %d, status: %v, error: %v", resp.StatusCode, resp.Status, string(bodyBytes))
+		return fmt.Errorf("http response %d, status: %v, error: %v", resp.StatusCode, resp.Status, string(bodyBytes)) //nolint
 	}
 
 	return nil
