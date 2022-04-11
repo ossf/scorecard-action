@@ -134,30 +134,19 @@ func TestNew(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			_, tokenEnvExists := os.LookupEnv(EnvGithubAuthToken)
-			if !tokenEnvExists {
-				os.Setenv(EnvGithubAuthToken, testToken)
-				defer os.Unsetenv(EnvGithubAuthToken)
-			}
+
+			os.Setenv(EnvGithubAuthToken, testToken)
+			defer os.Unsetenv(EnvGithubAuthToken)
+
 			if tt.unsetToken {
 				os.Unsetenv(EnvGithubAuthToken)
 			}
 
-			_, pathEnvExists := os.LookupEnv(EnvGithubEventPath)
-			if !pathEnvExists {
-				if tt.githubEventPath != "" {
-					os.Setenv(EnvGithubEventPath, tt.githubEventPath)
-					defer os.Unsetenv(EnvGithubEventPath)
-				}
-			}
+			os.Setenv(EnvGithubEventPath, tt.githubEventPath)
+			defer os.Unsetenv(EnvGithubEventPath)
 
-			_, repoEnvExists := os.LookupEnv(EnvGithubRepository)
-			if !repoEnvExists {
-				if tt.repo != "" {
-					os.Setenv(EnvGithubRepository, tt.repo)
-					defer os.Unsetenv(EnvGithubRepository)
-				}
-			}
+			os.Setenv(EnvGithubRepository, tt.repo)
+			defer os.Unsetenv(EnvGithubRepository)
 
 			os.Setenv(EnvInputResultsFormat, tt.resultsFormat)
 			defer os.Unsetenv(EnvInputResultsFormat)
