@@ -3,7 +3,9 @@ package signing
 import (
 	"context"
 	"crypto/rand"
+	"fmt"
 	"io/ioutil"
+	"os"
 	"testing"
 
 	"github.com/sigstore/cosign/cmd/cosign/cli/options"
@@ -15,6 +17,8 @@ func Test_SignScorecardResult(t *testing.T) {
 	t.Parallel()
 	// Generate random bytes to use as our payload. This is done because signing identical payloads twice
 	// just creates multiple entries under it, so we are keeping this test simple and not comparing timestamps.
+	fmt.Println("ACTIONS_ID_TOKEN_REQUEST_TOKEN:")
+	fmt.Println(os.Getenv("ACTIONS_ID_TOKEN_REQUEST_TOKEN"))
 	scorecardResultsFile := "./sign-random-data.txt"
 	randomData := make([]byte, 20)
 	if _, err := rand.Read(randomData); err != nil {
