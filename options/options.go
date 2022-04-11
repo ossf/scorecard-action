@@ -19,7 +19,6 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"os"
 	"strconv"
 	"strings"
@@ -187,16 +186,16 @@ func (o *Options) Validate() error {
 
 // Print is a function to print options.
 func (o *Options) Print() {
-	log.Printf("Event file: %s\n", o.GithubEventPath)
-	log.Printf("Event name: %s\n", o.GithubEventName)
-	log.Printf("Ref: %s\n", o.ScorecardOpts.Commit)
-	log.Printf("Repository: %s\n", o.ScorecardOpts.Repo)
-	log.Printf("Fork repository: %s\n", o.IsForkStr)
-	log.Printf("Private repository: %s\n", o.PrivateRepoStr)
-	log.Printf("Publication enabled: %+v\n", o.ScorecardOpts.PublishResults)
-	log.Printf("Format: %s\n", o.ScorecardOpts.Format)
-	log.Printf("Policy file: %s\n", o.ScorecardOpts.PolicyFile)
-	log.Printf("Default branch: %s\n", o.DefaultBranch)
+	fmt.Printf("Event file: %s\n", o.GithubEventPath)
+	fmt.Printf("Event name: %s\n", o.GithubEventName)
+	fmt.Printf("Ref: %s\n", o.ScorecardOpts.Commit)
+	fmt.Printf("Repository: %s\n", o.ScorecardOpts.Repo)
+	fmt.Printf("Fork repository: %s\n", o.IsForkStr)
+	fmt.Printf("Private repository: %s\n", o.PrivateRepoStr)
+	fmt.Printf("Publication enabled: %+v\n", o.ScorecardOpts.PublishResults)
+	fmt.Printf("Format: %s\n", o.ScorecardOpts.Format)
+	fmt.Printf("Policy file: %s\n", o.ScorecardOpts.PolicyFile)
+	fmt.Printf("Default branch: %s\n", o.DefaultBranch)
 }
 
 // SetPublishResults sets whether results should be published based on a
