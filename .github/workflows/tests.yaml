@@ -14,6 +14,8 @@ jobs:
     strategy:
       matrix:
         os: [ ubuntu-latest ]
+    permissions:
+      id-token: write # Needed to pick up on signing with a GitHub workflow identity.
     steps:
       - uses: actions/checkout@ec3a7ce113134d7a93b817d10a8272cb61118579 #v2.4.0
         # https://github.com/mvdan/github-actions-golang#how-do-i-set-up-caching-between-builds
