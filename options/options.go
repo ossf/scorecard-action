@@ -26,7 +26,7 @@ import (
 	"github.com/caarlos0/env/v6"
 
 	"github.com/ossf/scorecard-action/github"
-	"github.com/ossf/scorecard/v4/options"
+	scopts "github.com/ossf/scorecard/v4/options"
 )
 
 var (
@@ -41,7 +41,7 @@ var (
 // Options are options for running scorecard via GitHub Actions.
 type Options struct {
 	// Scorecard options.
-	ScorecardOpts *options.Options
+	ScorecardOpts *scopts.Options
 
 	// Scorecard command-line options.
 	EnabledChecks string `env:"ENABLED_CHECKS"`
@@ -73,20 +73,16 @@ type Options struct {
 
 const (
 	defaultScorecardPolicyFile = "/policy.yml"
-	formatSarif                = options.FormatSarif
+	formatSarif                = scopts.FormatSarif
 )
 
 // New creates a new options set for running scorecard via GitHub Actions.
 func New() (*Options, error) {
-	// Enable scorecard command to use SARIF format.
-	os.Setenv(options.EnvVarEnableSarif, trueStr)
-
-	opts := &Options{
-		ScorecardOpts: options.New(),
-	}
+	opts := new(Options)
 	if err := env.Parse(opts); err != nil {
 		return opts, fmt.Errorf("parsing entrypoint env vars: %w", err)
 	}
+	opts.newScorecardOpts()
 
 	if err := opts.Initialize(); err != nil {
 		return opts, fmt.Errorf(
@@ -95,32 +91,11 @@ func New() (*Options, error) {
 		)
 	}
 
-	// TODO(options): Move this set-or-default logic to its own function.
-	opts.ScorecardOpts.Format = formatSarif
-	opts.ScorecardOpts.EnableSarif = true
-	if opts.InputResultsFormat != "" {
-		opts.ScorecardOpts.Format = opts.InputResultsFormat
-	}
-
-	if opts.ScorecardOpts.Format == formatSarif {
-		if opts.ScorecardOpts.PolicyFile == "" {
-			// TODO(policy): Should we default or error here?
-			opts.ScorecardOpts.PolicyFile = defaultScorecardPolicyFile
-		}
-	}
-
-	// TODO(scorecard): Reset commit options. Fix this in scorecard.
-	opts.ScorecardOpts.Commit = options.DefaultCommit
-
 	if err := opts.ScorecardOpts.Validate(); err != nil {
 		return opts, fmt.Errorf("validating scorecard options: %w", err)
 	}
 
 	opts.SetPublishResults()
-
-	if opts.ScorecardOpts.ResultsFile == "" {
-		opts.ScorecardOpts.ResultsFile = opts.InputResultsFile
-	}
 
 	if opts.ScorecardOpts.ResultsFile == "" {
 		// TODO(test): Reassess test case for this code path
@@ -132,6 +107,26 @@ func New() (*Options, error) {
 	}
 
 	return opts, nil
+}
+
+func (o *Options) newScorecardOpts() {
+	defer os.Unsetenv(scopts.EnvVarEnableSarif)
+	defer os.Unsetenv("SCORECARD_POLICY_FILE")
+	defer os.Unsetenv("SCORECARD_RESULTS_FILE")
+	defer os.Unsetenv("SCORECARD_RESULTS_FORMAT")
+
+	// TODO(scorecard.scopts): Expose EvnVar* consts.
+	if o.InputResultsFormat == formatSarif {
+		// Enable scorecard command to use SARIF format.
+		os.Setenv(scopts.EnvVarEnableSarif, trueStr)
+		os.Setenv("SCORECARD_POLICY_FILE", defaultScorecardPolicyFile)
+	}
+	os.Setenv("SCORECARD_RESULTS_FILE", o.InputResultsFile)
+	os.Setenv("SCORECARD_RESULTS_FORMAT", o.InputResultsFormat)
+
+	o.ScorecardOpts = scopts.New()
+	// TODO(scorecard): Reset commit options. Fix this in scorecard.
+	o.ScorecardOpts.Commit = scopts.DefaultCommit
 }
 
 // Initialize initializes the environment variables required for the action.
@@ -174,7 +169,7 @@ func (o *Options) Validate() error {
 	}
 
 	if strings.Contains(o.GithubEventName, "pull_request") &&
-		o.GithubRef == o.DefaultBranch {
+		o.GithubRef != o.DefaultBranch {
 		fmt.Printf("%s not supported with %s event.\n", o.GithubRef, o.GithubEventName)
 		fmt.Printf("Only the default branch %s is supported.\n", o.DefaultBranch)
 

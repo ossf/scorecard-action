@@ -79,7 +79,7 @@ func TestNew(t *testing.T) {
 			resultsFormat:   "json",
 			resultsFile:     testResultsFile,
 			want: fields{
-				EnableSarif: true,
+				EnableSarif: false,
 				Format:      options.FormatJSON,
 				ResultsFile: testResultsFile,
 				Commit:      options.DefaultCommit,
@@ -106,6 +106,7 @@ func TestNew(t *testing.T) {
 		},
 		{
 			name:            "FailureResultsPathNotSet",
+			resultsFormat:   "sarif",
 			githubEventPath: githubEventPathNonFork,
 			want: fields{
 				EnableSarif: true,
@@ -119,6 +120,7 @@ func TestNew(t *testing.T) {
 		},
 		{
 			name:            "FailureResultsPathEmpty",
+			resultsFormat:   "sarif",
 			githubEventPath: githubEventPathNonFork,
 			resultsFile:     "",
 			want: fields{
@@ -162,9 +164,8 @@ func TestNew(t *testing.T) {
 			os.Setenv(EnvInputResultsFormat, tt.resultsFormat)
 			defer os.Unsetenv(EnvInputResultsFormat)
 
-			if tt.unsetResultsPath {
-				os.Unsetenv(EnvInputResultsFile)
-			} else {
+			os.Unsetenv(EnvInputResultsFile)
+			if !tt.unsetResultsPath {
 				os.Setenv(EnvInputResultsFile, tt.resultsFile)
 				defer os.Unsetenv(EnvInputResultsFile)
 			}
