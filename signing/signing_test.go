@@ -3,13 +3,10 @@ package signing
 import (
 	"io/ioutil"
 	"testing"
-	// "github.com/sigstore/cosign/cmd/cosign/cli/options"
-	// "github.com/sigstore/cosign/cmd/cosign/cli/rekor"
-	// "github.com/sigstore/cosign/pkg/cosign"
 )
 
-// TODO: For this test to work, fake the OIDC token retrieval with something like:
-// https://github.com/sigstore/cosign/blob/286bb0c58757009e99ab7080c720b30e51d08855/cmd/cosign/cli/fulcio/fulcio_test.go
+// TODO: For this test to work, fake the OIDC token retrieval with something like.
+//nolint // https://github.com/sigstore/cosign/blob/286bb0c58757009e99ab7080c720b30e51d08855/cmd/cosign/cli/fulcio/fulcio_test.go
 
 // func Test_SignScorecardResult(t *testing.T) {
 // 	t.Parallel()
