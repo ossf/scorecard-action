@@ -239,31 +239,31 @@ func TestInitialize(t *testing.T) {
 		fields  fields
 		wantErr bool
 	}{
-		// {
-		// 	name: "Success",
-		// 	fields: fields{
-		// 		GithubEventPath: githubEventPathNonFork,
-		// 	},
-		// 	wantErr: false,
-		// },
-		// {
-		// 	name:    "FailureNoFieldsSet",
-		// 	wantErr: true,
-		// },
-		// {
-		// 	name: "FailureBadEventPath",
-		// 	fields: fields{
-		// 		GithubEventPath: githubEventPathBadPath,
-		// 	},
-		// 	wantErr: true,
-		// },
-		// {
-		// 	name: "FailureBadEventData",
-		// 	fields: fields{
-		// 		GithubEventPath: githubEventPathBadData,
-		// 	},
-		// 	wantErr: true,
-		// },
+		{
+			name: "Success",
+			fields: fields{
+				GithubEventPath: githubEventPathNonFork,
+			},
+			wantErr: false,
+		},
+		{
+			name:    "FailureNoFieldsSet",
+			wantErr: true,
+		},
+		{
+			name: "FailureBadEventPath",
+			fields: fields{
+				GithubEventPath: githubEventPathBadPath,
+			},
+			wantErr: true,
+		},
+		{
+			name: "FailureBadEventData",
+			fields: fields{
+				GithubEventPath: githubEventPathBadData,
+			},
+			wantErr: true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -307,12 +307,12 @@ func TestPrint(t *testing.T) {
 		name   string
 		fields fields
 	}{
-		// {
-		// 	name: "Success",
-		// 	fields: fields{
-		// 		ScorecardOpts: options.New(),
-		// 	},
-		// },
+		{
+			name: "Success",
+			fields: fields{
+				ScorecardOpts: options.New(),
+			},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
