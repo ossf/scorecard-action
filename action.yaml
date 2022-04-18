@@ -29,7 +29,8 @@ inputs:
 
   repo_token:
     description: "INPUT: GitHub token with read access"
-    required: true
+    required: false
+    default: ${{ github.token }}
 
   publish_results:
     description: "INPUT: Publish results"
