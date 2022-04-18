@@ -29,7 +29,7 @@ inputs:
 
   repo_token:
     description: "INPUT: GitHub token with read access"
-    required: true
+    required: false
     default: ${{ secrets.GITHUB_TOKEN }}
 
   publish_results:
