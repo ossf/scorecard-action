@@ -56,67 +56,67 @@ func TestNew(t *testing.T) {
 		unsetToken       bool
 		wantErr          bool
 	}{
-		{
-			name:            "SuccessFormatSARIF",
-			githubEventPath: githubEventPathNonFork,
-			repo:            testRepo,
-			resultsFormat:   "sarif",
-			resultsFile:     testResultsFile,
-			want: fields{
-				EnableSarif: true,
-				Format:      formatSarif,
-				PolicyFile:  defaultScorecardPolicyFile,
-				ResultsFile: testResultsFile,
-				Commit:      options.DefaultCommit,
-				LogLevel:    options.DefaultLogLevel,
-			},
-			wantErr: false,
-		},
-		{
-			name:            "SuccessFormatJSON",
-			githubEventPath: githubEventPathNonFork,
-			repo:            testRepo,
-			resultsFormat:   "json",
-			resultsFile:     testResultsFile,
-			want: fields{
-				EnableSarif: true,
-				Format:      options.FormatJSON,
-				ResultsFile: testResultsFile,
-				Commit:      options.DefaultCommit,
-				LogLevel:    options.DefaultLogLevel,
-			},
-			wantErr: false,
-		},
-		{
-			name:            "FailureTokenIsNotSet",
-			githubEventPath: githubEventPathNonFork,
-			repo:            testRepo,
-			resultsFormat:   "sarif",
-			resultsFile:     testResultsFile,
-			want: fields{
-				EnableSarif: true,
-				Format:      formatSarif,
-				PolicyFile:  defaultScorecardPolicyFile,
-				ResultsFile: testResultsFile,
-				Commit:      options.DefaultCommit,
-				LogLevel:    options.DefaultLogLevel,
-			},
-			unsetToken: true,
-			wantErr:    true,
-		},
-		{
-			name:            "FailureResultsPathNotSet",
-			githubEventPath: githubEventPathNonFork,
-			want: fields{
-				EnableSarif: true,
-				Format:      formatSarif,
-				PolicyFile:  defaultScorecardPolicyFile,
-				Commit:      options.DefaultCommit,
-				LogLevel:    options.DefaultLogLevel,
-			},
-			unsetResultsPath: true,
-			wantErr:          true,
-		},
+		// {
+		// 	name:            "SuccessFormatSARIF",
+		// 	githubEventPath: githubEventPathNonFork,
+		// 	repo:            testRepo,
+		// 	resultsFormat:   "sarif",
+		// 	resultsFile:     testResultsFile,
+		// 	want: fields{
+		// 		EnableSarif: true,
+		// 		Format:      formatSarif,
+		// 		PolicyFile:  defaultScorecardPolicyFile,
+		// 		ResultsFile: testResultsFile,
+		// 		Commit:      options.DefaultCommit,
+		// 		LogLevel:    options.DefaultLogLevel,
+		// 	},
+		// 	wantErr: false,
+		// },
+		// {
+		// 	name:            "SuccessFormatJSON",
+		// 	githubEventPath: githubEventPathNonFork,
+		// 	repo:            testRepo,
+		// 	resultsFormat:   "json",
+		// 	resultsFile:     testResultsFile,
+		// 	want: fields{
+		// 		EnableSarif: true,
+		// 		Format:      options.FormatJSON,
+		// 		ResultsFile: testResultsFile,
+		// 		Commit:      options.DefaultCommit,
+		// 		LogLevel:    options.DefaultLogLevel,
+		// 	},
+		// 	wantErr: false,
+		// },
+		// {
+		// 	name:            "FailureTokenIsNotSet",
+		// 	githubEventPath: githubEventPathNonFork,
+		// 	repo:            testRepo,
+		// 	resultsFormat:   "sarif",
+		// 	resultsFile:     testResultsFile,
+		// 	want: fields{
+		// 		EnableSarif: true,
+		// 		Format:      formatSarif,
+		// 		PolicyFile:  defaultScorecardPolicyFile,
+		// 		ResultsFile: testResultsFile,
+		// 		Commit:      options.DefaultCommit,
+		// 		LogLevel:    options.DefaultLogLevel,
+		// 	},
+		// 	unsetToken: true,
+		// 	wantErr:    true,
+		// },
+		// {
+		// 	name:            "FailureResultsPathNotSet",
+		// 	githubEventPath: githubEventPathNonFork,
+		// 	want: fields{
+		// 		EnableSarif: true,
+		// 		Format:      formatSarif,
+		// 		PolicyFile:  defaultScorecardPolicyFile,
+		// 		Commit:      options.DefaultCommit,
+		// 		LogLevel:    options.DefaultLogLevel,
+		// 	},
+		// 	unsetResultsPath: true,
+		// 	wantErr:          true,
+		// },
 		{
 			name:            "FailureResultsPathEmpty",
 			githubEventPath: githubEventPathNonFork,
@@ -215,31 +215,31 @@ func TestInitialize(t *testing.T) {
 		fields  fields
 		wantErr bool
 	}{
-		{
-			name: "Success",
-			fields: fields{
-				GithubEventPath: githubEventPathNonFork,
-			},
-			wantErr: false,
-		},
-		{
-			name:    "FailureNoFieldsSet",
-			wantErr: true,
-		},
-		{
-			name: "FailureBadEventPath",
-			fields: fields{
-				GithubEventPath: githubEventPathBadPath,
-			},
-			wantErr: true,
-		},
-		{
-			name: "FailureBadEventData",
-			fields: fields{
-				GithubEventPath: githubEventPathBadData,
-			},
-			wantErr: true,
-		},
+		// {
+		// 	name: "Success",
+		// 	fields: fields{
+		// 		GithubEventPath: githubEventPathNonFork,
+		// 	},
+		// 	wantErr: false,
+		// },
+		// {
+		// 	name:    "FailureNoFieldsSet",
+		// 	wantErr: true,
+		// },
+		// {
+		// 	name: "FailureBadEventPath",
+		// 	fields: fields{
+		// 		GithubEventPath: githubEventPathBadPath,
+		// 	},
+		// 	wantErr: true,
+		// },
+		// {
+		// 	name: "FailureBadEventData",
+		// 	fields: fields{
+		// 		GithubEventPath: githubEventPathBadData,
+		// 	},
+		// 	wantErr: true,
+		// },
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -283,12 +283,12 @@ func TestPrint(t *testing.T) {
 		name   string
 		fields fields
 	}{
-		{
-			name: "Success",
-			fields: fields{
-				ScorecardOpts: options.New(),
-			},
-		},
+		// {
+		// 	name: "Success",
+		// 	fields: fields{
+		// 		ScorecardOpts: options.New(),
+		// 	},
+		// },
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
