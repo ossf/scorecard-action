@@ -47,6 +47,7 @@ func TestNew(t *testing.T) {
 	tests := []struct {
 		name             string
 		githubEventPath  string
+		githubRef        string
 		repo             string
 		resultsFile      string
 		resultsFormat    string
@@ -59,6 +60,7 @@ func TestNew(t *testing.T) {
 		{
 			name:            "SuccessFormatSARIF",
 			githubEventPath: githubEventPathNonFork,
+			githubRef:       "main",
 			repo:            testRepo,
 			resultsFormat:   "sarif",
 			resultsFile:     testResultsFile,
@@ -75,6 +77,7 @@ func TestNew(t *testing.T) {
 		{
 			name:            "SuccessFormatJSON",
 			githubEventPath: githubEventPathNonFork,
+			githubRef:       "main",
 			repo:            testRepo,
 			resultsFormat:   "json",
 			resultsFile:     testResultsFile,
@@ -90,6 +93,7 @@ func TestNew(t *testing.T) {
 		{
 			name:            "FailureTokenIsNotSet",
 			githubEventPath: githubEventPathNonFork,
+			githubRef:       "main",
 			repo:            testRepo,
 			resultsFormat:   "sarif",
 			resultsFile:     testResultsFile,
@@ -107,6 +111,7 @@ func TestNew(t *testing.T) {
 		{
 			name:            "FailureResultsPathNotSet",
 			githubEventPath: githubEventPathNonFork,
+			githubRef:       "main",
 			want: fields{
 				EnableSarif: true,
 				Format:      formatSarif,
@@ -120,6 +125,7 @@ func TestNew(t *testing.T) {
 		{
 			name:            "FailureResultsPathEmpty",
 			githubEventPath: githubEventPathNonFork,
+			githubRef:       "main",
 			resultsFile:     "",
 			want: fields{
 				EnableSarif: true,
@@ -144,6 +150,9 @@ func TestNew(t *testing.T) {
 
 			os.Setenv(EnvGithubEventPath, tt.githubEventPath)
 			defer os.Unsetenv(EnvGithubEventPath)
+
+			os.Setenv(EnvGithubRef, tt.githubRef)
+			defer os.Unsetenv(EnvGithubRef)
 
 			os.Setenv(EnvGithubRepository, tt.repo)
 			defer os.Unsetenv(EnvGithubRepository)
