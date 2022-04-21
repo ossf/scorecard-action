@@ -47,6 +47,7 @@ func TestNew(t *testing.T) {
 	tests := []struct {
 		name             string
 		githubEventPath  string
+		githubEventName  string
 		githubRef        string
 		repo             string
 		resultsFile      string
@@ -60,6 +61,7 @@ func TestNew(t *testing.T) {
 		{
 			name:            "SuccessFormatSARIF",
 			githubEventPath: githubEventPathNonFork,
+			githubEventName: "pull_request",
 			githubRef:       "main",
 			repo:            testRepo,
 			resultsFormat:   "sarif",
@@ -77,6 +79,7 @@ func TestNew(t *testing.T) {
 		{
 			name:            "SuccessFormatJSON",
 			githubEventPath: githubEventPathNonFork,
+			githubEventName: "pull_request",
 			githubRef:       "main",
 			repo:            testRepo,
 			resultsFormat:   "json",
@@ -93,6 +96,7 @@ func TestNew(t *testing.T) {
 		{
 			name:            "FailureTokenIsNotSet",
 			githubEventPath: githubEventPathNonFork,
+			githubEventName: "pull_request",
 			githubRef:       "main",
 			repo:            testRepo,
 			resultsFormat:   "sarif",
@@ -111,6 +115,7 @@ func TestNew(t *testing.T) {
 		{
 			name:            "FailureResultsPathNotSet",
 			githubEventPath: githubEventPathNonFork,
+			githubEventName: "pull_request",
 			githubRef:       "main",
 			want: fields{
 				EnableSarif: true,
@@ -125,6 +130,7 @@ func TestNew(t *testing.T) {
 		{
 			name:            "FailureResultsPathEmpty",
 			githubEventPath: githubEventPathNonFork,
+			githubEventName: "pull_request",
 			githubRef:       "main",
 			resultsFile:     "",
 			want: fields{
@@ -132,6 +138,24 @@ func TestNew(t *testing.T) {
 				Format:      formatSarif,
 				PolicyFile:  defaultScorecardPolicyFile,
 				ResultsFile: "",
+				Commit:      options.DefaultCommit,
+				LogLevel:    options.DefaultLogLevel,
+			},
+			wantErr: true,
+		},
+		{
+			name:            "FailureBranchIsntMain",
+			githubEventPath: githubEventPathNonFork,
+			githubEventName: "pull_request",
+			githubRef:       "other-branch",
+			repo:            testRepo,
+			resultsFormat:   "sarif",
+			resultsFile:     testResultsFile,
+			want: fields{
+				EnableSarif: true,
+				Format:      formatSarif,
+				PolicyFile:  defaultScorecardPolicyFile,
+				ResultsFile: testResultsFile,
 				Commit:      options.DefaultCommit,
 				LogLevel:    options.DefaultLogLevel,
 			},
@@ -150,6 +174,9 @@ func TestNew(t *testing.T) {
 
 			os.Setenv(EnvGithubEventPath, tt.githubEventPath)
 			defer os.Unsetenv(EnvGithubEventPath)
+
+			os.Setenv(EnvGithubEventName, tt.githubEventName)
+			defer os.Unsetenv(EnvGithubEventName)
 
 			os.Setenv(EnvGithubRef, tt.githubRef)
 			defer os.Unsetenv(EnvGithubRef)
