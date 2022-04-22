@@ -273,6 +273,7 @@ require (
 	gopkg.in/square/go-jose.v2 v2.6.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b // indirect
+	gotest.tools/v3 v3.1.0 // indirect
 	k8s.io/api v0.23.5 // indirect
 	k8s.io/apimachinery v0.23.5 // indirect
 	k8s.io/client-go v0.23.5 // indirect
