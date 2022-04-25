@@ -78,7 +78,7 @@ Then click "Add More Scanning Tools."
 
 ## View Results
 
-The Scorecard action runs on each new push to your default branch. After making a change, you can view a list of results by going to the Security tab and clicking "Code Scanning Alerts" (it can take a couple minutes for the run to complete and the results to show up). Click on the individual alerts for more information, including remediation instructions. You will need to click "Show more" to expand the full remediation instructions.
+The workflow is preconfigured to run on every repository contribution. After making a code change, you can view a list of results by going to the Security tab and clicking "Code Scanning Alerts" (it can take a couple minutes for the run to complete and the results to show up). Click on the individual alerts for more information, including remediation instructions. You will need to click "Show more" to expand the full remediation instructions.
 
 ![image](/images/remediation.png)
 
@@ -116,7 +116,7 @@ First, [create a new file](https://docs.github.com/en/repositories/working-with-
 ### Supported triggers and repositories
 The following GitHub triggers are supported: `push`, `schedule` (default branch only).
 The `pull_request` and `workflow_dispatch` triggers are experimental.
-Running the Scorecard action on fork repository is not supported.
+Running the Scorecard action on a fork repository is not supported.
 
 
 ### Publishing Results
