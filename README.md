@@ -15,7 +15,7 @@ ________
 - [Troubleshooting](#troubleshooting)
 
 [Manual Action Setup](#manual-action-setup)
-- [Supported triggers](#supported-triggers)
+- [Supported triggers](#supported-triggers-and-repositories)
 - [Inputs](#inputs)
 - [Publishing Results](#publishing-results)
 - [Uploading Artifacts](#uploading-artifacts)
