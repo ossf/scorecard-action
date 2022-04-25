@@ -15,6 +15,7 @@ ________
 - [Troubleshooting](#troubleshooting)
 
 [Manual Action Setup](#manual-action-setup)
+- [Supported triggers](#supported-triggers)
 - [Inputs](#inputs)
 - [Publishing Results](#publishing-results)
 - [Uploading Artifacts](#uploading-artifacts)
@@ -24,21 +25,19 @@ ________
 ## Installation
 To install the Scorecards GitHub Action, you need to:
 
-1) Create a Personal Access Token (PAT) for authentication and save the token value as a repository secret; 
+1. (Optional) If you want to use the [Branch-Protection](https://github.com/ossf/scorecard/blob/main/docs/checks.md#branch-protection) check, create a Personal Access Token (PAT) for authentication and save the token value as a repository secret; 
     
     (Note: If you have already installed Scorecards on your repository from the command line, you can reuse your existing PAT for the repository secret. If you no longer have access to the PAT, though, simply create a new one.)
     
-3) Set up the workflow via the GitHub UI
+2. Set up the workflow via the GitHub UI
 
-### Authentication
-1. [Create a Personal Access Token](https://github.com/settings/tokens/new?scopes=public_repo,read:org,read:repo_hook,read:discussion) with the following read permissions:
+### Authentication with PAT
+1. [Create a Personal Access Token](https://github.com/settings/tokens/new?scopes=public_repo,read:repo_hook) with the following read permissions:
     - Note: `Read-only token for OSSF Scorecard Action - myorg/myrepo` (Note: replace `myorg/myrepo` with the names of your organization and repository so you can keep track of your tokens.)
     - Expiration: `No expiration`
     - Scopes: 
-        * `repo > public_repo`
-        * `admin:org > read:org`
-        * `admin:repo_hook > read:repo_hook`
-        * `write:discussion > read:discussion`
+        * `repo > public_repo`                Note: required to read [Branch-Protection](https://github.com/ossf/scorecard/blob/main/docs/checks.md#branch-protection) settings.
+        * `admin:repo_hook > read:repo_hook`  Note: required for the experimental [Webhook](https://github.com/ossf/scorecard/blob/main/docs/checks.md#webhooks) check.
 
 ![image](/images/tokenscopes.png)
 
@@ -77,14 +76,15 @@ Then click "Add More Scanning Tools."
 
 ## View Results
 
-To view a list of results from each Scorecards Action run, go to the Security tab and click "Code Scanning Alerts." Click on the individual alerts for more information, including remediation instructions. You will need to click "Show more" to expand the full remediation instructions.
+The Scorecard action runs on each new push to your default branch. After making a change, you can view a list of results by going to the Security tab and clicking "Code Scanning Alerts" (it can take a couple minutes for the run to complete and the results to show up). Click on the individual alerts for more information, including remediation instructions. You will need to click "Show more" to expand the full remediation instructions.
 
 ![image](/images/remediation.png)
 
 ### Verify Runs 
 The workflow is preconfigured to run on every repository contribution. 
 
-To verify that the Action is running successfully, click the repository's Actions tab to see the status of all recent workflow runs. 
+To verify that the Action is running successfully, click the repository's Actions tab to see the status of all recent workflow runs. You may
+click on it to see the logs, which can help you troubleshoot if the run failed.
 
 ![image](/images/actionconfirm.png)
 
@@ -110,6 +110,12 @@ First, [create a new file](https://docs.github.com/en/repositories/working-with-
 | `result_format` | yes | The format in which to store the results [json \| sarif]. For GitHub's scanning dashboard, select `sarif`. |
 | `repo_token` | yes | PAT token with read-only access. Follow [these steps](#pat-token-creation) to create it. |
 | `publish_results` | recommended | This will allow you to display a badge on your repository to show off your hard work (release scheduled for Q2'22). See details [here](#publishing-results).|
+
+### Supported triggers and repositories
+The following GitHub triggers are supported: `push`, `schedule` (default branch only).
+The `pull_request` and `workflow_dispatch` triggers are experimental.
+Running the Scorecard action on fork repository is not supported.
+
 
 ### Publishing Results
 The Scorecard team runs a weekly scan of public GitHub repositories in order to track 
@@ -163,6 +169,7 @@ jobs:
           results_format: sarif
           # Read-only PAT token. To create it,
           # follow the steps in https://github.com/ossf/scorecard-action#pat-token-creation.
+          # Optional: Set the PAT to enable the Branch-Protection check.
           repo_token: ${{ secrets.SCORECARD_READ_TOKEN }}
           # Publish the results for public repositories to enable scorecard badges. For more details, see
           # https://github.com/ossf/scorecard-action#publishing-results. 
