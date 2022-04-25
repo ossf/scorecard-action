@@ -36,8 +36,10 @@ To install the Scorecards GitHub Action, you need to:
     - Note: `Read-only token for OSSF Scorecard Action - myorg/myrepo` (Note: replace `myorg/myrepo` with the names of your organization and repository so you can keep track of your tokens.)
     - Expiration: `No expiration`
     - Scopes: 
-        * `repo > public_repo`                Note: required to read [Branch-Protection](https://github.com/ossf/scorecard/blob/main/docs/checks.md#branch-protection) settings.
-        * `admin:repo_hook > read:repo_hook`  Note: required for the experimental [Webhook](https://github.com/ossf/scorecard/blob/main/docs/checks.md#webhooks) check.
+        * `repo > public_repo`                  Required to read [Branch-Protection](https://github.com/ossf/scorecard/blob/main/docs/checks.md#branch-protection) settings.
+        * `admin:org > read:org`                Optional: not used in current implementation.
+        * `admin:repo_hook > read:repo_hook`    Optional: needed for the experimental [Webhook](https://github.com/ossf/scorecard/blob/main/docs/checks.md#webhooks) check.
+        * `write:discussion > read:discussion`  Optional: not used in current implementation.
 
 ![image](/images/tokenscopes.png)
 
