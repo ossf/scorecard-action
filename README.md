@@ -29,7 +29,7 @@ To install the Scorecards GitHub Action, you need to:
     
     (Note: If you have already installed Scorecards on your repository from the command line, you can reuse your existing PAT for the repository secret. If you no longer have access to the PAT, though, simply create a new one.)
     
-2. Set up the workflow via the GitHub UI
+2. Set up the workflow via the GitHub UI - see [Workflow Setup](#workflow-setup)
 
 ### Supported triggers and repositories
 The following GitHub triggers are supported: `push`, `schedule` (default branch only).
