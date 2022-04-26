@@ -117,6 +117,7 @@ First, [create a new file](https://docs.github.com/en/repositories/working-with-
 The following GitHub triggers are supported: `push`, `schedule` (default branch only).
 The `pull_request` and `workflow_dispatch` triggers are experimental.
 Running the Scorecard action on a fork repository is not supported.
+GitHub Enterprise repositories are not supported.
 
 
 ### Publishing Results
@@ -169,9 +170,8 @@ jobs:
         with:
           results_file: results.sarif
           results_format: sarif
-          # Read-only PAT token. To create it,
+          # (Optional) Read-only PAT token for Branch-Protection check. To create it,
           # follow the steps in https://github.com/ossf/scorecard-action#pat-token-creation.
-          # Optional: Set the PAT to enable the Branch-Protection check.
           repo_token: ${{ secrets.SCORECARD_READ_TOKEN }}
           # Publish the results for public repositories to enable scorecard badges. For more details, see
           # https://github.com/ossf/scorecard-action#publishing-results. 
