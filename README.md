@@ -45,7 +45,7 @@ Optional Authentication: Create a Personal Access Token (PAT) for authentication
     - Note: `Read-only token for OSSF Scorecard Action - myorg/myrepo` (Note: replace `myorg/myrepo` with the names of your organization and repository so you can keep track of your tokens.)
     - Expiration: `No expiration`
     - Scopes: 
-        * `repo > public_repo`                  Required to read [Branch-Protection](https://github.com/ossf/scorecard/blob/main/docs/checks.md#branch-protection) settings. Warning: for private repositories, you need scope `repo`.
+        * `repo > public_repo`                  Required to read [Branch-Protection](https://github.com/ossf/scorecard/blob/main/docs/checks.md#branch-protection) settings. **Warning**: for private repositories, you need scope `repo`.
         * `admin:org > read:org`                Optional: not used in current implementation.
         * `admin:repo_hook > read:repo_hook`    Optional: needed for the experimental [Webhook](https://github.com/ossf/scorecard/blob/main/docs/checks.md#webhooks) check.
         * `write:discussion > read:discussion`  Optional: not used in current implementation.
