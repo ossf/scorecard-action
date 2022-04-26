@@ -7,7 +7,8 @@ The Scorecards GitHub Action is free for all public repositories. Private reposi
 
 ________
 [Installation](#installation) 
-- [Authentication](#authentication)
+- [Supported triggers](#supported-triggers-and-repositories)
+- [Authentication](#authentication-with-pat)
 - [Workflow Setup](#workflow-setup)
 
 [View Results](#view-results)
@@ -15,7 +16,6 @@ ________
 - [Troubleshooting](#troubleshooting)
 
 [Manual Action Setup](#manual-action-setup)
-- [Supported triggers](#supported-triggers-and-repositories)
 - [Inputs](#inputs)
 - [Publishing Results](#publishing-results)
 - [Uploading Artifacts](#uploading-artifacts)
@@ -31,8 +31,17 @@ To install the Scorecards GitHub Action, you need to:
     
 2. Set up the workflow via the GitHub UI
 
+### Supported triggers and repositories
+The following GitHub triggers are supported: `push`, `schedule` (default branch only).
+
+The `pull_request` and `workflow_dispatch` triggers are experimental.
+
+Running the Scorecard action on a fork repository is not supported.
+
+GitHub Enterprise repositories are not supported.
+
 ### Authentication with PAT
-1. [Create a Personal Access Token](https://github.com/settings/tokens/new?scopes=public_repo,read:repo_hook) with the following read permissions:
+1. [Create a Personal Access Token](https://github.com/settings/tokens/new?scopes=public_repo,read:org,read:repo_hook,read:discussion) with the following read permissions:
     - Note: `Read-only token for OSSF Scorecard Action - myorg/myrepo` (Note: replace `myorg/myrepo` with the names of your organization and repository so you can keep track of your tokens.)
     - Expiration: `No expiration`
     - Scopes: 
@@ -95,7 +104,7 @@ If the run has failed, the most likely reason is an authentication failure. Conf
 
 If you install Scorecard on a repository owned by an organization that uses [SAML SSO](https://docs.github.com/en/enterprise-cloud@latest/authentication/authenticating-with-saml-single-sign-on/about-authentication-with-saml-single-sign-on) or if you see `403 Resource protected by organization SAML enforcement` in the logs, be sure to [enable SSO](https://docs.github.com/en/enterprise-cloud@latest/authentication/authenticating-with-saml-single-sign-on/authorizing-a-personal-access-token-for-use-with-saml-single-sign-on) for your PAT token (see [Authentication](#authentication)).
 
-If the PAT is saved as an encrypted secret and the run is still failing, confirm that you have not made any changes to the workflow yaml file that affected the syntax. Review the [workflow example](#workflow-example) and reset to the default values if necessary.  
+If the PAT is saved as an encrypted secret and the run is still failing, confirm that you have not made any changes to the workflow yaml file that affected the syntax. Review the [workflow example](#workflow-example) and reset to the default values if necessary.
 
 ## Manual Action Setup
     
@@ -112,13 +121,6 @@ First, [create a new file](https://docs.github.com/en/repositories/working-with-
 | `result_format` | yes | The format in which to store the results [json \| sarif]. For GitHub's scanning dashboard, select `sarif`. |
 | `repo_token` | yes | PAT token with read-only access. Follow [these steps](#pat-token-creation) to create it. |
 | `publish_results` | recommended | This will allow you to display a badge on your repository to show off your hard work (release scheduled for Q2'22). See details [here](#publishing-results).|
-
-### Supported triggers and repositories
-The following GitHub triggers are supported: `push`, `schedule` (default branch only).
-The `pull_request` and `workflow_dispatch` triggers are experimental.
-Running the Scorecard action on a fork repository is not supported.
-GitHub Enterprise repositories are not supported.
-
 
 ### Publishing Results
 The Scorecard team runs a weekly scan of public GitHub repositories in order to track 
