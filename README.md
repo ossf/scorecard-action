@@ -7,7 +7,7 @@ The Scorecards GitHub Action is free for all public repositories. Private reposi
 
 ________
 [Installation](#installation) 
-- [Supported triggers](#supported-triggers-and-repositories)
+- [Supported triggers and repositories](#supported-triggers-and-repositories)
 - [Authentication](#authentication-with-pat)
 - [Workflow Setup](#workflow-setup)
 
