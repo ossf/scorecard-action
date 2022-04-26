@@ -7,7 +7,6 @@ The Scorecards GitHub Action is free for all public repositories. Private reposi
 
 ________
 [Installation](#installation) 
-- [Supported triggers and repositories](#supported-triggers-and-repositories)
 - [Authentication](#authentication-with-pat)
 - [Workflow Setup](#workflow-setup)
 
@@ -22,16 +21,6 @@ ________
 - [Workflow Example](#workflow-example)
 ________
 
-## Installation
-To install the Scorecards GitHub Action, you need to:
-
-1. (Optional) If you want to use the [Branch-Protection](https://github.com/ossf/scorecard/blob/main/docs/checks.md#branch-protection) check, create a Personal Access Token (PAT) for authentication and save the token value as a repository secret; 
-    
-    (Note: If you have already installed Scorecards on your repository from the command line, you can reuse your existing PAT for the repository secret. If you no longer have access to the PAT, though, simply create a new one.)
-    
-2. Set up the workflow via the GitHub UI - see [Workflow Setup](#workflow-setup)
-
-### Supported triggers and repositories
 The following GitHub triggers are supported: `push`, `schedule` (default branch only).
 
 The `pull_request` and `workflow_dispatch` triggers are experimental.
@@ -39,6 +28,17 @@ The `pull_request` and `workflow_dispatch` triggers are experimental.
 Running the Scorecard action on a fork repository is not supported.
 
 GitHub Enterprise repositories are not supported.
+
+## Installation
+The Scorecards Action is installed by setting up a workflow on the GitHub UI.
+
+Note: One Scorecards check ([Branch-Protection](https://github.com/ossf/scorecard/blob/main/docs/checks.md#branch-protection)) requires authentication using a Personal Access Token (PAT). If you want all Scorecards checks to run, you will need to follow the optional Authentication step. If you don't, all checks will run except Branch-Protection.
+
+Optional Authentication: Create a Personal Access Token (PAT) for authentication and save the token value as a repository secret; 
+    
+    (Note: If you have already installed Scorecards on your repository from the command line, you can reuse your existing PAT for the repository secret. If you no longer have access to the PAT, though, simply create a new one.)
+
+**Required**: Set up the workflow via the GitHub UI - see [Workflow Setup](#workflow-setup)
 
 ### Authentication with PAT
 1. [Create a Personal Access Token](https://github.com/settings/tokens/new?scopes=public_repo,read:org,read:repo_hook,read:discussion) with the following read permissions:
@@ -94,8 +94,7 @@ The workflow is preconfigured to run on every repository contribution. After mak
 ### Verify Runs 
 The workflow is preconfigured to run on every repository contribution. 
 
-To verify that the Action is running successfully, click the repository's Actions tab to see the status of all recent workflow runs. You may
-click on it to see the logs, which can help you troubleshoot if the run failed.
+To verify that the Action is running successfully, click the repository's Actions tab to see the status of all recent workflow runs. This tab will also show the logs, which can help you troubleshoot if the run failed.
 
 ![image](/images/actionconfirm.png)
 
