@@ -48,7 +48,7 @@ export ENABLED_CHECKS=
 # Boolean inputs are strings https://github.com/actions/runner/issues/1483.
 # ===============================================================================
 status_code=$(curl -s -H "Authorization: Bearer $GITHUB_AUTH_TOKEN" https://api.github.com/repos/"$GITHUB_REPOSITORY" -o repo_info.json -w '%{http_code}')
-if [[$status_code -lt 200]] || [[$status_code -ge 300 ]]; then
+if [[ $status_code -lt 200 ]] || [[ $status_code -ge 300 ]]; then
     error_msg=$(jq -r .message repo_info.json 2>/dev/null || echo 'unknown error')
     echo "Failed to get repository information from GitHub, response $status_code: $error_msg"
     echo "$(<repo_info.json)"
