@@ -52,6 +52,7 @@ if [[ $status_code -lt 200 ]] || [[ $status_code -ge 300 ]]; then
     error_msg=$(jq -r .message repo_info.json 2>/dev/null || echo 'unknown error')
     echo "Failed to get repository information from GitHub, response $status_code: $error_msg"
     echo "$(<repo_info.json)"
+    rm repo_info.json
     exit 1;
 fi
 
