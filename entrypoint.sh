@@ -59,7 +59,6 @@ fi
 export SCORECARD_PRIVATE_REPOSITORY="$(cat repo_info.json | jq -r '.private')"
 export SCORECARD_DEFAULT_BRANCH="refs/heads/$(cat repo_info.json | jq -r '.default_branch')"
 export SCORECARD_IS_FORK="$(cat repo_info.json | jq -r '.fork')"
-rm repo_info.json
 
 # If the repository is private, never publish the results.
 if [[ "$SCORECARD_PRIVATE_REPOSITORY" == "true" ]]; then
@@ -81,6 +80,8 @@ echo "Publication enabled: $SCORECARD_PUBLISH_RESULTS"
 echo "Format: $SCORECARD_RESULTS_FORMAT"
 echo "Policy file: $SCORECARD_POLICY_FILE"
 echo "Default branch: $SCORECARD_DEFAULT_BRANCH"
+echo "$(<repo_info.json)"
+rm repo_info.json
 
 if [[ -z "$GITHUB_AUTH_TOKEN" ]]; then
     echo "The 'repo_token' variable is empty."
