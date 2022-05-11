@@ -36,7 +36,7 @@ GitHub Enterprise repositories are not supported.
 ## Installation
 The Scorecards Action is installed by setting up a workflow on the GitHub UI.
 
-Note: Private repositories requires authentication using a Personal Access Token (PAT). So if you install Scorecards on a private repository, you will need to follow the optional Authentication step. If you don't, Scorecards will fail to run.
+Note: On private repositories, Scorecards requires authentication using a Personal Access Token (PAT). So if you install Scorecards on a private repository, you will need to follow the optional Authentication step. If you don't, Scorecards will fail to run.
 
 Note: On public repositories, one Scorecards check ([Branch-Protection](https://github.com/ossf/scorecard/blob/main/docs/checks.md#branch-protection)) requires authentication using a Personal Access Token (PAT). If you want all Scorecards checks to run on a public repository, you will need to follow the optional Authentication step. If you don't, all checks will run except Branch-Protection.
 
