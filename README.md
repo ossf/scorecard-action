@@ -29,16 +29,16 @@ Running the Scorecard action on a fork repository is not supported.
 
 Private repositories need a Personal Access Token (PAT).
 
-Public repositories need a PAT to enable the [Branch-Protection](https://github.com/ossf/scorecard/blob/main/docs/checks.md#branch-protection). Without a PAT, Scorecards will run all checks except the Branch-Protection check.
+Public repositories need a PAT to enable the [Branch-Protection](https://github.com/ossf/scorecard/blob/main/docs/checks.md#branch-protection) check. Without a PAT, Scorecards will run all checks except the Branch-Protection check.
 
 GitHub Enterprise repositories are not supported.
 
 ## Installation
 The Scorecards Action is installed by setting up a workflow on the GitHub UI.
 
-Note: On private repositories, Scorecards requires authentication using a Personal Access Token (PAT). So if you install Scorecards on a private repository, you will need to follow the optional Authentication step. If you don't, Scorecards will fail to run.
+Private repositories: Scorecards requires authentication using a Personal Access Token (PAT). So if you install Scorecards on a private repository, you will need to follow the optional Authentication step. If you don't, Scorecards will fail to run.
 
-Note: On public repositories, one Scorecards check ([Branch-Protection](https://github.com/ossf/scorecard/blob/main/docs/checks.md#branch-protection)) requires authentication using a Personal Access Token (PAT). If you want all Scorecards checks to run on a public repository, you will need to follow the optional Authentication step. If you don't, all checks will run except Branch-Protection.
+Public repositories: One Scorecards check ([Branch-Protection](https://github.com/ossf/scorecard/blob/main/docs/checks.md#branch-protection)) requires authentication using a Personal Access Token (PAT). If you want all Scorecards checks to run on a public repository, you will need to follow the optional Authentication step. If you don't, all checks will run except Branch-Protection.
 
 Optional Authentication: Create a Personal Access Token (PAT) for authentication and save the token value as a repository secret; 
     
