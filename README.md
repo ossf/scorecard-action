@@ -122,7 +122,7 @@ First, [create a new file](https://docs.github.com/en/repositories/working-with-
 | ----- | -------- | ----------- |
 | `result_file` | yes | The file that contains the results. |
 | `result_format` | yes | The format in which to store the results [json \| sarif]. For GitHub's scanning dashboard, select `sarif`. |
-| `repo_token` | yes | PAT token with read-only access. Follow [these steps](#pat-token-creation) to create it. |
+| `repo_token` | yes | PAT token with read-only access. Follow [these steps](#authentication-with-pat) to create it. |
 | `publish_results` | recommended | This will allow you to display a badge on your repository to show off your hard work (release scheduled for Q2'22). See details [here](#publishing-results).|
 
 ### Publishing Results
@@ -180,7 +180,7 @@ jobs:
           # (Optional) Read-only PAT token. Uncomment the `repo_token` line below if:
           # - you want to enable the Branch-Protection check on a *public* repository, or
           # - you are installing Scorecards on a *private* repository
-          # To create the PAT, follow the steps in https://github.com/ossf/scorecard-action#pat-token-creation.
+          # To create the PAT, follow the steps in https://github.com/ossf/scorecard-action#authentication-with-pat.
           # repo_token: ${{ secrets.SCORECARD_READ_TOKEN }}
 
           # Publish the results for public repositories to enable scorecard badges. For more details, see
