@@ -44,14 +44,14 @@ func Run() {
 	client := github.NewClient(tokenClient)
 
 	// If not provided, get all repositories under organization.
-	if len(REPO_LIST) == 0 {
+	if len(RepoList) == 0 {
 		lops := &github.RepositoryListByOrgOptions{Type: "all"}
 		repos, _, err := client.Repositories.ListByOrg(context, orgName, lops)
 		err_check(err, "Error listing organization's repos.")
 
 		// Convert to list of repository names.
 		for _, repo := range repos {
-			REPO_LIST = append(REPO_LIST, *repo.Name)
+			RepoList = append(RepoList, *repo.Name)
 		}
 	}
 
@@ -60,7 +60,7 @@ func Run() {
 	err_check(err, "Error reading in scorecard workflow file.")
 
 	// Process each repository.
-	for _, repoName := range REPO_LIST {
+	for _, repoName := range RepoList {
 
 		// Get repo metadata.
 		repo, _, err := client.Repositories.Get(context, orgName, repoName)
