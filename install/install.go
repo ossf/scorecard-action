@@ -1,4 +1,4 @@
-package main
+package install
 
 import (
 	"context"
@@ -18,7 +18,7 @@ var RepoList = []string{} // Optional, leave empty to process all repos under or
 // **************************************
 
 // Adds the OpenSSF Scorecard workflow to all repositores under the given organization.
-func main() {
+func Run() {
 	// Get github user client.
 	context := context.Background()
 	tokenService := oauth2.StaticTokenSource(
