@@ -14,6 +14,8 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
+//nolint
+// TODO(lint): Remove nolint directive and fix lint warnings
 package main
 
 import (
@@ -25,9 +27,7 @@ import (
 	"github.com/google/go-github/v42/github"
 )
 
-var (
-	client *github.Client
-)
+var client *github.Client
 
 // Currently incomplete
 // Good reference: https://github.com/google/go-github/blob/887f605dd1f81715a4d4e3983e38450b29833639/github/repos_contents_test.go
@@ -66,7 +66,6 @@ func Test_OrgWorkflowAdd(t *testing.T) {
 	if err != nil && resp.StatusCode != http.StatusNotFound {
 		t.Fatalf("Repositories.Get() returned error: %v", err)
 	}
-
 }
 
 func createRandomTestRepository(owner string, autoinit bool) (*github.Repository, error) {
