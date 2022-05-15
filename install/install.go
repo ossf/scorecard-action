@@ -26,8 +26,9 @@ import (
 )
 
 const (
-	orgName = "organization name"
-	pat     = "personal access token"
+	orgName      = "organization name"
+	pat          = "personal access token"
+	workflowFile = ".github/workflows/scorecards-analysis.yml"
 )
 
 // RepoList leave empty to process all repos under org (optional).
@@ -101,7 +102,7 @@ func Run() {
 			ctx,
 			orgName,
 			repoName,
-			".github/workflows/scorecards-analysis.yml",
+			workflowFile,
 			&github.RepositoryContentGetOptions{},
 		)
 		if scoreFileContent != nil || err == nil {
@@ -158,7 +159,7 @@ func Run() {
 			ctx,
 			orgName,
 			repoName,
-			".github/workflows/scorecards-analysis.yml",
+			workflowFile,
 			opts,
 		)
 		if err != nil {
