@@ -4,7 +4,7 @@ go 1.17
 
 require (
 	github.com/caarlos0/env/v6 v6.9.2
-	github.com/google/go-cmp v0.5.7
+	github.com/google/go-cmp v0.5.8
 	github.com/ossf/scorecard/v4 v4.2.0
 	github.com/sigstore/cosign v1.8.0
 	github.com/spf13/cobra v1.4.0
