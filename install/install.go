@@ -22,7 +22,8 @@ import (
 	"io/ioutil"
 
 	"github.com/google/go-github/v42/github"
-	"golang.org/x/oauth2"
+
+	scagh "github.com/ossf/scorecard-action/install/github"
 )
 
 const (
@@ -37,20 +38,16 @@ var RepoList = []string{}
 // Run adds the OpenSSF Scorecard workflow to all repositories under the given
 // organization.
 // TODO(install): Improve description.
+// TODO(install): Accept a context instead of setting one.
 func Run() {
 	// Get github user client.
 	ctx := context.Background()
-	tokenService := oauth2.StaticTokenSource(
-		&oauth2.Token{AccessToken: pat},
-	)
-
-	tokenClient := oauth2.NewClient(ctx, tokenService)
-	client := github.NewClient(tokenClient)
+	gh := scagh.New()
+	client := gh.Client()
 
 	// If not provided, get all repositories under organization.
 	if len(RepoList) == 0 {
-		lops := &github.RepositoryListByOrgOptions{Type: "all"}
-		repos, _, err := client.Repositories.ListByOrg(ctx, orgName, lops)
+		repos, _, err := client.GetRepositoriesByOrg(ctx, orgName)
 		errCheck(err, "Error listing organization's repos.")
 
 		// Convert to list of repository names.
@@ -66,7 +63,7 @@ func Run() {
 	// Process each repository.
 	for _, repoName := range RepoList {
 		// Get repo metadata.
-		repo, _, err := client.Repositories.Get(ctx, orgName, repoName)
+		repo, _, err := client.GetRepository(ctx, orgName, repoName)
 		if err != nil {
 			fmt.Println(
 				"Skipped repo",
@@ -78,7 +75,7 @@ func Run() {
 		}
 
 		// Get head commit SHA of default branch.
-		defaultBranch, _, err := client.Repositories.GetBranch(
+		defaultBranch, _, err := client.GetBranch(
 			ctx,
 			orgName,
 			repoName,
@@ -98,7 +95,7 @@ func Run() {
 		defaultBranchSHA := defaultBranch.Commit.SHA
 
 		// Skip if scorecard file already exists in workflows folder.
-		scoreFileContent, _, _, err := client.Repositories.GetContents(
+		scoreFileContent, _, _, err := client.GetContents(
 			ctx,
 			orgName,
 			repoName,
@@ -116,7 +113,7 @@ func Run() {
 		}
 
 		// Skip if branch scorecard already exists.
-		scorecardBranch, _, err := client.Repositories.GetBranch(
+		scorecardBranch, _, err := client.GetBranch(
 			ctx,
 			orgName,
 			repoName,
@@ -138,7 +135,7 @@ func Run() {
 			Ref:    github.String("refs/heads/scorecard"),
 			Object: &github.GitObject{SHA: defaultBranchSHA},
 		}
-		_, _, err = client.Git.CreateRef(ctx, orgName, repoName, ref)
+		_, _, err = client.CreateGitRef(ctx, orgName, repoName, ref)
 		if err != nil {
 			fmt.Println(
 				"Skipped repo",
@@ -155,7 +152,7 @@ func Run() {
 			Content: workflowContent,
 			Branch:  github.String("scorecard"),
 		}
-		_, _, err = client.Repositories.CreateFile(
+		_, _, err = client.CreateFile(
 			ctx,
 			orgName,
 			repoName,
@@ -173,17 +170,15 @@ func Run() {
 		}
 
 		// Create Pull request.
-		pr := &github.NewPullRequest{
-			Title: github.String("Added Scorecard Workflow"),
-			Head:  github.String("scorecard"),
-			Base:  github.String(*defaultBranch.Name),
-			Body: github.String(
-				"Added the workflow for OpenSSF's Security Scorecard",
-			),
-			Draft: github.Bool(false),
-		}
-
-		_, _, err = client.PullRequests.Create(ctx, orgName, repoName, pr)
+		_, err = client.CreatePullRequest(
+			ctx,
+			orgName,
+			repoName,
+			*defaultBranch.Name,
+			"scorecard",
+			"Added Scorecard Workflow",
+			"Added the workflow for OpenSSF's Security Scorecard",
+		)
 		if err != nil {
 			fmt.Println(
 				"Skipped repo",

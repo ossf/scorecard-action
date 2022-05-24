@@ -33,56 +33,75 @@ import (
 	"sigs.k8s.io/release-utils/env"
 )
 
-// From https://github.com/kubernetes-sigs/release-sdk/blob/e23d2c82bbb41a007cdf019c30930e8fd2649c01/github/github.go //nolint:lll
+// From https://github.com/kubernetes-sigs/release-sdk/blob/e23d2c82bbb41a007cdf019c30930e8fd2649c01/github/github.go
 
-// GitHub is a wrapper around GitHub related functionality
+// GitHub is a wrapper around GitHub related functionality.
 type GitHub struct {
 	client  Client
 	options *Options
 }
 
-// Client is an interface modeling supported GitHub operations
+// Client is an interface modeling supported GitHub operations.
 type Client interface {
 	// TODO(install): Populate interface
+	CreateFile(
+		context.Context, string, string, string, *github.RepositoryContentFileOptions,
+	) (*github.RepositoryContentResponse, *github.Response, error)
+	CreateGitRef(
+		context.Context, string, string, *github.Reference,
+	) (*github.Reference, *github.Response, error)
+	CreatePullRequest(
+		context.Context, string, string, string, string, string, string,
+	) (*github.PullRequest, error)
+	GetBranch(
+		context.Context, string, string, string, bool,
+	) (*github.Branch, *github.Response, error)
+	GetContents(
+		context.Context, string, string, string, *github.RepositoryContentGetOptions,
+	) (*github.RepositoryContent, []*github.RepositoryContent, *github.Response, error)
 	GetRepositoriesByOrg(
 		context.Context, string,
 	) ([]*github.Repository, *github.Response, error)
+	GetRepository(
+		context.Context, string, string,
+	) (*github.Repository, *github.Response, error)
 }
 
-// Options is a set of options to configure the behavior of the GitHub package
+// Options is a set of options to configure the behavior of the GitHub package.
 type Options struct {
 	// How many items to request in calls to the github API
 	// that require pagination.
 	ItemsPerPage int
 }
 
+// GetItemsPerPage // TODO(github): needs comment.
 func (o *Options) GetItemsPerPage() int {
 	return o.ItemsPerPage
 }
 
-// DefaultOptions return an options struct with commonly used settings
+// DefaultOptions return an options struct with commonly used settings.
 func DefaultOptions() *Options {
 	return &Options{
 		ItemsPerPage: 50,
 	}
 }
 
-// SetClient can be used to manually set the internal GitHub client
+// SetClient can be used to manually set the internal GitHub client.
 func (g *GitHub) SetClient(client Client) {
 	g.client = client
 }
 
-// Client can be used to retrieve the Client type
+// Client can be used to retrieve the Client type.
 func (g *GitHub) Client() Client {
 	return g.client
 }
 
-// SetOptions gets an options set for the GitHub object
+// SetOptions gets an options set for the GitHub object.
 func (g *GitHub) SetOptions(opts *Options) {
 	g.options = opts
 }
 
-// Options return a pointer to the options struct
+// Options return a pointer to the options struct.
 func (g *GitHub) Options() *Options {
 	return g.options
 }
@@ -134,11 +153,13 @@ func NewWithToken(token string) (*GitHub, error) {
 	}, nil
 }
 
+// NewEnterprise // TODO(github): needs comment.
 func NewEnterprise(baseURL, uploadURL string) (*GitHub, error) {
 	token := env.Default(kgh.TokenEnvKey, "")
 	return NewEnterpriseWithToken(baseURL, uploadURL, token)
 }
 
+// NewEnterpriseWithToken // TODO(github): needs comment.
 func NewEnterpriseWithToken(baseURL, uploadURL, token string) (*GitHub, error) {
 	ctx := context.Background()
 	client := http.DefaultClient
@@ -152,7 +173,7 @@ func NewEnterpriseWithToken(baseURL, uploadURL, token string) (*GitHub, error) {
 	logrus.Debugf("Using %s Enterprise GitHub client", state)
 	ghclient, err := github.NewEnterpriseClient(baseURL, uploadURL, client)
 	if err != nil {
-		return nil, fmt.Errorf("failed to new github client: %s", err)
+		return nil, fmt.Errorf("failed to new github client: %w", err)
 	}
 	return &GitHub{
 		client:  &githubClient{ghclient},
@@ -165,7 +186,8 @@ type githubClient struct {
 }
 
 func (g *githubClient) GetRepositoriesByOrg(
-	ctx context.Context, owner string,
+	ctx context.Context,
+	owner string,
 ) ([]*github.Repository, *github.Response, error) {
 	repos, resp, err := g.Repositories.ListByOrg(
 		ctx,
@@ -180,4 +202,109 @@ func (g *githubClient) GetRepositoriesByOrg(
 	}
 
 	return repos, resp, nil
+}
+
+func (g *githubClient) GetRepository(
+	ctx context.Context,
+	owner,
+	repo string,
+) (*github.Repository, *github.Response, error) {
+	pr, resp, err := g.Repositories.Get(ctx, owner, repo)
+	if err != nil {
+		return pr, resp, fmt.Errorf("getting repository: %w", err)
+	}
+
+	return pr, resp, nil
+}
+
+func (g *githubClient) GetBranch(
+	ctx context.Context,
+	owner,
+	repo,
+	branch string,
+	followRedirects bool,
+) (*github.Branch, *github.Response, error) {
+	// TODO: Populate
+	return g.Repositories.GetBranch(
+		ctx,
+		owner,
+		repo,
+		branch,
+		followRedirects,
+	)
+}
+
+func (g *githubClient) GetContents(
+	ctx context.Context,
+	owner,
+	repo,
+	path string,
+	opts *github.RepositoryContentGetOptions,
+) (*github.RepositoryContent, []*github.RepositoryContent, *github.Response, error) {
+	// TODO: Populate
+	return g.Repositories.GetContents(
+		ctx,
+		owner,
+		repo,
+		path,
+		opts,
+	)
+}
+
+func (g *githubClient) CreateGitRef(
+	ctx context.Context,
+	owner,
+	repo string,
+	ref *github.Reference,
+) (*github.Reference, *github.Response, error) {
+	// TODO: Populate
+	return g.Git.CreateRef(
+		ctx,
+		owner,
+		repo,
+		ref,
+	)
+}
+
+func (g *githubClient) CreateFile(
+	ctx context.Context,
+	owner,
+	repo,
+	path string,
+	opts *github.RepositoryContentFileOptions,
+) (*github.RepositoryContentResponse, *github.Response, error) {
+	// TODO: Populate
+	return g.Repositories.CreateFile(
+		ctx,
+		owner,
+		repo,
+		path,
+		opts,
+	)
+}
+
+func (g *githubClient) CreatePullRequest(
+	ctx context.Context,
+	owner,
+	repo,
+	baseBranchName,
+	headBranchName,
+	title,
+	body string,
+) (*github.PullRequest, error) {
+	newPullRequest := &github.NewPullRequest{
+		Title:               &title,
+		Head:                &headBranchName,
+		Base:                &baseBranchName,
+		Body:                &body,
+		MaintainerCanModify: github.Bool(true),
+	}
+
+	pr, _, err := g.PullRequests.Create(ctx, owner, repo, newPullRequest)
+	if err != nil {
+		return pr, fmt.Errorf("creating pull request: %w", err)
+	}
+
+	logrus.Infof("Successfully created PR #%d", pr.GetNumber())
+	return pr, nil
 }
