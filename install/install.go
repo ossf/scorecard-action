@@ -18,8 +18,10 @@ package install
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io/ioutil"
+	"log"
 
 	"github.com/google/go-github/v42/github"
 
@@ -27,6 +29,8 @@ import (
 )
 
 const workflowFile = ".github/workflows/scorecards-analysis.yml"
+
+var errOwnerNotSpecified = errors.New("owner not specified")
 
 // Options are installation options for the scorecard action.
 type Options struct {
@@ -41,11 +45,25 @@ func NewOptions() *Options {
 	return &Options{}
 }
 
+// Validate checks if the installation options specified are valid.
+func (o *Options) Validate() error {
+	if o.Owner == "" {
+		return errOwnerNotSpecified
+	}
+
+	return nil
+}
+
 // Run adds the OpenSSF Scorecard workflow to all repositories under the given
 // organization.
 // TODO(install): Improve description.
 // TODO(install): Accept a context instead of setting one.
-func Run(o *Options) {
+func Run(o *Options) error {
+	err := o.Validate()
+	if err != nil {
+		return fmt.Errorf("validating installation options: %w", err)
+	}
+
 	// Get github user client.
 	ctx := context.Background()
 	gh := scagh.New()
@@ -54,7 +72,9 @@ func Run(o *Options) {
 	// If not provided, get all repositories under organization.
 	if len(o.Repositories) == 0 {
 		repos, _, err := client.GetRepositoriesByOrg(ctx, o.Owner)
-		errCheck(err, "Error listing organization's repos.")
+		if err != nil {
+			return fmt.Errorf("getting repos for owner (%s): %w", o.Owner, err)
+		}
 
 		// Convert to list of repository names.
 		for _, repo := range repos {
@@ -64,23 +84,27 @@ func Run(o *Options) {
 
 	// Get yml file into byte array.
 	workflowContent, err := ioutil.ReadFile("scorecards-analysis.yml")
-	errCheck(err, "Error reading in scorecard workflow file.")
+	if err != nil {
+		return fmt.Errorf("reading scorecard workflow file: %w", err)
+	}
 
 	// Process each repository.
+	// TODO: Capture repo access errors
 	for _, repoName := range o.Repositories {
 		// Get repo metadata.
 		repo, _, err := client.GetRepository(ctx, o.Owner, repoName)
 		if err != nil {
-			fmt.Println(
-				"Skipped repo",
+			log.Printf(
+				"skipped repo (%s) because it does not exist or could not be accessed: %+v",
 				repoName,
-				"because it does not exist or could not be accessed.",
+				err,
 			)
 
 			continue
 		}
 
 		// Get head commit SHA of default branch.
+		// TODO: Capture branch access errors
 		defaultBranch, _, err := client.GetBranch(
 			ctx,
 			o.Owner,
@@ -89,10 +113,10 @@ func Run(o *Options) {
 			true,
 		)
 		if err != nil {
-			fmt.Println(
-				"Skipped repo",
+			log.Printf(
+				"skipped repo (%s) because its default branch could not be accessed: %+v",
 				repoName,
-				"because it's default branch could not be accessed.",
+				err,
 			)
 
 			continue
@@ -109,10 +133,9 @@ func Run(o *Options) {
 			&github.RepositoryContentGetOptions{},
 		)
 		if scoreFileContent != nil || err == nil {
-			fmt.Println(
-				"Skipped repo",
+			log.Printf(
+				"skipped repo (%s) since scorecard workflow already exists",
 				repoName,
-				"since scorecard workflow already exists.",
 			)
 
 			continue
@@ -127,32 +150,33 @@ func Run(o *Options) {
 			true,
 		)
 		if scorecardBranch != nil || err == nil {
-			fmt.Println(
-				"Skipped repo",
+			log.Printf(
+				"skipped repo (%s) since the scorecard branch already exists",
 				repoName,
-				"since branch scorecard already exists.",
 			)
 
 			continue
 		}
 
 		// Create new branch using a reference that stores the new commit hash.
+		// TODO: Capture ref creation errors
 		ref := &github.Reference{
 			Ref:    github.String("refs/heads/scorecard"),
 			Object: &github.GitObject{SHA: defaultBranchSHA},
 		}
 		_, _, err = client.CreateGitRef(ctx, o.Owner, repoName, ref)
 		if err != nil {
-			fmt.Println(
-				"Skipped repo",
+			log.Printf(
+				"skipped repo (%s) because new branch could not be created: %+v",
 				repoName,
-				"because new branch could not be created.",
+				err,
 			)
 
 			continue
 		}
 
 		// Create file in repository.
+		// TODO: Capture file creation errors
 		opts := &github.RepositoryContentFileOptions{
 			Message: github.String("Adding scorecard workflow"),
 			Content: workflowContent,
@@ -166,16 +190,17 @@ func Run(o *Options) {
 			opts,
 		)
 		if err != nil {
-			fmt.Println(
-				"Skipped repo",
+			log.Printf(
+				"skipped repo (%s) because new file could not be created: %+v",
 				repoName,
-				"because new file could not be created.",
+				err,
 			)
 
 			continue
 		}
 
-		// Create Pull request.
+		// Create pull request.
+		// TODO: Capture pull request creation errors
 		_, err = client.CreatePullRequest(
 			ctx,
 			o.Owner,
@@ -186,27 +211,20 @@ func Run(o *Options) {
 			"Added the workflow for OpenSSF's Security Scorecard",
 		)
 		if err != nil {
-			fmt.Println(
-				"Skipped repo",
+			log.Printf(
+				"skipped repo (%s) because pull request could not be created: %+v",
 				repoName,
-				"because pull request could not be created.",
+				err,
 			)
 
 			continue
 		}
 
-		// Logging.
-		fmt.Println(
-			"Successfully added scorecard workflow PR from scorecard to",
-			*defaultBranch.Name,
-			"branch of repo",
+		log.Printf(
+			"Created a pull request to add the scorecard workflow to %s",
 			repoName,
 		)
 	}
-}
 
-func errCheck(err error, msg string) {
-	if err != nil {
-		fmt.Println(msg, err)
-	}
+	return nil
 }

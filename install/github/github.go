@@ -224,14 +224,19 @@ func (g *githubClient) GetBranch(
 	branch string,
 	followRedirects bool,
 ) (*github.Branch, *github.Response, error) {
-	// TODO: Populate
-	return g.Repositories.GetBranch(
+	// TODO: Revisit logic and simplify returns, where possible.
+	b, resp, err := g.Repositories.GetBranch(
 		ctx,
 		owner,
 		repo,
 		branch,
 		followRedirects,
 	)
+	if err != nil {
+		return b, resp, fmt.Errorf("getting branch: %w", err)
+	}
+
+	return b, resp, nil
 }
 
 func (g *githubClient) GetContents(
@@ -241,14 +246,19 @@ func (g *githubClient) GetContents(
 	path string,
 	opts *github.RepositoryContentGetOptions,
 ) (*github.RepositoryContent, []*github.RepositoryContent, *github.Response, error) {
-	// TODO: Populate
-	return g.Repositories.GetContents(
+	// TODO: Revisit logic and simplify returns, where possible.
+	file, dir, resp, err := g.Repositories.GetContents(
 		ctx,
 		owner,
 		repo,
 		path,
 		opts,
 	)
+	if err != nil {
+		return file, dir, resp, fmt.Errorf("getting repo content: %w", err)
+	}
+
+	return file, dir, resp, nil
 }
 
 func (g *githubClient) CreateGitRef(
@@ -257,13 +267,18 @@ func (g *githubClient) CreateGitRef(
 	repo string,
 	ref *github.Reference,
 ) (*github.Reference, *github.Response, error) {
-	// TODO: Populate
-	return g.Git.CreateRef(
+	// TODO: Revisit logic and simplify returns, where possible.
+	gRef, resp, err := g.Git.CreateRef(
 		ctx,
 		owner,
 		repo,
 		ref,
 	)
+	if err != nil {
+		return gRef, resp, fmt.Errorf("creating git reference: %w", err)
+	}
+
+	return gRef, resp, nil
 }
 
 func (g *githubClient) CreateFile(
@@ -273,14 +288,19 @@ func (g *githubClient) CreateFile(
 	path string,
 	opts *github.RepositoryContentFileOptions,
 ) (*github.RepositoryContentResponse, *github.Response, error) {
-	// TODO: Populate
-	return g.Repositories.CreateFile(
+	// TODO: Revisit logic and simplify returns, where possible.
+	repoContentResp, resp, err := g.Repositories.CreateFile(
 		ctx,
 		owner,
 		repo,
 		path,
 		opts,
 	)
+	if err != nil {
+		return repoContentResp, resp, fmt.Errorf("creating file: %w", err)
+	}
+
+	return repoContentResp, resp, nil
 }
 
 func (g *githubClient) CreatePullRequest(

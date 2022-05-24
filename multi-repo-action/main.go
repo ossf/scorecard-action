@@ -16,10 +16,18 @@
 
 package main
 
-import "github.com/ossf/scorecard-action/install"
+import (
+	"log"
+
+	"github.com/ossf/scorecard-action/install"
+)
 
 func main() {
 	// TODO: Supply options via command line arguments.
 	opts := install.NewOptions()
-	install.Run(opts)
+
+	err := install.Run(opts)
+	if err != nil {
+		log.Fatalf("running scorecard action installation: %+v", err)
+	}
 }
