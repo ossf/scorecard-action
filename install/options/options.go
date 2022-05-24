@@ -14,18 +14,30 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
-package main
+package options
 
-import (
-	"log"
+import "errors"
 
-	"github.com/ossf/scorecard-action/install/cli"
-	"github.com/ossf/scorecard-action/install/options"
-)
+var errOwnerNotSpecified = errors.New("owner not specified")
 
-func main() {
-	opts := options.New()
-	if err := cli.New(opts).Execute(); err != nil {
-		log.Fatalf("error during command execution: %v", err)
+// Options are installation options for the scorecard action.
+type Options struct {
+	Owner string
+
+	// Repositories
+	Repositories []string
+}
+
+// New creates a new instance of installation options.
+func New() *Options {
+	return &Options{}
+}
+
+// Validate checks if the installation options specified are valid.
+func (o *Options) Validate() error {
+	if o.Owner == "" {
+		return errOwnerNotSpecified
 	}
+
+	return nil
 }

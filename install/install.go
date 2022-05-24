@@ -18,7 +18,6 @@ package install
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -26,39 +25,16 @@ import (
 	"github.com/google/go-github/v42/github"
 
 	scagh "github.com/ossf/scorecard-action/install/github"
+	"github.com/ossf/scorecard-action/install/options"
 )
 
 const workflowFile = ".github/workflows/scorecards-analysis.yml"
-
-var errOwnerNotSpecified = errors.New("owner not specified")
-
-// Options are installation options for the scorecard action.
-type Options struct {
-	Owner string
-
-	// Repositories
-	Repositories []string
-}
-
-// NewOptions creates a new instance of installation options.
-func NewOptions() *Options {
-	return &Options{}
-}
-
-// Validate checks if the installation options specified are valid.
-func (o *Options) Validate() error {
-	if o.Owner == "" {
-		return errOwnerNotSpecified
-	}
-
-	return nil
-}
 
 // Run adds the OpenSSF Scorecard workflow to all repositories under the given
 // organization.
 // TODO(install): Improve description.
 // TODO(install): Accept a context instead of setting one.
-func Run(o *Options) error {
+func Run(o *options.Options) error {
 	err := o.Validate()
 	if err != nil {
 		return fmt.Errorf("validating installation options: %w", err)
