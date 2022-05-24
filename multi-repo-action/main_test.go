@@ -19,19 +19,18 @@
 package main
 
 import (
-	"context"
-	"fmt"
-	"net/http"
-	"testing"
-
 	"github.com/google/go-github/v42/github"
 )
 
 var client *github.Client
 
 // Currently incomplete
+//nolint:lll
 // Good reference: https://github.com/google/go-github/blob/887f605dd1f81715a4d4e3983e38450b29833639/github/repos_contents_test.go
 // Currently from: https://github.com/google/go-github/blob/master/test/integration/repos_test.go
+
+// TODO: Add/refactor tests
+/*
 func Test_OrgWorkflowAdd(t *testing.T) {
 	client = github.NewClient(nil)
 	me, _, err := client.Users.Get(context.Background(), "")
@@ -85,10 +84,18 @@ func createRandomTestRepository(owner string, autoinit bool) (*github.Repository
 	}
 
 	// create the repository
-	repo, _, err := client.Repositories.Create(context.Background(), "", &github.Repository{Name: github.String(repoName), AutoInit: github.Bool(autoinit)})
+	repo, _, err := client.Repositories.Create(
+		context.Background(),
+		"",
+		&github.Repository{
+			Name:     github.String(repoName),
+			AutoInit: github.Bool(autoinit),
+		},
+	)
 	if err != nil {
 		return nil, err
 	}
 
 	return repo, nil
 }
+*/
