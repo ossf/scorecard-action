@@ -28,12 +28,22 @@ import (
 	"github.com/ossf/scorecard-action/install/options"
 )
 
-const workflowFile = ".github/workflows/scorecards-analysis.yml"
+const (
+	workflowFile           = ".github/workflows/scorecards.yml"
+	workflowFileDeprecated = ".github/workflows/scorecards-analysis.yml"
+)
+
+var workflowFiles = []string{
+	workflowFile,
+	workflowFileDeprecated,
+}
 
 // Run adds the OpenSSF Scorecard workflow to all repositories under the given
 // organization.
 // TODO(install): Improve description.
 // TODO(install): Accept a context instead of setting one.
+//nolint:gocognit
+// TODO(lint): cognitive complexity 31 of func `Run` is high (> 30) (gocognit).
 func Run(o *options.Options) error {
 	err := o.Validate()
 	if err != nil {
@@ -59,7 +69,7 @@ func Run(o *options.Options) error {
 	}
 
 	// Get yml file into byte array.
-	workflowContent, err := ioutil.ReadFile("scorecards-analysis.yml")
+	workflowContent, err := ioutil.ReadFile(o.ConfigPath)
 	if err != nil {
 		return fmt.Errorf("reading scorecard workflow file: %w", err)
 	}
@@ -101,20 +111,22 @@ func Run(o *options.Options) error {
 		defaultBranchSHA := defaultBranch.Commit.SHA
 
 		// Skip if scorecard file already exists in workflows folder.
-		scoreFileContent, _, _, err := client.GetContents(
-			ctx,
-			o.Owner,
-			repoName,
-			workflowFile,
-			&github.RepositoryContentGetOptions{},
-		)
-		if scoreFileContent != nil || err == nil {
-			log.Printf(
-				"skipped repo (%s) since scorecard workflow already exists",
+		for _, f := range workflowFiles {
+			scoreFileContent, _, _, err := client.GetContents(
+				ctx,
+				o.Owner,
 				repoName,
+				f,
+				&github.RepositoryContentGetOptions{},
 			)
+			if scoreFileContent != nil || err == nil {
+				log.Printf(
+					"skipped repo (%s) since scorecard workflow already exists",
+					repoName,
+				)
 
-			continue
+				continue
+			}
 		}
 
 		// Skip if branch scorecard already exists.
