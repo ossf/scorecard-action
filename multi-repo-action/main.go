@@ -19,5 +19,7 @@ package main
 import "github.com/ossf/scorecard-action/install"
 
 func main() {
-	install.Run()
+	// TODO: Supply options via command line arguments.
+	opts := install.NewOptions()
+	install.Run(opts)
 }

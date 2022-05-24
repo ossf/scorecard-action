@@ -26,33 +26,39 @@ import (
 	scagh "github.com/ossf/scorecard-action/install/github"
 )
 
-const (
-	orgName      = "organization name"
-	pat          = "personal access token"
-	workflowFile = ".github/workflows/scorecards-analysis.yml"
-)
+const workflowFile = ".github/workflows/scorecards-analysis.yml"
 
-// RepoList leave empty to process all repos under org (optional).
-var RepoList = []string{}
+// Options are installation options for the scorecard action.
+type Options struct {
+	Owner string
+
+	// Repositories
+	Repositories []string
+}
+
+// NewOptions creates a new instance of installation options.
+func NewOptions() *Options {
+	return &Options{}
+}
 
 // Run adds the OpenSSF Scorecard workflow to all repositories under the given
 // organization.
 // TODO(install): Improve description.
 // TODO(install): Accept a context instead of setting one.
-func Run() {
+func Run(o *Options) {
 	// Get github user client.
 	ctx := context.Background()
 	gh := scagh.New()
 	client := gh.Client()
 
 	// If not provided, get all repositories under organization.
-	if len(RepoList) == 0 {
-		repos, _, err := client.GetRepositoriesByOrg(ctx, orgName)
+	if len(o.Repositories) == 0 {
+		repos, _, err := client.GetRepositoriesByOrg(ctx, o.Owner)
 		errCheck(err, "Error listing organization's repos.")
 
 		// Convert to list of repository names.
 		for _, repo := range repos {
-			RepoList = append(RepoList, *repo.Name)
+			o.Repositories = append(o.Repositories, *repo.Name)
 		}
 	}
 
@@ -61,9 +67,9 @@ func Run() {
 	errCheck(err, "Error reading in scorecard workflow file.")
 
 	// Process each repository.
-	for _, repoName := range RepoList {
+	for _, repoName := range o.Repositories {
 		// Get repo metadata.
-		repo, _, err := client.GetRepository(ctx, orgName, repoName)
+		repo, _, err := client.GetRepository(ctx, o.Owner, repoName)
 		if err != nil {
 			fmt.Println(
 				"Skipped repo",
@@ -77,7 +83,7 @@ func Run() {
 		// Get head commit SHA of default branch.
 		defaultBranch, _, err := client.GetBranch(
 			ctx,
-			orgName,
+			o.Owner,
 			repoName,
 			*repo.DefaultBranch,
 			true,
@@ -97,7 +103,7 @@ func Run() {
 		// Skip if scorecard file already exists in workflows folder.
 		scoreFileContent, _, _, err := client.GetContents(
 			ctx,
-			orgName,
+			o.Owner,
 			repoName,
 			workflowFile,
 			&github.RepositoryContentGetOptions{},
@@ -115,7 +121,7 @@ func Run() {
 		// Skip if branch scorecard already exists.
 		scorecardBranch, _, err := client.GetBranch(
 			ctx,
-			orgName,
+			o.Owner,
 			repoName,
 			"scorecard",
 			true,
@@ -135,7 +141,7 @@ func Run() {
 			Ref:    github.String("refs/heads/scorecard"),
 			Object: &github.GitObject{SHA: defaultBranchSHA},
 		}
-		_, _, err = client.CreateGitRef(ctx, orgName, repoName, ref)
+		_, _, err = client.CreateGitRef(ctx, o.Owner, repoName, ref)
 		if err != nil {
 			fmt.Println(
 				"Skipped repo",
@@ -154,7 +160,7 @@ func Run() {
 		}
 		_, _, err = client.CreateFile(
 			ctx,
-			orgName,
+			o.Owner,
 			repoName,
 			workflowFile,
 			opts,
@@ -172,7 +178,7 @@ func Run() {
 		// Create Pull request.
 		_, err = client.CreatePullRequest(
 			ctx,
-			orgName,
+			o.Owner,
 			repoName,
 			*defaultBranch.Name,
 			"scorecard",
