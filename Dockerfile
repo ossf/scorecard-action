@@ -12,16 +12,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# Testing: docker run -e GITHUB_REF=refs/heads/main \
-#           -e GITHUB_EVENT_NAME=branch_protection_rule \
-#           -e INPUT_RESULTS_FORMAT=sarif \
-#           -e INPUT_RESULTS_FILE=results.sarif \
-#           -e GITHUB_WORKSPACE=/ \
-#           -e INPUT_POLICY_FILE="/policy.yml" \
-#           -e INPUT_REPO_TOKEN=$GITHUB_AUTH_TOKEN \
-#           -e GITHUB_REPOSITORY="ossf/scorecard" \
-#           laurentsimon/scorecard-action:latest
-FROM gcr.io/openssf/scorecard:v4.2.0@sha256:86666488851413a52fa4dee05df503aa0ed8e93fbf71b1f4c96b2539bd9e4306 as base
+# See docs/development.md for details on how to test this image.
+
+# TODO: Prefer SHA for builder image.
+# TODO: Upgrade to go1.18 once this repo is compatible.
+FROM golang:1.17-bullseye as builder
+
+WORKDIR /workspace
+
+# TODO: Revisit directory structure to make this a more lightweight copy.
+COPY ./ ./
+
+# Copied from make build target
+RUN CGO_ENABLED=0 go build -o scorecard -trimpath -a -tags netgo -ldflags '-w -extldflags'
 
 # Build our image and update the root certs.
 # TODO: use distroless.
@@ -30,11 +33,11 @@ RUN apt-get update && \
     apt-get install -y --no-install-recommends \
     jq ca-certificates curl
 
-# Copy the scorecard binary from the official scorecard image.
-COPY --from=base /scorecard /scorecard
+# Copy the scorecard binary from the intermediate builder image.
+COPY --from=builder /workspace/scorecard /scorecard
 
 # Copy a test policy for local testing.
-COPY policies/template.yml  /policy.yml
+COPY --from=builder /workspace/policies/template.yml /policy.yml
 
 # Our entry point.
 # Note: the file is executable in the repo
