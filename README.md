@@ -7,7 +7,7 @@ The Scorecards GitHub Action is free for all public repositories. Private reposi
 
 ________
 [Installation](#installation) 
-- [Authentication](#authentication)
+- [Authentication](#authentication-with-pat)
 - [Workflow Setup](#workflow-setup)
 
 [View Results](#view-results)
@@ -21,24 +21,38 @@ ________
 - [Workflow Example](#workflow-example)
 ________
 
+The following GitHub triggers are supported: `push`, `schedule` (default branch only).
+
+The `pull_request` and `workflow_dispatch` triggers are experimental.
+
+Running the Scorecard action on a fork repository is not supported.
+
+Private repositories need a Personal Access Token (PAT).
+
+Public repositories need a PAT to enable the [Branch-Protection](https://github.com/ossf/scorecard/blob/main/docs/checks.md#branch-protection) check. Without a PAT, Scorecards will run all checks except the Branch-Protection check.
+
+GitHub Enterprise repositories are not supported.
+
 ## Installation
-To install the Scorecards GitHub Action, you need to:
+The Scorecards Action is installed by setting up a workflow on the GitHub UI.
 
-1) Create a Personal Access Token (PAT) for authentication and save the token value as a repository secret; 
-    
-    (Note: If you have already installed Scorecards on your repository from the command line, you can reuse your existing PAT for the repository secret. If you no longer have access to the PAT, though, simply create a new one.)
-    
-3) Set up the workflow via the GitHub UI
+**Private repositories**: Scorecards requires authentication using a Personal Access Token (PAT). So if you install Scorecards on a private repository, you will need to follow the optional Authentication step. If you don't, Scorecards will fail to run.
 
-### Authentication
+**Public repositories**: One Scorecards check ([Branch-Protection](https://github.com/ossf/scorecard/blob/main/docs/checks.md#branch-protection)) requires authentication using a Personal Access Token (PAT). If you want all Scorecards checks to run on a public repository, you will need to follow the optional Authentication step. If you don't, all checks will run except Branch-Protection.
+
+**Optional Authentication**: Create a Personal Access Token (PAT) for authentication and save the token value as a repository secret. (Note: If you have already installed Scorecards on your repository from the command line, you can reuse your existing PAT for the repository secret. If you no longer have access to the PAT, though, simply create a new one.)
+
+**Required**: Set up the workflow via the GitHub UI - see [Workflow Setup](#workflow-setup)
+
+### Authentication with PAT
 1. [Create a Personal Access Token](https://github.com/settings/tokens/new?scopes=public_repo,read:org,read:repo_hook,read:discussion) with the following read permissions:
     - Note: `Read-only token for OSSF Scorecard Action - myorg/myrepo` (Note: replace `myorg/myrepo` with the names of your organization and repository so you can keep track of your tokens.)
     - Expiration: `No expiration`
     - Scopes: 
-        * `repo > public_repo`
-        * `admin:org > read:org`
-        * `admin:repo_hook > read:repo_hook`
-        * `write:discussion > read:discussion`
+        * `repo > public_repo`                  Required to read [Branch-Protection](https://github.com/ossf/scorecard/blob/main/docs/checks.md#branch-protection) settings. **Note**: for private repositories, you need scope `repo`.
+        * `admin:org > read:org`                Optional: not used in current implementation.
+        * `admin:repo_hook > read:repo_hook`    Optional: needed for the experimental [Webhook](https://github.com/ossf/scorecard/blob/main/docs/checks.md#webhooks) check.
+        * `write:discussion > read:discussion`  Optional: not used in current implementation.
 
 ![image](/images/tokenscopes.png)
 
@@ -77,23 +91,23 @@ Then click "Add More Scanning Tools."
 
 ## View Results
 
-To view a list of results from each Scorecards Action run, go to the Security tab and click "Code Scanning Alerts." Click on the individual alerts for more information, including remediation instructions. You will need to click "Show more" to expand the full remediation instructions.
+The workflow is preconfigured to run on every repository contribution. After making a code change, you can view a list of results by going to the Security tab and clicking "Code Scanning Alerts" (it can take a couple minutes for the run to complete and the results to show up). Click on the individual alerts for more information, including remediation instructions. You will need to click "Show more" to expand the full remediation instructions.
 
 ![image](/images/remediation.png)
 
 ### Verify Runs 
 The workflow is preconfigured to run on every repository contribution. 
 
-To verify that the Action is running successfully, click the repository's Actions tab to see the status of all recent workflow runs. 
+To verify that the Action is running successfully, click the repository's Actions tab to see the status of all recent workflow runs. This tab will also show the logs, which can help you troubleshoot if the run failed.
 
 ![image](/images/actionconfirm.png)
 
 ### Troubleshooting 
-If the run has failed, the most likely reason is an authentication failure. Confirm that the Personal Access Token is saved as an encrypted secret within the same repository (see [Authentication](#authentication)). 
+If the run has failed, the most likely reason is an authentication failure. If you are running Scorecards on a private repository, confirm that the Personal Access Token is saved as an encrypted secret within the same repository (see [Authentication](#authentication)). In addition, provide the `repo` scope to your PAT. (The `repo > public_repo` scope only provides access to public repositories).
 
-If you install Scorecard on a repository owned by an organization that uses [SAML SSO](https://docs.github.com/en/enterprise-cloud@latest/authentication/authenticating-with-saml-single-sign-on/about-authentication-with-saml-single-sign-on) or if you see `403 Resource protected by organization SAML enforcement` in the logs, be sure to [enable SSO](https://docs.github.com/en/enterprise-cloud@latest/authentication/authenticating-with-saml-single-sign-on/authorizing-a-personal-access-token-for-use-with-saml-single-sign-on) for your PAT token (see [Authentication](#authentication)).
+If you install Scorecards on a repository owned by an organization that uses [SAML SSO](https://docs.github.com/en/enterprise-cloud@latest/authentication/authenticating-with-saml-single-sign-on/about-authentication-with-saml-single-sign-on) or if you see `403 Resource protected by organization SAML enforcement` in the logs, be sure to [enable SSO](https://docs.github.com/en/enterprise-cloud@latest/authentication/authenticating-with-saml-single-sign-on/authorizing-a-personal-access-token-for-use-with-saml-single-sign-on) for your PAT token (see [Authentication](#authentication)).
 
-If the PAT is saved as an encrypted secret and the run is still failing, confirm that you have not made any changes to the workflow yaml file that affected the syntax. Review the [workflow example](#workflow-example) and reset to the default values if necessary.  
+If you use a PAT saved as an encrypted secret and the run is still failing, confirm that you have not made any changes to the workflow yaml file that affected the syntax. Review the [workflow example](#workflow-example) and reset to the default values if necessary.
 
 ## Manual Action Setup
     
@@ -108,7 +122,7 @@ First, [create a new file](https://docs.github.com/en/repositories/working-with-
 | ----- | -------- | ----------- |
 | `result_file` | yes | The file that contains the results. |
 | `result_format` | yes | The format in which to store the results [json \| sarif]. For GitHub's scanning dashboard, select `sarif`. |
-| `repo_token` | yes | PAT token with read-only access. Follow [these steps](#pat-token-creation) to create it. |
+| `repo_token` | yes | PAT token with read-only access. Follow [these steps](#authentication-with-pat) to create it. |
 | `publish_results` | recommended | This will allow you to display a badge on your repository to show off your hard work (release scheduled for Q2'22). See details [here](#publishing-results).|
 
 ### Publishing Results
@@ -147,6 +161,8 @@ jobs:
     permissions:
       # Needed to upload the results to code-scanning dashboard.
       security-events: write
+      # Used to receive a badge. (Upcoming feature)
+      id-token: write
       actions: read
       contents: read
     
@@ -161,9 +177,12 @@ jobs:
         with:
           results_file: results.sarif
           results_format: sarif
-          # Read-only PAT token. To create it,
-          # follow the steps in https://github.com/ossf/scorecard-action#pat-token-creation.
-          repo_token: ${{ secrets.SCORECARD_READ_TOKEN }}
+          # (Optional) Read-only PAT token. Uncomment the `repo_token` line below if:
+          # - you want to enable the Branch-Protection check on a *public* repository, or
+          # - you are installing Scorecards on a *private* repository
+          # To create the PAT, follow the steps in https://github.com/ossf/scorecard-action#authentication-with-pat.
+          # repo_token: ${{ secrets.SCORECARD_READ_TOKEN }}
+
           # Publish the results for public repositories to enable scorecard badges. For more details, see
           # https://github.com/ossf/scorecard-action#publishing-results. 
           # For private repositories, `publish_results` will automatically be set to `false`, regardless 

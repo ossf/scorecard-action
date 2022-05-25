@@ -1,3 +1,19 @@
+// Copyright 2022 OpenSSF Authors
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package signing
 
 import (
@@ -70,19 +86,17 @@ func GetJSONScorecardResults() ([]byte, error) {
 }
 
 // ProcessSignature calls scorecard-api to process & upload signed scorecard results.
-func ProcessSignature(sarifPayload, jsonPayload []byte, repoName, repoRef string) error {
+func ProcessSignature(jsonPayload []byte, repoName, repoRef string) error {
 	// Prepare HTTP request body for scorecard-webapp-api call.
 	resultsPayload := struct {
-		SarifOutput string
-		JSONOutput  string
+		JSONOutput string
 	}{
-		SarifOutput: string(sarifPayload),
-		JSONOutput:  string(jsonPayload),
+		JSONOutput: string(jsonPayload),
 	}
 
 	payloadBytes, err := json.Marshal(resultsPayload)
 	if err != nil {
-		return fmt.Errorf("reading scorecard json results from file: %w", err)
+		return fmt.Errorf("marshalling json results: %w", err)
 	}
 
 	// Call scorecard-webapp-api to process and upload signature.
