@@ -39,6 +39,9 @@ COPY --from=builder /workspace/scorecard /scorecard
 # Copy a test policy for local testing.
 COPY --from=builder /workspace/policies/template.yml /policy.yml
 
+# Copy event path data for testing.
+COPY --from=builder /workspace/options/testdata /testdata
+
 # Our entry point.
 # Note: the file is executable in the repo
 # and permission carry over to the image.
