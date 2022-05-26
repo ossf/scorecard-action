@@ -146,6 +146,7 @@ on:
   # Only the default branch is supported.
   branch_protection_rule:
   schedule:
+    # Weekly on Saturdays.
     - cron: '30 1 * * 6'
   push:
     branches: [ main, master ]
