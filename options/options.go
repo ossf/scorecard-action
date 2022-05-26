@@ -89,6 +89,11 @@ func New() (*Options, error) {
 		return opts, fmt.Errorf("parsing entrypoint env vars: %w", err)
 	}
 
+	// This section restores functionality that was removed in
+	// https://github.com/ossf/scorecard/pull/1898.
+	// TODO(options): Consider moving this to its own function.
+	opts.ScorecardOpts.Repo = opts.GithubRepository
+
 	if err := opts.Initialize(); err != nil {
 		return opts, fmt.Errorf(
 			"initializing scorecard-action options: %w",
