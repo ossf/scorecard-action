@@ -334,3 +334,43 @@ func TestPrint(t *testing.T) {
 		})
 	}
 }
+
+func TestSetPublishResults(t *testing.T) {
+	tests := []struct {
+		name        string
+		privateRepo string
+		userInput   bool
+		want        bool
+	}{
+		{
+			name: "DefaultNoInput",
+			want: false,
+		},
+		{
+			name:        "InputTruePrivateRepo",
+			privateRepo: "true",
+			userInput:   true,
+			want:        false,
+		},
+		{
+			name:        "InvalidValueForPrivateRepo",
+			privateRepo: "invalid-value",
+			want:        false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			opts := &Options{
+				ScorecardOpts: options.New(),
+			}
+			opts.PrivateRepoStr = tt.privateRepo
+
+			opts.SetPublishResults()
+			got := opts.PublishResults
+
+			if !cmp.Equal(tt.want, got) {
+				t.Errorf("New(): -want, +got:\n%s", cmp.Diff(tt.want, got))
+			}
+		})
+	}
+}
