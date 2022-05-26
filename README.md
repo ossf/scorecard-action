@@ -146,9 +146,9 @@ on:
   # Only the default branch is supported.
   branch_protection_rule:
   schedule:
-    - cron: $cron-weekly
+    - cron: '30 1 * * 6'
   push:
-    branches: [ $default-branch ]
+    branches: [ main, master ]
 
 # Declare default permissions as read only.
 permissions: read-all
