@@ -142,14 +142,13 @@ Note: if you disable this option, the results of the Scorecards Action run will 
 
 ```yml
 name: Scorecards supply-chain security
-on: 
+on:
   # Only the default branch is supported.
   branch_protection_rule:
   schedule:
-    # Weekly on Saturdays.
-    - cron: '30 1 * * 6'
+    - cron: $cron-weekly
   push:
-    branches: [ main, master ]
+    branches: [ $default-branch ]
 
 # Declare default permissions as read only.
 permissions: read-all
@@ -168,7 +167,7 @@ jobs:
     
     steps:
       - name: "Checkout code"
-        uses: actions/checkout@ec3a7ce113134d7a93b817d10a8272cb61118579 # v2.4.0
+        uses: actions/checkout@a12a3943b4bdde767164f792f33f40b04645d846 # v3.0.0
         with:
           persist-credentials: false
 
@@ -192,7 +191,7 @@ jobs:
       # Upload the results as artifacts (optional). Commenting out will disable uploads of run results in SARIF
       # format to the repository Actions tab.
       - name: "Upload artifact"
-        uses: actions/upload-artifact@82c141cc518b40d92cc801eee768e7aafc9c2fa2 # v2.3.1
+        uses: actions/upload-artifact@6673cd052c4cd6fcf4b4e6e60ea986c889389535 # v3.0.0
         with:
           name: SARIF file
           path: results.sarif
