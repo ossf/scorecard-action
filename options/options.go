@@ -66,9 +66,10 @@ type Options struct {
 	PrivateRepoStr string `env:"SCORECARD_PRIVATE_REPOSITORY"`
 
 	// Input parameters
-	InputResultsFile    string `env:"INPUT_RESULTS_FILE"`
-	InputResultsFormat  string `env:"INPUT_RESULTS_FORMAT"`
-	InputPublishResults string `env:"INPUT_PUBLISH_RESULTS"`
+	InputResultsFile   string `env:"INPUT_RESULTS_FILE"`
+	InputResultsFormat string `env:"INPUT_RESULTS_FORMAT"`
+
+	PublishResults bool
 }
 
 const (
@@ -192,7 +193,7 @@ func (o *Options) Print() {
 	fmt.Printf("Repository: %s\n", o.ScorecardOpts.Repo)
 	fmt.Printf("Fork repository: %s\n", o.IsForkStr)
 	fmt.Printf("Private repository: %s\n", o.PrivateRepoStr)
-	fmt.Printf("Publication enabled: %+v\n", o.ScorecardOpts.PublishResults)
+	fmt.Printf("Publication enabled: %+v\n", o.PublishResults)
 	fmt.Printf("Format: %s\n", o.ScorecardOpts.Format)
 	fmt.Printf("Policy file: %s\n", o.ScorecardOpts.PolicyFile)
 	fmt.Printf("Default branch: %s\n", o.DefaultBranch)
@@ -211,9 +212,7 @@ func (o *Options) SetPublishResults() {
 		)
 	}
 
-	if privateRepo {
-		o.ScorecardOpts.PublishResults = false
-	}
+	o.PublishResults = o.PublishResults && !privateRepo
 }
 
 // SetRepoInfo gets the path to the GitHub event and sets the
