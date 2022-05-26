@@ -16,8 +16,11 @@ package main
 
 import (
 	"log"
+	"os"
 
 	"github.com/ossf/scorecard-action/entrypoint"
+	"github.com/ossf/scorecard-action/options"
+	"github.com/ossf/scorecard-action/signing"
 )
 
 func main() {
@@ -28,5 +31,25 @@ func main() {
 
 	if err := action.Execute(); err != nil {
 		log.Fatalf("error during command execution: %v", err)
+	}
+
+	if os.Getenv(options.EnvInputPublishResults) == "true" {
+		// Get json results by re-running scorecard.
+		jsonPayload, err := signing.GetJSONScorecardResults()
+		if err != nil {
+			log.Fatalf("error generating json scorecard results: %v", err)
+		}
+
+		// Sign json results.
+		if err = signing.SignScorecardResult("results.json"); err != nil {
+			log.Fatalf("error signing scorecard json results: %v", err)
+		}
+
+		// Processes json results.
+		repoName := os.Getenv(options.EnvGithubRepository)
+		repoRef := os.Getenv(options.EnvGithubRef)
+		if err := signing.ProcessSignature(jsonPayload, repoName, repoRef); err != nil {
+			log.Fatalf("error processing signature: %v", err)
+		}
 	}
 }

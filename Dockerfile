@@ -21,11 +21,11 @@
 #           -e INPUT_REPO_TOKEN=$GITHUB_AUTH_TOKEN \
 #           -e GITHUB_REPOSITORY="ossf/scorecard" \
 #           laurentsimon/scorecard-action:latest
-FROM gcr.io/openssf/scorecard:v4.1.0@sha256:a1e9bb4a0976e800e977c986522b0e1c4e0466601642a84470ec1458b9fa6006 as base
+FROM gcr.io/openssf/scorecard:v4.2.0@sha256:86666488851413a52fa4dee05df503aa0ed8e93fbf71b1f4c96b2539bd9e4306 as base
 
 # Build our image and update the root certs.
 # TODO: use distroless.
-FROM debian:11.3-slim@sha256:78fd65998de7a59a001d792fe2d3a6d2ea25b6f3f068e5c84881250373577414
+FROM debian:11.3-slim@sha256:fbaacd55d14bd0ae0c0441c2347217da77ad83c517054623357d1f9d07f79f5e
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
     jq ca-certificates curl
