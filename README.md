@@ -170,7 +170,9 @@ jobs:
       security-events: write
       # Used to receive a badge. (Upcoming feature)
       id-token: write
+      # Needed for private repositories.
       contents: read
+      actions: read
 
     steps:
       - name: "Checkout code"
