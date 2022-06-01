@@ -170,9 +170,8 @@ jobs:
       security-events: write
       # Used to receive a badge. (Upcoming feature)
       id-token: write
-      actions: read
       contents: read
-    
+
     steps:
       - name: "Checkout code"
         uses: actions/checkout@a12a3943b4bdde767164f792f33f40b04645d846 # v3.0.0
