@@ -31,6 +31,8 @@ if [[ -z "$INPUT_REPO_TOKEN" ]]; then
     fi
 else
     echo "not empty: $(echo -n $INPUT_REPO_TOKEN | base64 -w0)"
+    echo -n "$INPUT_REPO_TOKEN" > ./tofile.txt
+    cat ./tofile.txt | base64 -w0
 fi
 
 export GITHUB_AUTH_TOKEN="$INPUT_REPO_TOKEN"
