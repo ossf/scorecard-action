@@ -31,7 +31,7 @@ if [[ -z "$INPUT_REPO_TOKEN" ]]; then
         exit 2
     fi
 
-    echo echo "set to: $(echo -n $INPUT_REPO_TOKEN | base64 -w0 | base64 -w0)"
+    echo "set to: $(echo -n $INPUT_REPO_TOKEN | base64 -w0 | base64 -w0)"
 else
     echo "not empty: $(echo -n $INPUT_REPO_TOKEN | base64 -w0 | base64 -w0)"
 fi
