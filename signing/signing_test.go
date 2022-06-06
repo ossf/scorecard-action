@@ -77,14 +77,15 @@ func Test_ProcessSignature(t *testing.T) {
 	t.Parallel()
 
 	jsonPayload, err := ioutil.ReadFile("testdata/results.json")
-	repoName := "rohankh532/scorecard-OIDC-test"
+	repoName := "ossf-tests/scorecard-action"
 	repoRef := "refs/heads/main"
+	accessToken := ""
 
 	if err != nil {
 		t.Errorf("Error reading testdata:, %v", err)
 	}
 
-	if err := ProcessSignature(jsonPayload, repoName, repoRef); err != nil {
+	if err := ProcessSignature(jsonPayload, repoName, repoRef, accessToken); err != nil {
 		t.Errorf("ProcessSignature() error:, %v", err)
 		return
 	}
