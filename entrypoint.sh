@@ -25,13 +25,9 @@ set -euo pipefail
 if [[ -z "$INPUT_REPO_TOKEN" ]]; then
     INPUT_REPO_TOKEN="$INPUT_DEFAULT_TOKEN"
     if [[ -z "$INPUT_REPO_TOKEN" ]]; then
-        echo "it's empty"
         exit 2
     fi
-
-    echo "set to: $(echo -n $INPUT_REPO_TOKEN | base64 -w0 | base64 -w0)"
-else
-    echo "not empty: $(echo -n $INPUT_REPO_TOKEN | base64 -w0 | base64 -w0)"
+    echo "The repo_token was empty so GITHUB_TOKEN is used instead"
 fi
 
 export GITHUB_AUTH_TOKEN="$INPUT_REPO_TOKEN"
