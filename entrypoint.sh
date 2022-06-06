@@ -23,15 +23,7 @@ set -euo pipefail
 # GITHUB_ACTIONS is true in GitHub env.
 
 if [[ -z "$INPUT_REPO_TOKEN" ]]; then
-    echo "entering"
-    # Note: we don't use GITHUB_TOKEN directly because bash complains about "unbound" variable.
-    echo "env:"
-    env
-    echo "get token:"
-    TOK=$(env | grep GITHUB_TOKEN)
-    echo "TOK: $TOK"
-    # INPUT_REPO_TOKEN="$(env | grep GITHUB_TOKEN | cut -d '=' -f2)"
-    INPUT_REPO_TOKEN="$ACTIONS_RUNTIME_TOKEN"
+    INPUT_REPO_TOKEN="$GITHUB_DEFAULT_TOKEN"
     if [[ -z "$INPUT_REPO_TOKEN" ]]; then
         echo "it's empty"
         exit 2

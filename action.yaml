@@ -37,6 +37,11 @@ inputs:
     required: false
     default: false
 
+  default_token:
+    description: "INPUT: Default GitHub token with read access. (Internal purpose only, not intended for developers to set)."
+    required: false
+    default: ${{ github.token }}
+
 branding:
   icon: "mic"
   color: "white"
