@@ -25,7 +25,7 @@ set -euo pipefail
 if [[ -z "$INPUT_REPO_TOKEN" ]]; then
     echo "entering"
     # Note: we don't use GITHUB_TOKEN directly because bash complains about "unbound" variable.
-    INPUT_REPO_TOKEN="env | grep GITHUB_TOKEN | cut -d '=' -f2"
+    INPUT_REPO_TOKEN="$(env | grep GITHUB_TOKEN | cut -d '=' -f2)"
     if [[ -z "$INPUT_REPO_TOKEN" ]]; then
         echo "it's empty"
         exit 2
