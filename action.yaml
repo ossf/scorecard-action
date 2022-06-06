@@ -38,7 +38,7 @@ inputs:
     default: false
 
   default_token:
-    description: "INPUT: Default GitHub token. (Internal purpose only, not intended for developers to set. Useful for pull requests configured with a PAT)."
+    description: "INPUT: Default GitHub token. (Internal purpose only, not intended for developers to set. Used for pull requests configured with a PAT)."
     required: false
     default: ${{ github.token }}
 
