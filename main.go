@@ -48,7 +48,8 @@ func main() {
 		// Processes json results.
 		repoName := os.Getenv(options.EnvGithubRepository)
 		repoRef := os.Getenv(options.EnvGithubRef)
-		if err := signing.ProcessSignature(jsonPayload, repoName, repoRef); err != nil {
+		accessToken := os.Getenv(options.EnvInputRepoToken)
+		if err := signing.ProcessSignature(jsonPayload, repoName, repoRef, accessToken); err != nil {
 			log.Fatalf("error processing signature: %v", err)
 		}
 	}

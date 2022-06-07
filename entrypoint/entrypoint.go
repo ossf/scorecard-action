@@ -49,6 +49,13 @@ func New() (*cobra.Command, error) {
 		"path to output results to",
 	)
 
+	actionCmd.Flags().BoolVar(
+		&opts.PublishResults,
+		"publish",
+		opts.PublishResults,
+		"if set, results will be published (for public repositories only)",
+	)
+
 	// Adapt scorecard's PreRunE to support an output file
 	// TODO(scorecard): Move this into scorecard
 	var out, stdout *os.File
