@@ -24,6 +24,7 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
+	"net/url"
 	"os"
 	"time"
 
@@ -86,12 +87,17 @@ func GetJSONScorecardResults() ([]byte, error) {
 }
 
 // ProcessSignature calls scorecard-api to process & upload signed scorecard results.
-func ProcessSignature(jsonPayload []byte, repoName, repoRef string) error {
+func ProcessSignature(jsonPayload []byte, repoName, repoRef, accessToken string) error {
 	// Prepare HTTP request body for scorecard-webapp-api call.
+	// TODO: Use the `ScorecardResult` struct from `scorecard-webapp`.
 	resultsPayload := struct {
-		JSONOutput string
+		Result      string `json:"result"`
+		Branch      string `json:"branch"`
+		AccessToken string `json:"accessToken"`
 	}{
-		JSONOutput: string(jsonPayload),
+		Result:      string(jsonPayload),
+		Branch:      repoRef,
+		AccessToken: accessToken,
 	}
 
 	payloadBytes, err := json.Marshal(resultsPayload)
@@ -101,13 +107,15 @@ func ProcessSignature(jsonPayload []byte, repoName, repoRef string) error {
 
 	// Call scorecard-webapp-api to process and upload signature.
 	// Setup HTTP request and context.
-	url := "https://api.securityscorecards.dev/verify"
-	req, err := http.NewRequest("POST", url, bytes.NewBuffer(payloadBytes)) //nolint
+	rawURL := fmt.Sprintf("https://api.securityscorecards.dev/projects/github.com/%s", repoName)
+	parsedURL, err := url.Parse(rawURL)
+	if err != nil {
+		return fmt.Errorf("parsing Scorecard API endpoint: %w", err)
+	}
+	req, err := http.NewRequest("POST", parsedURL.String(), bytes.NewBuffer(payloadBytes)) //nolint
 	if err != nil {
 		return fmt.Errorf("creating HTTP request: %w", err)
 	}
-	req.Header.Set("X-Repository", repoName)
-	req.Header.Set("X-Branch", repoRef)
 
 	ctx, cancel := context.WithTimeout(req.Context(), 10*time.Second)
 	defer cancel()
@@ -121,7 +129,7 @@ func ProcessSignature(jsonPayload []byte, repoName, repoRef string) error {
 	}
 	defer resp.Body.Close()
 
-	if resp.StatusCode != 200 {
+	if resp.StatusCode != http.StatusCreated {
 		bodyBytes, err := io.ReadAll(resp.Body)
 		if err != nil {
 			return fmt.Errorf("reading response body: %w", err)

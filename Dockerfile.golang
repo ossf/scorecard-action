@@ -21,11 +21,24 @@
 #           -e INPUT_REPO_TOKEN=$GITHUB_AUTH_TOKEN \
 #           -e GITHUB_REPOSITORY="ossf/scorecard" \
 #           laurentsimon/scorecard-action:latest
-FROM gcr.io/openssf/scorecard:v4.3.1@sha256:06e3ddde7f63619813c5749389010b596e753fa070c524a42fd0de756f96970f as base
 
-# Build our image and update the root certs.
-# TODO: use distroless.
-FROM debian:11.3-slim@sha256:06a93cbdd49a265795ef7b24fe374fee670148a7973190fb798e43b3cf7c5d0f
+#v1.17 go
+FROM golang@sha256:bd9823cdad5700fb4abe983854488749421d5b4fc84154c30dae474100468b85 AS base
+WORKDIR /src
+ENV CGO_ENABLED=0
+COPY go.* ./
+RUN go mod download
+COPY . ./
+
+FROM base AS build
+ARG TARGETOS
+ARG TARGETARCH
+RUN CGO_ENABLED=0 make build
+
+# TODO: use distroless:
+# FROM gcr.io/distroless/base:nonroot@sha256:02f667185ccf78dbaaf79376b6904aea6d832638e1314387c2c2932f217ac5cb
+FROM debian:11.3-slim@sha256:78fd65998de7a59a001d792fe2d3a6d2ea25b6f3f068e5c84881250373577414
+
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
     # For debugging.
