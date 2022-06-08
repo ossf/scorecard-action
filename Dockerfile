@@ -12,15 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# Testing: docker run -e GITHUB_REF=refs/heads/main \
-#           -e GITHUB_EVENT_NAME=branch_protection_rule \
-#           -e INPUT_RESULTS_FORMAT=sarif \
-#           -e INPUT_RESULTS_FILE=results.sarif \
-#           -e GITHUB_WORKSPACE=/ \
-#           -e INPUT_POLICY_FILE="/policy.yml" \
-#           -e INPUT_REPO_TOKEN=$GITHUB_AUTH_TOKEN \
-#           -e GITHUB_REPOSITORY="ossf/scorecard" \
-#           laurentsimon/scorecard-action:latest
+# See docs/development.md for details on how to test this image.
+
 FROM gcr.io/openssf/scorecard:v4.3.1@sha256:06e3ddde7f63619813c5749389010b596e753fa070c524a42fd0de756f96970f as base
 
 # Build our image and update the root certs.
