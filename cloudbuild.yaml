@@ -19,3 +19,4 @@ steps:
     '-t', 'gcr.io/openssf/scorecard-action:$COMMIT_SHA',
     '-f', 'Dockerfile.golang']
 images: ['gcr.io/openssf/scorecard-action']
+timeout: '1600s'
