@@ -26,7 +26,7 @@ import (
 	"github.com/caarlos0/env/v6"
 
 	"github.com/ossf/scorecard-action/github"
-	"github.com/ossf/scorecard/v4/options"
+	scopts "github.com/ossf/scorecard/v4/options"
 )
 
 var (
@@ -41,7 +41,7 @@ var (
 // Options are options for running scorecard via GitHub Actions.
 type Options struct {
 	// Scorecard options.
-	ScorecardOpts *options.Options
+	ScorecardOpts *scopts.Options
 
 	// Scorecard command-line options.
 	EnabledChecks string `env:"ENABLED_CHECKS"`
@@ -74,21 +74,22 @@ type Options struct {
 
 const (
 	defaultScorecardPolicyFile = "/policy.yml"
-	formatSarif                = options.FormatSarif
+	formatSarif                = scopts.FormatSarif
 )
 
 // New creates a new options set for running scorecard via GitHub Actions.
 func New() (*Options, error) {
 	// Enable scorecard command to use SARIF format.
-	os.Setenv(options.EnvVarEnableSarif, trueStr)
+	os.Setenv(scopts.EnvVarEnableSarif, trueStr)
 
 	opts := &Options{
-		ScorecardOpts: options.New(),
+		ScorecardOpts: scopts.New(),
 	}
 	if err := env.Parse(opts); err != nil {
 		return opts, fmt.Errorf("parsing entrypoint env vars: %w", err)
 	}
 
+	opts.ScorecardOpts.ShowDetails = true
 	// This section restores functionality that was removed in
 	// https://github.com/ossf/scorecard/pull/1898.
 	// TODO(options): Consider moving this to its own function.
@@ -116,7 +117,7 @@ func New() (*Options, error) {
 	}
 
 	// TODO(scorecard): Reset commit options. Fix this in scorecard.
-	opts.ScorecardOpts.Commit = options.DefaultCommit
+	opts.ScorecardOpts.Commit = scopts.DefaultCommit
 
 	if err := opts.ScorecardOpts.Validate(); err != nil {
 		return opts, fmt.Errorf("validating scorecard options: %w", err)
