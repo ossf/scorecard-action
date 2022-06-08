@@ -38,19 +38,14 @@ The actions primarily run out of https://github.com/ossf-tests organization.
 
 ## Status
 
-Testcase           | Repository                                                                  | Status.
------------------- | --------------------------------------------------------------------------- | -------
-Fork               | https://github.com/ossf-tests/scorecard-action                              | [![Fork](https://github.com/ossf-tests/scorecard-action/actions/workflows/scorecards.yml/badge.svg)](https://github.com/ossf-tests/scorecard-action/actions/workflows/scorecards.yml)
-Non-main-branch    | https://github.com/ossf-tests/scorecard-action-non-main-branch              | [![non-main-branch](https://github.com/ossf-tests/scorecard-action-non-main-branch/actions/workflows/scorecard-analysis.yml/badge.svg?branch=other)](https://github.com/ossf-tests/scorecard-action-non-main-branch/actions/workflows/scorecard-analysis.yml)
-Private repository | https://github.com/test-organization-ls/scorecard-action-private-repo-tests | [![Scorecards supply-chain security](https://github.com/test-organization-ls/scorecard-action-private-repo-tests/actions/workflows/scorecard.yml/badge.svg)](https://github.com/test-organization-ls/scorecard-action-private-repo-tests/actions/workflows/scorecard.yml)
-
-| Fork-golang-staging | https://github.com/ossf-tests/scorecard-action
-|[![Scorecards supply-chain security](https://github.com/ossf-tests/scorecard-action/actions/workflows/scorecards-golang.yml/badge.svg)](https://github.com/ossf-tests/scorecard-action/actions/workflows/scorecards-golang.yml)
-| Non-main-branch-golang-staging |
-https://github.com/ossf-tests/scorecard-action-non-main-branch |
-[![Scorecards supply-chain security golang](https://github.com/ossf-tests/scorecard-action-non-main-branch/actions/workflows/scorecard-golang.yml/badge.svg)](https://github.com/ossf-tests/scorecard-action-non-main-branch/actions/workflows/scorecard-golang.yml)
-|Private
-repository-golang-staging|https://github.com/test-organization-ls/scorecard-action-private-repo-tests|[![Scorecards supply-chain security golang](https://github.com/test-organization-ls/scorecard-action-private-repo-tests/actions/workflows/scorecards-golang.yml/badge.svg)](https://github.com/test-organization-ls/scorecard-action-private-repo-tests/actions/workflows/scorecards-golang.yml)
+Testcase           | Action | Repository                                                                  | Status.
+------------------ | ------ | --------------------------------------------------------------------------- | -------
+Fork               | Bash   | https://github.com/ossf-tests/scorecard-action                              | [![Fork](https://github.com/ossf-tests/scorecard-action/actions/workflows/scorecards-bash.yml/badge.svg)](https://github.com/ossf-tests/scorecard-action/actions/workflows/scorecards-bash.yml)
+Fork               | Golang | https://github.com/ossf-tests/scorecard-action                              | [![Fork](https://github.com/ossf-tests/scorecard-action/actions/workflows/scorecards-golang.yml/badge.svg)](https://github.com/ossf-tests/scorecard-action/actions/workflows/scorecards-golang.yml)
+Non-main-branch    | Bash   | https://github.com/ossf-tests/scorecard-action-non-main-branch              | [![non-main-branch](https://github.com/ossf-tests/scorecard-action-non-main-branch/actions/workflows/scorecards-bash.yml/badge.svg)](https://github.com/ossf-tests/scorecard-action-non-main-branch/actions/workflows/scorecards-bash.yml)
+Non-main-branch    | Golang | https://github.com/ossf-tests/scorecard-action-non-main-branch              | [![non-main-branch](https://github.com/ossf-tests/scorecard-action-non-main-branch/actions/workflows/scorecards-golang.yml/badge.svg)](https://github.com/ossf-tests/scorecard-action-non-main-branch/actions/workflows/scorecards-golang.yml)
+Private repository | Bash   | https://github.com/test-organization-ls/scorecard-action-private-repo-tests | [![Scorecards supply-chain security](https://github.com/test-organization-ls/scorecard-action-private-repo-tests/actions/workflows/scorecard.yml/badge.svg)](https://github.com/test-organization-ls/scorecard-action-private-repo-tests/actions/workflows/scorecard.yml)
+Private repository | Golang | https://github.com/test-organization-ls/scorecard-action-private-repo-tests | [![Scorecards supply-chain security](https://github.com/test-organization-ls/scorecard-action-private-repo-tests/actions/workflows/scorecards-golang.yml/badge.svg)](https://github.com/test-organization-ls/scorecard-action-private-repo-tests/actions/workflows/scorecards-golang.yml)
 
 ## Diff between golang-staging branch and main
 
