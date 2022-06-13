@@ -6,7 +6,7 @@ require (
 	github.com/caarlos0/env/v6 v6.9.3
 	github.com/google/go-cmp v0.5.8
 	github.com/gregjones/httpcache v0.0.0-20190611155906-901d90724c79
-	github.com/ossf/scorecard/v4 v4.3.1
+	github.com/ossf/scorecard/v4 v4.4.0
 	github.com/sigstore/cosign v1.8.0
 	github.com/sirupsen/logrus v1.8.1
 	github.com/spf13/cobra v1.4.0
