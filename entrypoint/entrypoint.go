@@ -17,12 +17,13 @@ package entrypoint
 import (
 	"errors"
 	"fmt"
+	"io"
 	"os"
 
 	"github.com/spf13/cobra"
 
 	"github.com/ossf/scorecard-action/options"
-	"github.com/ossf/scorecard/v4/cmd"
+	sccmd "github.com/ossf/scorecard/v4/cmd"
 	scopts "github.com/ossf/scorecard/v4/options"
 )
 
@@ -33,22 +34,20 @@ func New() (*cobra.Command, error) {
 	if err != nil {
 		return nil, fmt.Errorf("creating new options: %w", err)
 	}
-
-	if err := opts.Initialize(); err != nil {
-		return nil, fmt.Errorf("initializing options: %w", err)
+	if err := opts.Validate(); err != nil {
+		return nil, fmt.Errorf("validating options: %w", err)
 	}
+	opts.Print()
 
+	// Adapt Scorecard CMD.
 	scOpts := opts.ScorecardOpts
-
-	actionCmd := cmd.New(scOpts)
-
+	actionCmd := sccmd.New(scOpts)
 	actionCmd.Flags().StringVar(
 		&scOpts.ResultsFile,
 		"output-file",
 		scOpts.ResultsFile,
 		"path to output results to",
 	)
-
 	actionCmd.Flags().BoolVar(
 		&opts.PublishResults,
 		"publish",
@@ -60,11 +59,6 @@ func New() (*cobra.Command, error) {
 	// TODO(scorecard): Move this into scorecard
 	var out, stdout *os.File
 	actionCmd.PreRunE = func(cmd *cobra.Command, args []string) error {
-		err := scOpts.Validate()
-		if err != nil {
-			return fmt.Errorf("validating options: %w", err)
-		}
-
 		// TODO: the results file should be completed and validated by the time we get it.
 		if scOpts.ResultsFile != "" {
 			var err error
@@ -81,12 +75,15 @@ func New() (*cobra.Command, error) {
 			os.Stdout = out
 			actionCmd.SetOut(out)
 		}
-
 		return nil
 	}
 
 	actionCmd.PersistentPostRun = func(cmd *cobra.Command, args []string) {
 		if out != nil {
+			if _, err = out.Seek(0, io.SeekStart); err == nil {
+				// nolint:errcheck
+				_, _ = io.Copy(stdout, out)
+			}
 			_ = out.Close()
 		}
 		os.Stdout = stdout

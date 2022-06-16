@@ -26,7 +26,18 @@ import (
 	"github.com/caarlos0/env/v6"
 
 	"github.com/ossf/scorecard-action/github"
+	"github.com/ossf/scorecard/v4/checks"
 	scopts "github.com/ossf/scorecard/v4/options"
+)
+
+const (
+	defaultScorecardPolicyFile = "/policy.yml"
+	trueStr                    = "true"
+	formatSarif                = scopts.FormatSarif
+
+	pullRequestEvent      = "pull_request"
+	pushEvent             = "push"
+	branchProtectionEvent = "branch_protection_rule"
 )
 
 var (
@@ -34,8 +45,6 @@ var (
 	errGithubEventPathEmpty       = errors.New("GitHub event path is empty")
 	errResultsPathEmpty           = errors.New("results path is empty")
 	errOnlyDefaultBranchSupported = errors.New("only default branch is supported")
-
-	trueStr = "true"
 )
 
 // Options are options for running scorecard via GitHub Actions.
@@ -72,97 +81,18 @@ type Options struct {
 	PublishResults bool
 }
 
-const (
-	defaultScorecardPolicyFile = "/policy.yml"
-	formatSarif                = scopts.FormatSarif
-)
-
 // New creates a new options set for running scorecard via GitHub Actions.
 func New() (*Options, error) {
-	// Enable scorecard command to use SARIF format.
-	os.Setenv(scopts.EnvVarEnableSarif, trueStr)
-
-	opts := &Options{
-		ScorecardOpts: scopts.New(),
-	}
+	opts := &Options{}
 	if err := env.Parse(opts); err != nil {
 		return opts, fmt.Errorf("parsing entrypoint env vars: %w", err)
 	}
-
-	opts.ScorecardOpts.ShowDetails = true
-	// This section restores functionality that was removed in
-	// https://github.com/ossf/scorecard/pull/1898.
-	// TODO(options): Consider moving this to its own function.
-	opts.ScorecardOpts.Repo = opts.GithubRepository
-
-	if err := opts.Initialize(); err != nil {
-		return opts, fmt.Errorf(
-			"initializing scorecard-action options: %w",
-			err,
-		)
+	if err := opts.setRepoInfo(); err != nil {
+		return opts, fmt.Errorf("parsing repo info: %w", err)
 	}
-
-	// TODO(options): Move this set-or-default logic to its own function.
-	opts.ScorecardOpts.Format = formatSarif
-	opts.ScorecardOpts.EnableSarif = true
-	if opts.InputResultsFormat != "" {
-		opts.ScorecardOpts.Format = opts.InputResultsFormat
-	}
-
-	if opts.ScorecardOpts.Format == formatSarif {
-		if opts.ScorecardOpts.PolicyFile == "" {
-			// TODO(policy): Should we default or error here?
-			opts.ScorecardOpts.PolicyFile = defaultScorecardPolicyFile
-		}
-	}
-
-	// TODO(scorecard): Reset commit options. Fix this in scorecard.
-	opts.ScorecardOpts.Commit = scopts.DefaultCommit
-
-	if err := opts.ScorecardOpts.Validate(); err != nil {
-		return opts, fmt.Errorf("validating scorecard options: %w", err)
-	}
-
-	opts.SetPublishResults()
-
-	if opts.ScorecardOpts.ResultsFile == "" {
-		opts.ScorecardOpts.ResultsFile = opts.InputResultsFile
-	}
-
-	if opts.ScorecardOpts.ResultsFile == "" {
-		// TODO(test): Reassess test case for this code path
-		return opts, errResultsPathEmpty
-	}
-
-	if err := opts.Validate(); err != nil {
-		return opts, fmt.Errorf("validating scorecard-action options: %w", err)
-	}
-
+	opts.setScorecardOpts()
+	opts.setPublishResults()
 	return opts, nil
-}
-
-// Initialize initializes the environment variables required for the action.
-func (o *Options) Initialize() error {
-	/*
-	 https://docs.github.com/en/actions/learn-github-actions/environment-variables
-	   GITHUB_EVENT_PATH contains the json file for the event.
-	   GITHUB_SHA contains the commit hash.
-	   GITHUB_WORKSPACE contains the repo folder.
-	   GITHUB_EVENT_NAME contains the event name.
-	   GITHUB_ACTIONS is true in GitHub env.
-	*/
-
-	// TODO(checks): Do we actually expect to use these?
-	// o.EnableLicense = "1"
-	// o.EnableDangerousWorkflow = "1"
-
-	_, tokenSet := os.LookupEnv(EnvGithubAuthToken)
-	if !tokenSet {
-		inputToken := os.Getenv(EnvInputRepoToken)
-		os.Setenv(EnvGithubAuthToken, inputToken)
-	}
-
-	return o.SetRepoInfo()
 }
 
 // Validate validates the scorecard configuration.
@@ -180,14 +110,20 @@ func (o *Options) Validate() error {
 		return errEmptyGitHubAuthToken
 	}
 
-	if strings.Contains(o.GithubEventName, "pull_request") &&
-		o.GithubRef != o.DefaultBranch {
+	if !o.isPullRequestEvent() &&
+		!o.isDefaultBranch() {
 		fmt.Printf("%s not supported with %s event.\n", o.GithubRef, o.GithubEventName)
 		fmt.Printf("Only the default branch %s is supported.\n", o.DefaultBranch)
 
 		return errOnlyDefaultBranchSupported
 	}
-
+	if err := o.ScorecardOpts.Validate(); err != nil {
+		return fmt.Errorf("validating scorecard options: %w", err)
+	}
+	if o.ScorecardOpts.ResultsFile == "" {
+		// TODO(test): Reassess test case for this code path
+		return errResultsPathEmpty
+	}
 	return nil
 }
 
@@ -205,9 +141,59 @@ func (o *Options) Print() {
 	fmt.Printf("Default branch: %s\n", o.DefaultBranch)
 }
 
-// SetPublishResults sets whether results should be published based on a
+func (o *Options) setScorecardOpts() {
+	o.ScorecardOpts = scopts.New()
+	// GITHUB_AUTH_TOKEN
+	_, tokenSet := os.LookupEnv(EnvGithubAuthToken)
+	if !tokenSet {
+		inputToken := os.Getenv(EnvInputRepoToken)
+		os.Setenv(EnvGithubAuthToken, inputToken)
+	}
+
+	// --repo= | --local
+	// This section restores functionality that was removed in
+	// https://github.com/ossf/scorecard/pull/1898.
+	// TODO(options): Consider moving this to its own function.
+	if !o.isPullRequestEvent() {
+		o.ScorecardOpts.Repo = o.GithubRepository
+	} else {
+		o.ScorecardOpts.Local = "."
+	}
+
+	// --format=
+	// Enable scorecard command to use SARIF format (default format).
+	os.Setenv(scopts.EnvVarEnableSarif, trueStr)
+	o.ScorecardOpts.EnableSarif = true
+	o.ScorecardOpts.Format = formatSarif
+	if o.InputResultsFormat != "" {
+		o.ScorecardOpts.Format = o.InputResultsFormat
+	}
+	if o.ScorecardOpts.Format == formatSarif && o.ScorecardOpts.PolicyFile == "" {
+		// TODO(policy): Should we default or error here?
+		o.ScorecardOpts.PolicyFile = defaultScorecardPolicyFile
+	}
+
+	// --checks=
+	if o.GithubEventName == branchProtectionEvent {
+		o.ScorecardOpts.ChecksToRun = []string{checks.CheckBranchProtection}
+	}
+
+	// --show-details
+	o.ScorecardOpts.ShowDetails = true
+
+	// --commit=
+	// TODO(scorecard): Reset commit options. Fix this in scorecard.
+	o.ScorecardOpts.Commit = scopts.DefaultCommit
+
+	// --out-file=
+	if o.ScorecardOpts.ResultsFile == "" {
+		o.ScorecardOpts.ResultsFile = o.InputResultsFile
+	}
+}
+
+// setPublishResults sets whether results should be published based on a
 // repository's visibility.
-func (o *Options) SetPublishResults() {
+func (o *Options) setPublishResults() {
 	privateRepo, err := strconv.ParseBool(o.PrivateRepoStr)
 	if err != nil {
 		// TODO(options): Consider making this an error.
@@ -221,11 +207,11 @@ func (o *Options) SetPublishResults() {
 	o.PublishResults = o.PublishResults && !privateRepo
 }
 
-// SetRepoInfo gets the path to the GitHub event and sets the
+// setRepoInfo gets the path to the GitHub event and sets the
 // SCORECARD_IS_FORK environment variable.
 // TODO(options): Check if this actually needs to be exported.
 // TODO(options): Choose a more accurate name for what this does.
-func (o *Options) SetRepoInfo() error {
+func (o *Options) setRepoInfo() error {
 	eventPath := o.GithubEventPath
 	if eventPath == "" {
 		return errGithubEventPathEmpty
@@ -246,4 +232,12 @@ func (o *Options) SetRepoInfo() error {
 	o.DefaultBranch = r.Repo.DefaultBranch
 
 	return nil
+}
+
+func (o *Options) isPullRequestEvent() bool {
+	return strings.HasPrefix(o.GithubEventName, pullRequestEvent)
+}
+
+func (o *Options) isDefaultBranch() bool {
+	return o.GithubRef == fmt.Sprintf("refs/heads/%s", o.DefaultBranch)
 }
