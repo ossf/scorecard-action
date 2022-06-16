@@ -37,10 +37,10 @@ inputs:
     required: false
     default: false
 
-  # internal_default_token:
-  #   description: "INPUT: Default GitHub token. (Internal purpose only, not intended for developers to set. Used for pull requests configured with a PAT)."
-  #   required: false
-  #   default: ${{ github.token }}
+  internal_default_token:
+    description: "INPUT: Default GitHub token. (Internal purpose only, not intended for developers to set. Used for pull requests configured with a PAT)."
+    required: false
+    default: ${{ github.token }}
 
 branding:
   icon: "mic"
@@ -49,7 +49,5 @@ branding:
 runs:
   using: "docker"
   image: "./Dockerfile"
-  env:
-    INTERNAL_DEFAULT_TOKEN: ${{ github.token }}
 
 
