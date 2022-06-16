@@ -23,7 +23,7 @@ set -euo pipefail
 # GITHUB_ACTIONS is true in GitHub env.
 
 if [[ -z "$INPUT_REPO_TOKEN" ]]; then
-    INPUT_REPO_TOKEN="$INPUT_INTERNAL_DEFAULT_TOKEN"
+    INPUT_REPO_TOKEN="$INTERNAL_DEFAULT_TOKEN"
     if [[ -z "$INPUT_REPO_TOKEN" ]]; then
         exit 2
     fi
