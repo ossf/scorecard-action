@@ -10,6 +10,7 @@ require (
 	github.com/sigstore/cosign v1.9.0
 	github.com/sirupsen/logrus v1.8.1
 	github.com/spf13/cobra v1.5.0
+	golang.org/x/net v0.0.0-20220520000938-2e3eb7b945c2
 	sigs.k8s.io/release-sdk v0.8.0
 	sigs.k8s.io/release-utils v0.6.1-0.20220405215325-d4a2a2f0e8fd
 )
@@ -241,7 +242,6 @@ require (
 	gocloud.dev v0.25.0 // indirect
 	golang.org/x/crypto v0.0.0-20220411220226-7b82a4e95df4 // indirect
 	golang.org/x/mod v0.6.0-dev.0.20220106191415-9b9b3d81d5e3 // indirect
-	golang.org/x/net v0.0.0-20220520000938-2e3eb7b945c2 // indirect
 	golang.org/x/sync v0.0.0-20220513210516-0976fa681c29 // indirect
 	golang.org/x/sys v0.0.0-20220520151302-bc2c85ada10a // indirect
 	golang.org/x/term v0.0.0-20210927222741-03fcf44c2211 // indirect

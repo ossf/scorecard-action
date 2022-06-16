@@ -151,6 +151,12 @@ func (o *Options) Print() {
 
 func (o *Options) setScorecardOpts() {
 	o.ScorecardOpts = scopts.New()
+	// Set GITHUB_AUTH_TOKEN
+	inputToken := os.Getenv(EnvInputRepoToken)
+	if inputToken == "" {
+		inputToken := os.Getenv(EnvInputInternalRepoToken)
+		os.Setenv(EnvGithubAuthToken, inputToken)
+	}
 
 	// --repo= | --local
 	// This section restores functionality that was removed in

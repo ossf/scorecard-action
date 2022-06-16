@@ -241,6 +241,9 @@ func TestNew(t *testing.T) {
 			os.Setenv(EnvInputResultsFormat, tt.resultsFormat)
 			defer os.Unsetenv(EnvInputResultsFormat)
 
+			os.Setenv(EnvInputRepoToken, "token-value-123456")
+			defer os.Unsetenv(EnvInputRepoToken)
+
 			if tt.unsetResultsPath {
 				os.Unsetenv(EnvInputResultsFile)
 			} else {
