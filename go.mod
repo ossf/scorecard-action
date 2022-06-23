@@ -9,7 +9,7 @@ require (
 	github.com/ossf/scorecard/v4 v4.4.0
 	github.com/sigstore/cosign v1.8.0
 	github.com/sirupsen/logrus v1.8.1
-	github.com/spf13/cobra v1.4.0
+	github.com/spf13/cobra v1.5.0
 	sigs.k8s.io/release-sdk v0.8.0
 	sigs.k8s.io/release-utils v0.6.1-0.20220405215325-d4a2a2f0e8fd
 )
