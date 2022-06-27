@@ -222,8 +222,12 @@ func TestNew(t *testing.T) {
 			os.Setenv(EnvGithubAuthToken, testToken)
 			defer os.Unsetenv(EnvGithubAuthToken)
 
+			os.Setenv(EnvInputRepoToken, "token-value-123456")
+			defer os.Unsetenv(EnvInputRepoToken)
+
 			if tt.unsetToken {
 				os.Unsetenv(EnvGithubAuthToken)
+				os.Unsetenv(EnvInputRepoToken)
 			}
 
 			os.Setenv(EnvGithubEventPath, tt.githubEventPath)
@@ -240,9 +244,6 @@ func TestNew(t *testing.T) {
 
 			os.Setenv(EnvInputResultsFormat, tt.resultsFormat)
 			defer os.Unsetenv(EnvInputResultsFormat)
-
-			os.Setenv(EnvInputRepoToken, "token-value-123456")
-			defer os.Unsetenv(EnvInputRepoToken)
 
 			if tt.unsetResultsPath {
 				os.Unsetenv(EnvInputResultsFile)
