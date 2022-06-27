@@ -21,6 +21,7 @@ import (
 
 // Environment variables.
 // TODO(env): Remove once environment variables are not used for config.
+//
 //nolint:revive,nolintlint
 const (
 	EnvEnableSarif             = "ENABLE_SARIF"
