@@ -22,6 +22,14 @@ set -euo pipefail
 # GITHUB_EVENT_NAME contains the event name.
 # GITHUB_ACTIONS is true in GitHub env.
 
+if [[ -z "$INPUT_REPO_TOKEN" ]]; then
+    INPUT_REPO_TOKEN="$INPUT_INTERNAL_DEFAULT_TOKEN"
+    if [[ -z "$INPUT_REPO_TOKEN" ]]; then
+        exit 2
+    fi
+    echo "The repo_token was empty so GITHUB_TOKEN is used instead"
+fi
+
 export GITHUB_AUTH_TOKEN="$INPUT_REPO_TOKEN"
 export ENABLE_SARIF=1
 export ENABLE_LICENSE=1

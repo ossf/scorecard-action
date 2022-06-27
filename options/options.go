@@ -105,8 +105,9 @@ func New() (*Options, error) {
 
 // Validate validates the scorecard configuration.
 func (o *Options) Validate() error {
+	fmt.Println("EnvGithubAuthToken:", EnvGithubAuthToken, os.Getenv(EnvGithubAuthToken))
 	if os.Getenv(EnvGithubAuthToken) == "" {
-		fmt.Printf("The 'repo_token' variable is empty.\n")
+		fmt.Printf("%s variable is empty.\n", EnvGithubAuthToken)
 		if o.IsForkStr == trueStr {
 			fmt.Printf("We have detected you are running on a fork.\n")
 		}
@@ -151,6 +152,14 @@ func (o *Options) Print() {
 
 func (o *Options) setScorecardOpts() {
 	o.ScorecardOpts = scopts.New()
+	// Set GITHUB_AUTH_TOKEN
+	inputToken := os.Getenv(EnvInputRepoToken)
+	if inputToken == "" {
+		fmt.Printf("The 'repo_token' variable is empty.\n")
+		fmt.Printf("Using the '%s' variable instead.\n", EnvInputInternalRepoToken)
+		inputToken := os.Getenv(EnvInputInternalRepoToken)
+		os.Setenv(EnvGithubAuthToken, inputToken)
+	}
 
 	// --repo= | --local
 	// This section restores functionality that was removed in
