@@ -15,20 +15,18 @@
 package github
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
 	"io"
+	"io/ioutil"
+	"log"
 	"net/http"
 	"net/url"
-	"os"
 
 	"github.com/ossf/scorecard/v4/clients/githubrepo/roundtripper"
-	"github.com/ossf/scorecard/v4/log"
-)
-
-const (
-	baseRepoURL = "https://api.github.com/repos/"
+	sclog "github.com/ossf/scorecard/v4/log"
 )
 
 // RepoInfo is a struct for repository information.
@@ -43,29 +41,15 @@ type repo struct {
 
 		GITHUB_REPOSITORY_IS_FORK is true if the repository is a fork.
 	*/
-	DefaultBranch string `json:"default_branch"`
-	Fork          bool   `json:"fork"`
-	Private       bool   `json:"private"`
+	DefaultBranch *string `json:"default_branch"`
+	Fork          *bool   `json:"fork"`
+	Private       *bool   `json:"private"`
 }
 
 // Client holds a context and roundtripper for querying repo info from GitHub.
 type Client struct {
 	ctx context.Context
 	rt  http.RoundTripper
-}
-
-// NewClient returns a new Client for querying repo info from GitHub.
-func NewClient(ctx context.Context) *Client {
-	c := &Client{}
-
-	defaultCtx := context.Background()
-	if ctx == nil {
-		ctx = defaultCtx
-	}
-
-	c.SetContext(ctx)
-	c.SetDefaultTransport()
-	return c
 }
 
 // SetContext sets a context for a GitHub client.
@@ -80,82 +64,96 @@ func (c *Client) SetTransport(rt http.RoundTripper) {
 
 // SetDefaultTransport sets the scorecard roundtripper for a GitHub client.
 func (c *Client) SetDefaultTransport() {
-	logger := log.NewLogger(log.DefaultLevel)
+	logger := sclog.NewLogger(sclog.DefaultLevel)
 	rt := roundtripper.NewTransport(c.ctx, logger)
 	c.rt = rt
 }
 
-// WriteRepoInfo queries GitHub for repo info and writes it to a file.
-func WriteRepoInfo(ctx context.Context, repoName, path string) error {
-	c := NewClient(ctx)
-	repoInfo, err := c.RepoInfo(repoName)
-	if err != nil {
-		return fmt.Errorf("getting repo info: %w", err)
-	}
-
-	repoFile, err := os.Create(path)
-	if err != nil {
-		return fmt.Errorf("creating repo info file: %w", err)
-	}
-	defer repoFile.Close()
-
-	resp := repoInfo.respBytes
-	_, writeErr := repoFile.Write(resp)
-	if writeErr != nil {
-		return fmt.Errorf("writing repo info: %w", writeErr)
-	}
-
-	return nil
-}
-
-// RepoInfo is a function to get the repository information.
+// ParseFromURL is a function to get the repository information.
 // It is decided to not use the golang GitHub library because of the
 // dependency on the github.com/google/go-github/github library
 // which will in turn require other dependencies.
-func (c *Client) RepoInfo(repoName string) (RepoInfo, error) {
-	var r RepoInfo
-
+func (c *Client) ParseFromURL(baseRepoURL, repoName string) (RepoInfo, error) {
+	var ret RepoInfo
 	baseURL, err := url.Parse(baseRepoURL)
 	if err != nil {
-		return r, fmt.Errorf("parsing base repo URL: %w", err)
+		return ret, fmt.Errorf("parsing base repo URL: %w", err)
 	}
 
-	repoURL, err := baseURL.Parse(repoName)
+	repoURL, err := baseURL.Parse(fmt.Sprintf("repos/%s", repoName))
 	if err != nil {
-		return r, fmt.Errorf("parsing repo endpoint: %w", err)
+		return ret, fmt.Errorf("parsing repo endpoint: %w", err)
 	}
 
-	method := "GET"
+	log.Printf("getting repo info from URL: %s", repoURL.String())
 	req, err := http.NewRequestWithContext(
 		c.ctx,
-		method,
+		http.MethodGet,
 		repoURL.String(),
-		nil,
-	)
+		nil /*body*/)
 	if err != nil {
-		return r, fmt.Errorf("error creating request: %w", err)
+		return ret, fmt.Errorf("error creating request: %w", err)
 	}
 
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
-		return r, fmt.Errorf("error creating request: %w", err)
+		return ret, fmt.Errorf("error creating request: %w", err)
 	}
 	defer resp.Body.Close()
 	if err != nil {
-		return r, fmt.Errorf("error reading response body: %w", err)
+		return ret, fmt.Errorf("error reading response body: %w", err)
 	}
 
 	respBytes, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return r, fmt.Errorf("error reading response body: %w", err)
+		return ret, fmt.Errorf("error reading response body: %w", err)
 	}
 
-	r.respBytes = respBytes
+	prettyPrintJSON(respBytes)
+	ret.respBytes = respBytes
+	if err := json.Unmarshal(respBytes, &ret.Repo); err != nil {
+		return ret, fmt.Errorf("error decoding response body: %w", err)
+	}
+	return ret, nil
+}
 
-	err = json.Unmarshal(respBytes, &r)
+// ParseFromFile is a function to get the repository information
+// from GitHub event file.
+func (c *Client) ParseFromFile(filepath string) (RepoInfo, error) {
+	var ret RepoInfo
+
+	log.Printf("getting repo info from file: %s", filepath)
+	repoInfo, err := ioutil.ReadFile(filepath)
 	if err != nil {
-		return r, fmt.Errorf("error decoding response body: %w", err)
+		return ret, fmt.Errorf("reading GitHub event path: %w", err)
 	}
 
-	return r, nil
+	prettyPrintJSON(repoInfo)
+	if err := json.Unmarshal(repoInfo, &ret); err != nil {
+		return ret, fmt.Errorf("unmarshalling repo info: %w", err)
+	}
+
+	return ret, nil
+}
+
+// NewClient returns a new Client for querying repo info from GitHub.
+func NewClient(ctx context.Context) *Client {
+	c := &Client{
+		ctx: ctx,
+	}
+
+	if c.ctx == nil {
+		c.SetContext(context.Background())
+	}
+	c.SetDefaultTransport()
+	return c
+}
+
+func prettyPrintJSON(jsonBytes []byte) {
+	var buf bytes.Buffer
+	if err := json.Indent(&buf, jsonBytes, "", ""); err != nil {
+		log.Printf("%v", err)
+		return
+	}
+	log.Println(buf.String())
 }

@@ -15,15 +15,14 @@
 package options
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"strconv"
 	"strings"
 
 	"github.com/caarlos0/env/v6"
+	"golang.org/x/net/context"
 
 	"github.com/ossf/scorecard-action/github"
 	"github.com/ossf/scorecard/v4/checks"
@@ -44,6 +43,7 @@ var (
 	// Errors.
 	errGithubEventPathEmpty       = errors.New("GitHub event path is empty")
 	errResultsPathEmpty           = errors.New("results path is empty")
+	errGitHubRepoInfoUnavailable  = errors.New("GitHub repo info inaccessible")
 	errOnlyDefaultBranchSupported = errors.New("only default branch is supported")
 )
 
@@ -67,6 +67,7 @@ type Options struct {
 	GithubRef        string `env:"GITHUB_REF"`
 	GithubRepository string `env:"GITHUB_REPOSITORY"`
 	GithubWorkspace  string `env:"GITHUB_WORKSPACE"`
+	GithubAPIURL     string `env:"GITHUB_API_URL"`
 
 	DefaultBranch string `env:"SCORECARD_DEFAULT_BRANCH"`
 	// TODO(options): This may be better as a bool
@@ -86,6 +87,13 @@ func New() (*Options, error) {
 	opts := &Options{}
 	if err := env.Parse(opts); err != nil {
 		return opts, fmt.Errorf("parsing entrypoint env vars: %w", err)
+	}
+	// GITHUB_AUTH_TOKEN
+	// Needs to be set *before* setRepoInfo() is invoked.
+	// setRepoInfo() uses the GITHUB_AUTH_TOKEN env for querying the REST API.
+	if _, tokenSet := os.LookupEnv(EnvGithubAuthToken); !tokenSet {
+		inputToken := os.Getenv(EnvInputRepoToken)
+		os.Setenv(EnvGithubAuthToken, inputToken)
 	}
 	if err := opts.setRepoInfo(); err != nil {
 		return opts, fmt.Errorf("parsing repo info: %w", err)
@@ -143,12 +151,6 @@ func (o *Options) Print() {
 
 func (o *Options) setScorecardOpts() {
 	o.ScorecardOpts = scopts.New()
-	// GITHUB_AUTH_TOKEN
-	_, tokenSet := os.LookupEnv(EnvGithubAuthToken)
-	if !tokenSet {
-		inputToken := os.Getenv(EnvInputRepoToken)
-		os.Setenv(EnvGithubAuthToken, inputToken)
-	}
 
 	// --repo= | --local
 	// This section restores functionality that was removed in
@@ -194,6 +196,8 @@ func (o *Options) setScorecardOpts() {
 // setPublishResults sets whether results should be published based on a
 // repository's visibility.
 func (o *Options) setPublishResults() {
+	inputVal := o.PublishResults
+	o.PublishResults = false
 	privateRepo, err := strconv.ParseBool(o.PrivateRepoStr)
 	if err != nil {
 		// TODO(options): Consider making this an error.
@@ -202,9 +206,10 @@ func (o *Options) setPublishResults() {
 			o.PrivateRepoStr,
 			err,
 		)
+		return
 	}
 
-	o.PublishResults = o.PublishResults && !privateRepo
+	o.PublishResults = inputVal && !privateRepo
 }
 
 // setRepoInfo gets the path to the GitHub event and sets the
@@ -217,21 +222,36 @@ func (o *Options) setRepoInfo() error {
 		return errGithubEventPathEmpty
 	}
 
-	repoInfo, err := ioutil.ReadFile(eventPath)
-	if err != nil {
-		return fmt.Errorf("reading GitHub event path: %w", err)
+	ghClient := github.NewClient(context.Background())
+	if repoInfo, err := ghClient.ParseFromFile(eventPath); err == nil &&
+		o.parseFromRepoInfo(repoInfo) {
+		return nil
 	}
 
-	var r github.RepoInfo
-	if err := json.Unmarshal(repoInfo, &r); err != nil {
-		return fmt.Errorf("unmarshalling repo info: %w", err)
+	if repoInfo, err := ghClient.ParseFromURL(o.GithubAPIURL, o.GithubRepository); err == nil &&
+		o.parseFromRepoInfo(repoInfo) {
+		return nil
 	}
 
-	o.PrivateRepoStr = strconv.FormatBool(r.Repo.Private)
-	o.IsForkStr = strconv.FormatBool(r.Repo.Fork)
-	o.DefaultBranch = r.Repo.DefaultBranch
+	return errGitHubRepoInfoUnavailable
+}
 
-	return nil
+func (o *Options) parseFromRepoInfo(repoInfo github.RepoInfo) bool {
+	if repoInfo.Repo.DefaultBranch == nil &&
+		repoInfo.Repo.Fork == nil &&
+		repoInfo.Repo.Private == nil {
+		return false
+	}
+	if repoInfo.Repo.Private != nil {
+		o.PrivateRepoStr = strconv.FormatBool(*repoInfo.Repo.Private)
+	}
+	if repoInfo.Repo.Fork != nil {
+		o.IsForkStr = strconv.FormatBool(*repoInfo.Repo.Fork)
+	}
+	if repoInfo.Repo.DefaultBranch != nil {
+		o.DefaultBranch = *repoInfo.Repo.DefaultBranch
+	}
+	return true
 }
 
 func (o *Options) isPullRequestEvent() bool {
