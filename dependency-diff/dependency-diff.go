@@ -1,7 +1,6 @@
 package depdiff
 
 import (
-	"encoding/json"
 	"fmt"
 	"net/http"
 	"path"
@@ -14,7 +13,8 @@ import (
 // (https://docs.github.com/en/rest/dependency-graph/dependency-review) API
 func GetDepDiffByCommitsSHA(authToken, repoOwner string, repoName string,
 	base string, head string) ([]Dependency, error) {
-	client := gogh.NewClient(http.DefaultClient)
+	// Set a ten-seconds timeout to make sure the client can be created correctly.
+	client := gogh.NewClient(&http.Client{Timeout: 10 * time.Second})
 	reqURL := path.Join(
 		"repos", repoOwner, repoName, "dependency-graph", "compare", base+"..."+head,
 	)
@@ -28,18 +28,10 @@ func GetDepDiffByCommitsSHA(authToken, repoOwner string, repoName string,
 	// An access token is required in the request header to be able to use this API.
 	req.Header.Set("Authorization", "token "+authToken)
 
-	// Set a ten-seconds timeout to make sure the client can be created correctly.
-	myClient := &http.Client{Timeout: 10 * time.Second}
-	resp, err := myClient.Do(req)
+	depDiff := []Dependency{}
+	_, err = client.Do(req.Context(), req, &depDiff)
 	if err != nil {
 		return nil, fmt.Errorf("get response error: %w", err)
-	}
-	defer resp.Body.Close()
-
-	depDiff := []Dependency{}
-	err = json.NewDecoder(resp.Body).Decode(&depDiff)
-	if err != nil {
-		return nil, fmt.Errorf("parse response error: %w", err)
 	}
 	for i := range depDiff {
 		depDiff[i].IsDirect = true
