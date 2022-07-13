@@ -48,6 +48,6 @@ branding:
 
 runs:
   using: "docker"
-  image: "./Dockerfile"
+  image: "docker://gcr.io/openssf/scorecard-action:latest"
 
 

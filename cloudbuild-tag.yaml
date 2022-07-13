@@ -13,10 +13,13 @@
 # limitations under the License.
 
 steps:
-- name: 'gcr.io/cloud-builders/docker'
-  args: ['build', '.',
-    '-t', 'gcr.io/openssf/scorecard-action:latest',
-    '-t', 'gcr.io/openssf/scorecard-action:$COMMIT_SHA',
-    '-f', 'Dockerfile']
+  - id: Get tag commit
+    name: gcr.io/cloud-builders/git
+    args: ['fetch', '--unshallow', '--tags', 'origin', '$COMMIT_SHA']
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['build', '.',
+      '-t', 'gcr.io/openssf/scorecard-action:$TAG_NAME',
+      '-t', 'gcr.io/openssf/scorecard-action:$COMMIT_SHA',
+      '-f', 'Dockerfile']
 images: ['gcr.io/openssf/scorecard-action']
 timeout: '1600s'
