@@ -12,25 +12,40 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# See docs/development.md for details on how to test this image.
+# Testing: docker run -e GITHUB_REF=refs/heads/main \
+#           -e GITHUB_EVENT_NAME=branch_protection_rule \
+#           -e INPUT_RESULTS_FORMAT=sarif \
+#           -e INPUT_RESULTS_FILE=results.sarif \
+#           -e GITHUB_WORKSPACE=/ \
+#           -e INPUT_POLICY_FILE="/policy.yml" \
+#           -e INPUT_REPO_TOKEN=$GITHUB_AUTH_TOKEN \
+#           -e GITHUB_REPOSITORY="ossf/scorecard" \
+#           laurentsimon/scorecard-action:latest
 
-FROM gcr.io/openssf/scorecard:v4.3.1@sha256:6224d1a27c35e7b216befba798cb782adb400047caa60fc1bea30030da392a1b as base
+#v1.17 go
+FROM golang@sha256:bd9823cdad5700fb4abe983854488749421d5b4fc84154c30dae474100468b85 AS base
+WORKDIR /src
+ENV CGO_ENABLED=0
+COPY go.* ./
+RUN go mod download
+COPY . ./
 
-# Build our image and update the root certs.
-# TODO: use distroless.
+FROM base AS build
+ARG TARGETOS
+ARG TARGETARCH
+RUN CGO_ENABLED=0 make build
+
+# TODO: use distroless:
+# FROM gcr.io/distroless/base:nonroot@sha256:02f667185ccf78dbaaf79376b6904aea6d832638e1314387c2c2932f217ac5cb
 FROM debian:11.3-slim@sha256:f6957458017ec31c4e325a76f39d6323c4c21b0e31572efa006baa927a160891
+
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
+    # For debugging.
     jq ca-certificates curl
-
-# Copy the scorecard binary from the official scorecard image.
-COPY --from=base /scorecard /scorecard
+COPY --from=build /src/scorecard-action /
 
 # Copy a test policy for local testing.
 COPY policies/template.yml  /policy.yml
 
-# Our entry point.
-# Note: the file is executable in the repo
-# and permission carry over to the image.
-COPY entrypoint.sh /entrypoint.sh
-ENTRYPOINT ["/entrypoint.sh"]
+ENTRYPOINT [ "/scorecard-action" ]

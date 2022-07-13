@@ -30,37 +30,6 @@ We're not striving for perfection with the template, but the tracking issue
 will serve as a reference point to aggregate feedback, so try your best to be
 as descriptive as possible.
 
-## Preparing the release
-
-This section covers changes that need to be issued as a pull request and should
-be merged before releasing the scorecard GitHub Action.
-
-### Update the scorecard version
-
-_NOTE: As the scorecard GitHub Action is based on scorecard, you may want to publish a new release of scorecard to ensure the next release of the GitHub Action has the most up-to-date functionality. This is not strictly required. The only requirement is that we use a stable scorecard version which is at or above the current version used for this action._
-
-For the rest of document, let `CH1` be the hash of the scorecard image you
-intend to use for this release.
-
-See [here](https://github.com/orgs/ossf/packages?repo_name=scorecard) for
-scorecard images.
-
-(We'll use `0bc9576b3efbda7b38febbf0a1e1b9546894f9650aaead9ccb5edc7dade86552`
-as `CH1` in any examples below.)
-
-Now that you have `CH1`, update the digest in the [Dockerfile](Dockerfile) to use `CH1`.
-
-Example:
-
-```Dockerfile
-FROM gcr.io/openssf/scorecard:v100.0.0@sha256:0bc9576b3efbda7b38febbf0a1e1b9546894f9650aaead9ccb5edc7dade86552 as base
-```
-
-Create a pull request with this change.
-
-Once the PR is merged, note the GitHub commit hash.
-We'll refer to this as `GH2` below.
-
 ## Drafting release notes
 
 <!-- TODO(release): Provide details -->
@@ -69,14 +38,30 @@ We'll refer to this as `GH2` below.
 
 ### Create a tag
 
-Locally, create a signed tag based on `GH2`:
+Locally, create a signed tag `Tag` on commitSHA `SHA`:
 
 ```console
 git remote update
-git checkout `GH2`
+git checkout `SHA`
 git tag -s -m "v100.0.0" v100.0.0
 git push <upstream> --tags
 ```
+
+### Update the scorecard-action version
+
+Note be the hash of the scorecard-action image (say, `CH1`) that was tagged with `Tag`. We will use this for the release.
+
+Update the digest in [action.yaml](action.yaml) to use `CH1`.
+
+Example:
+
+```
+runs:
+  using: "docker"
+  image: "docker://gcr.io/openssf/scorecard-action:CH1"
+```
+
+Create a pull request with this change and merge into `main`.
 
 ### Create a GitHub release
 
