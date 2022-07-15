@@ -44,7 +44,7 @@ but workable.
 
 Pre-select the tag which will be used for the release. For this document, we'll use: `Tag`.
 
-Update the image tage in [action.yaml](action.yaml) to use `Tag`.
+Update the image tag in [action.yaml](action.yaml) to use `Tag`.
 
 Example:
 
