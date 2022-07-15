@@ -30,6 +30,32 @@ We're not striving for perfection with the template, but the tracking issue
 will serve as a reference point to aggregate feedback, so try your best to be
 as descriptive as possible.
 
+## Preparing the release
+
+This section covers changes that need to be issued as a pull request and should
+be merged before releasing the scorecard GitHub Action.
+
+### Update the scorecard-action version
+
+NOTE: we have a chicken-and-egg problem where the commit to be used for the release
+needs to have the image tag that only gets created *after* the commit is pushed. We
+workaround that by pre-selecting and referencing the image tag instead of the SHA which isn't ideal 
+but workable.
+
+Pre-select the tag which will be used for the release. For this document, we'll use: `Tag`.
+
+Update the image tage in [action.yaml](action.yaml) to use `Tag`.
+
+Example:
+
+```
+runs:
+  using: "docker"
+  image: "docker://gcr.io/openssf/scorecard-action:Tag"
+```
+
+Create a pull request with this change and merge into `main`.
+
 ## Drafting release notes
 
 <!-- TODO(release): Provide details -->
@@ -46,22 +72,6 @@ git checkout `SHA`
 git tag -s -m "v100.0.0" v100.0.0
 git push <upstream> --tags
 ```
-
-### Update the scorecard-action version
-
-Note be the hash of the scorecard-action image (say, `CH1`) that was tagged with `Tag`. We will use this for the release.
-
-Update the digest in [action.yaml](action.yaml) to use `CH1`.
-
-Example:
-
-```
-runs:
-  using: "docker"
-  image: "docker://gcr.io/openssf/scorecard-action:CH1"
-```
-
-Create a pull request with this change and merge into `main`.
 
 ### Create a GitHub release
 
