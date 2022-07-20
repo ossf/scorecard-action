@@ -19,8 +19,8 @@ package install
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
 	"log"
+	"os"
 
 	"github.com/google/go-github/v42/github"
 
@@ -42,8 +42,11 @@ var workflowFiles = []string{
 // organization.
 // TODO(install): Improve description.
 // TODO(install): Accept a context instead of setting one.
-//nolint:gocognit
 // TODO(lint): cognitive complexity 31 of func `Run` is high (> 30) (gocognit).
+//
+// TODO(lint): cognitive complexity 31 of func `Run` is high (> 30) (gocognit).
+//
+//nolint:gocognit
 func Run(o *options.Options) error {
 	err := o.Validate()
 	if err != nil {
@@ -69,7 +72,7 @@ func Run(o *options.Options) error {
 	}
 
 	// Get yml file into byte array.
-	workflowContent, err := ioutil.ReadFile(o.ConfigPath)
+	workflowContent, err := os.ReadFile(o.ConfigPath)
 	if err != nil {
 		return fmt.Errorf("reading scorecard workflow file: %w", err)
 	}
