@@ -2,7 +2,6 @@
 run:
   concurrency: 6
   deadline: 5m
-  modules-download-mode: readonly
 issues:
   include:
     # revive `package-comments` and `exported` rules.
