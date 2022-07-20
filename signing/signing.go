@@ -22,7 +22,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"net/url"
 	"os"
@@ -78,7 +77,7 @@ func GetJSONScorecardResults() ([]byte, error) {
 	}
 
 	// Get json output data from file.
-	jsonPayload, err := ioutil.ReadFile(os.Getenv(options.EnvInputResultsFile))
+	jsonPayload, err := os.ReadFile(os.Getenv(options.EnvInputResultsFile))
 	if err != nil {
 		return nil, fmt.Errorf("reading scorecard json results from file: %w", err)
 	}

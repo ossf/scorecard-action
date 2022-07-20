@@ -20,10 +20,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"log"
 	"net/http"
 	"net/url"
+	"os"
 
 	"github.com/ossf/scorecard/v4/clients/githubrepo/roundtripper"
 	sclog "github.com/ossf/scorecard/v4/log"
@@ -123,7 +123,7 @@ func (c *Client) ParseFromFile(filepath string) (RepoInfo, error) {
 	var ret RepoInfo
 
 	log.Printf("getting repo info from file: %s", filepath)
-	repoInfo, err := ioutil.ReadFile(filepath)
+	repoInfo, err := os.ReadFile(filepath)
 	if err != nil {
 		return ret, fmt.Errorf("reading GitHub event path: %w", err)
 	}

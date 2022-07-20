@@ -17,7 +17,7 @@
 package signing
 
 import (
-	"io/ioutil"
+	"os"
 	"testing"
 )
 
@@ -76,7 +76,7 @@ import (
 func Test_ProcessSignature(t *testing.T) {
 	t.Parallel()
 
-	jsonPayload, err := ioutil.ReadFile("testdata/results.json")
+	jsonPayload, err := os.ReadFile("testdata/results.json")
 	repoName := "ossf-tests/scorecard-action"
 	repoRef := "refs/heads/main"
 	accessToken := ""
