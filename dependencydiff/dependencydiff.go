@@ -48,7 +48,6 @@ func RunDependencyDiff(ctx context.Context) error {
 		}
 		changeTypeMap[key] = true
 	}
-
 	deps, err := dependencydiff.GetDependencyDiffResults(
 		ctx, repoURI, base, head, checks, changeTypeMap,
 	)
@@ -89,14 +88,21 @@ func writeToComment(ctx context.Context, owner, repo string, report *string) err
 		return fmt.Errorf("error getting comment: %w", err)
 	}
 	if cmt == nil {
-		cmt = &github.PullRequestComment{
-			ID:   asPointer(commentID),
-			Body: report,
-		}
-		_, _, err := ghClient.PullRequests.CreateComment(ctx, owner, repo, prNumber, cmt)
+		newCmt, _, err := ghClient.PullRequests.CreateComment(
+			ctx, owner, repo, prNumber,
+			&github.PullRequestComment{
+				ID:   asPointer(commentID),
+				Body: report,
+			},
+		)
 		if err != nil {
 			return fmt.Errorf("error creating comment: %w", err)
 		}
+		cmt = newCmt
+	}
+	cmt = &github.PullRequestComment{
+		ID:   asPointer(commentID),
+		Body: report,
 	}
 	// Edit the comment.
 	_, _, err = ghClient.PullRequests.EditComment(ctx, owner, repo, commentID, cmt)
