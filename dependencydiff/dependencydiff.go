@@ -11,7 +11,7 @@ import (
 
 	"github.com/google/go-github/v45/github"
 	"github.com/ossf/scorecard-action/options"
-	"github.com/ossf/scorecard/roundtripper"
+	"github.com/ossf/scorecard/v4/clients/githubrepo/roundtripper"
 	"github.com/ossf/scorecard/v4/dependencydiff"
 	"github.com/ossf/scorecard/v4/log"
 	"github.com/ossf/scorecard/v4/pkg"
@@ -83,7 +83,7 @@ func writeToComment(ctx context.Context, owner, repo string, report *string) err
 	logger := log.NewLogger(log.DefaultLevel)
 	ghrt := roundtripper.NewTransport(ctx, logger) /* This round tripper handles the access token. */
 	ghClient := github.NewClient(&http.Client{Transport: ghrt})
-	// Get comment by ID first, if comment doesn't exist, create a new one.
+	// Get the comment by ID first, if the comment doesn't exist, create a new one.
 	cmt, _, err := ghClient.PullRequests.GetComment(ctx, repo, owner, commentID)
 	if err != nil {
 		return fmt.Errorf("error getting comment: %w", err)
