@@ -16,6 +16,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"os"
 
@@ -30,6 +31,9 @@ const (
 )
 
 func main() {
+	fmt.Println(os.Getenv(options.EnvGithubEventName))
+	fmt.Println(os.Getenv(options.EnvGithubRef))
+	fmt.Println("****&&&&****^^^^")
 	switch os.Getenv(options.EnvGithubEventName) {
 	case EVENT_PULL_REQUEST:
 		// Run the dependency-diff on pull requests.
