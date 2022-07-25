@@ -41,6 +41,14 @@ inputs:
     description: "INPUT: Default GitHub token. (Internal purpose only, not intended for developers to set. Used for pull requests configured with a PAT)."
     required: false
     default: ${{ github.token }}
+  checks:
+    description: "INPUT: Scorecard checks to run. Use this input to specify the checks to run on dependency-diffs."
+    required: false
+    default: ""
+  change_types:
+    description: "INPUT: Depenency-diff change types to surface Scorecard check results."
+    required: false
+    default: ""
 
 branding:
   icon: "mic"

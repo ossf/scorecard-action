@@ -15,42 +15,60 @@
 package main
 
 import (
+	"context"
 	"log"
 	"os"
 
+	"github.com/ossf/scorecard-action/dependencydiff"
 	"github.com/ossf/scorecard-action/entrypoint"
 	"github.com/ossf/scorecard-action/options"
 	"github.com/ossf/scorecard-action/signing"
 )
 
+const (
+	PULL_REQUEST = "pull_request"
+)
+
 func main() {
-	action, err := entrypoint.New()
-	if err != nil {
-		log.Fatalf("creating scorecard entrypoint: %v", err)
-	}
-
-	if err := action.Execute(); err != nil {
-		log.Fatalf("error during command execution: %v", err)
-	}
-
-	if os.Getenv(options.EnvInputPublishResults) == "true" {
-		// Get json results by re-running scorecard.
-		jsonPayload, err := signing.GetJSONScorecardResults()
+	switch os.Getenv(options.EnvGithubEventName) {
+	case PULL_REQUEST:
+		// Run the dependency-diff on pull requests.
+		ctx := context.Background()
+		err := dependencydiff.RunDependencyDiff(ctx)
 		if err != nil {
-			log.Fatalf("error generating json scorecard results: %v", err)
+			log.Fatalf("error running dependency-diff: %v", err)
+		}
+	default:
+		// Run the root Scorecard-action.
+		action, err := entrypoint.New()
+		if err != nil {
+			log.Fatalf("creating scorecard entrypoint: %v", err)
 		}
 
-		// Sign json results.
-		if err = signing.SignScorecardResult("results.json"); err != nil {
-			log.Fatalf("error signing scorecard json results: %v", err)
+		if err := action.Execute(); err != nil {
+			log.Fatalf("error during command execution: %v", err)
 		}
 
-		// Processes json results.
-		repoName := os.Getenv(options.EnvGithubRepository)
-		repoRef := os.Getenv(options.EnvGithubRef)
-		accessToken := os.Getenv(options.EnvInputRepoToken)
-		if err := signing.ProcessSignature(jsonPayload, repoName, repoRef, accessToken); err != nil {
-			log.Fatalf("error processing signature: %v", err)
+		if os.Getenv(options.EnvInputPublishResults) == "true" {
+			// Get json results by re-running scorecard.
+			jsonPayload, err := signing.GetJSONScorecardResults()
+			if err != nil {
+				log.Fatalf("error generating json scorecard results: %v", err)
+			}
+
+			// Sign json results.
+			if err = signing.SignScorecardResult("results.json"); err != nil {
+				log.Fatalf("error signing scorecard json results: %v", err)
+			}
+
+			// Processes json results.
+			repoName := os.Getenv(options.EnvGithubRepository)
+			repoRef := os.Getenv(options.EnvGithubRef)
+			accessToken := os.Getenv(options.EnvInputRepoToken)
+			if err := signing.ProcessSignature(jsonPayload, repoName, repoRef, accessToken); err != nil {
+				log.Fatalf("error processing signature: %v", err)
+			}
 		}
 	}
+
 }
