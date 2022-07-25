@@ -29,6 +29,8 @@ const (
 	EnvEnableDangerousWorkflow = "ENABLE_DANGEROUS_WORKFLOW"
 	EnvGithubEventPath         = "GITHUB_EVENT_PATH"
 	EnvGithubEventName         = "GITHUB_EVENT_NAME"
+	EnvGitHubHeadRef           = "GITHUB_HEAD_REF"
+	EnvGitHubPullRequestNumber = "GITHUB.EVENT.PULL_REQUEST.NUMBER"
 	EnvGithubRepository        = "GITHUB_REPOSITORY"
 	EnvGithubRef               = "GITHUB_REF"
 	EnvGithubWorkspace         = "GITHUB_WORKSPACE"
@@ -43,6 +45,8 @@ const (
 	EnvInputResultsFile       = "INPUT_RESULTS_FILE"
 	EnvInputResultsFormat     = "INPUT_RESULTS_FORMAT"
 	EnvInputPublishResults    = "INPUT_PUBLISH_RESULTS"
+	EnvInputChecks            = "INPUT_CHECKS"
+	EnvInputChangeTypes       = "INPUT_CHANGE_TYPES"
 )
 
 // Errors
