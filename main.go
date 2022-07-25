@@ -26,12 +26,12 @@ import (
 )
 
 const (
-	PULL_REQUEST = "pull_request"
+	EVENT_PULL_REQUEST = "pull_request"
 )
 
 func main() {
 	switch os.Getenv(options.EnvGithubEventName) {
-	case PULL_REQUEST:
+	case EVENT_PULL_REQUEST:
 		// Run the dependency-diff on pull requests.
 		ctx := context.Background()
 		err := dependencydiff.RunDependencyDiff(ctx)
