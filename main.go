@@ -16,6 +16,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"os"
 
@@ -30,8 +31,10 @@ const (
 )
 
 func main() {
-	switch os.Getenv(options.EnvGithubEventName) {
+	event := os.Getenv(options.EnvGithubEventName)
+	switch event {
 	case EVENT_PULL_REQUEST:
+		fmt.Println(event)
 		// Run the dependency-diff on pull requests.
 		ctx := context.Background()
 		err := dependencydiff.RunDependencyDiff(ctx)
@@ -39,6 +42,7 @@ func main() {
 			log.Fatalf("error running dependency-diff: %v", err)
 		}
 	default:
+		fmt.Println(event)
 		// Run the root Scorecard-action.
 		action, err := entrypoint.New()
 		if err != nil {

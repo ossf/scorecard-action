@@ -83,14 +83,14 @@ func writeToComment(ctx context.Context, owner, repo string, report *string) err
 	ghrt := roundtripper.NewTransport(ctx, logger) /* This round tripper handles the access token. */
 	ghClient := github.NewClient(&http.Client{Transport: ghrt})
 	// Get the comment by ID first, if the comment doesn't exist, create a new one.
-	cmt, _, err := ghClient.PullRequests.GetComment(ctx, repo, owner, commentID)
+	cmt, _, err := ghClient.Issues.GetComment(ctx, repo, owner, commentID)
 	if err != nil {
 		return fmt.Errorf("error getting comment: %w", err)
 	}
 	if cmt == nil {
-		newCmt, _, err := ghClient.PullRequests.CreateComment(
+		newCmt, _, err := ghClient.Issues.CreateComment(
 			ctx, owner, repo, prNumber,
-			&github.PullRequestComment{
+			&github.IssueComment{
 				ID:   asPointer(commentID),
 				Body: report,
 			},
@@ -99,16 +99,15 @@ func writeToComment(ctx context.Context, owner, repo string, report *string) err
 			return fmt.Errorf("error creating comment: %w", err)
 		}
 		cmt = newCmt
+	} else {
+		cmt.Body = report
+		// Edit the comment.
+		_, _, err = ghClient.Issues.EditComment(ctx, owner, repo, commentID, cmt)
+		if err != nil {
+			return fmt.Errorf("error editing comment: %w", err)
+		}
 	}
-	cmt = &github.PullRequestComment{
-		ID:   asPointer(commentID),
-		Body: report,
-	}
-	// Edit the comment.
-	_, _, err = ghClient.PullRequests.EditComment(ctx, owner, repo, commentID, cmt)
-	if err != nil {
-		return fmt.Errorf("error editing comment: %w", err)
-	}
+
 	return nil
 }
 
