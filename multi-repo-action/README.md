@@ -1,4 +1,4 @@
-# Enable OSSF Scorecard Action at an Organization Level
+# Enable OSSF Scorecard Action at an Organization Level - Work In Progress and is not Production Ready
 
 This tool will add the [OpenSSF's Scorecard workflow](https://github.com/ossf/scorecard-action) to all accessible repositories under a given organization. A PR will be created so that owners can decide whether or not they want to include the workflow.
 
