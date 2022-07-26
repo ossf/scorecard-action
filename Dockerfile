@@ -36,8 +36,7 @@ ARG TARGETARCH
 RUN CGO_ENABLED=0 make build
 
 # TODO: use distroless:
-# FROM gcr.io/distroless/base:nonroot@sha256:02f667185ccf78dbaaf79376b6904aea6d832638e1314387c2c2932f217ac5cb
-FROM ubuntu:latest
+FROM gcr.io/distroless/base:nonroot@sha256:02f667185ccf78dbaaf79376b6904aea6d832638e1314387c2c2932f217ac5cb
 
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
