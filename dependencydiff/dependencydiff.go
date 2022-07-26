@@ -54,6 +54,7 @@ func RunDependencyDiff(ctx context.Context) error {
 	if err != nil {
 		return fmt.Errorf("error getting dependency-diff: %w", err)
 	}
+	fmt.Println(deps)
 	report, err := DependencydiffResultsAsMarkdown(deps, base, head)
 	if err != nil {
 		return fmt.Errorf("error formatting results as markdown: %w", err)
@@ -62,11 +63,12 @@ func RunDependencyDiff(ctx context.Context) error {
 	if err != nil {
 		return fmt.Errorf("error writting the report to comment: %w", err)
 	}
+	fmt.Println(*report)
 	return nil
 }
 
 func writeToComment(ctx context.Context, owner, repo string, report *string) error {
-
+	fmt.Printf("env github ref: %s", options.EnvGithubRef)
 	ref := os.Getenv(options.EnvGithubRef)
 	splitted := strings.Split(ref, "/")
 	// https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows#pull_request
@@ -82,23 +84,19 @@ func writeToComment(ctx context.Context, owner, repo string, report *string) err
 	logger := log.NewLogger(log.DefaultLevel)
 	ghrt := roundtripper.NewTransport(ctx, logger) /* This round tripper handles the access token. */
 	ghClient := github.NewClient(&http.Client{Transport: ghrt})
-	// Get the comment by ID first, if the comment doesn't exist, create a new one.
+	// Get the issue comment in the pull request by ID.
 	cmt, _, err := ghClient.Issues.GetComment(ctx, repo, owner, commentID)
 	if err != nil {
-		return fmt.Errorf("error getting comment: %w", err)
-	}
-	if cmt == nil {
-		newCmt, _, err := ghClient.Issues.CreateComment(
+		// Create a new one if the comment doesn't exist.
+		_, _, err := ghClient.Issues.CreateComment(
 			ctx, owner, repo, prNumber,
 			&github.IssueComment{
-				ID:   asPointer(commentID),
 				Body: report,
 			},
 		)
 		if err != nil {
 			return fmt.Errorf("error creating comment: %w", err)
 		}
-		cmt = newCmt
 	} else {
 		cmt.Body = report
 		// Edit the comment.
@@ -107,7 +105,6 @@ func writeToComment(ctx context.Context, owner, repo string, report *string) err
 			return fmt.Errorf("error editing comment: %w", err)
 		}
 	}
-
 	return nil
 }
 
