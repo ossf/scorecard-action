@@ -27,6 +27,7 @@ const (
 	EnvEnableSarif             = "ENABLE_SARIF"
 	EnvEnableLicense           = "ENABLE_LICENSE"
 	EnvEnableDangerousWorkflow = "ENABLE_DANGEROUS_WORKFLOW"
+	EnvGithubBaseRef           = "GITHUB_BASE_REF"
 	EnvGithubEventPath         = "GITHUB_EVENT_PATH"
 	EnvGithubEventName         = "GITHUB_EVENT_NAME"
 	EnvGitHubHeadRef           = "GITHUB_HEAD_REF"

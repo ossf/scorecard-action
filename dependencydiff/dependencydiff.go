@@ -28,7 +28,7 @@ func RunDependencyDiff(ctx context.Context) error {
 		return fmt.Errorf("%w: repo uri", errInvalid)
 	}
 	// Since the event listener is set to pull requests to main, this will be the main branch reference.
-	base := os.Getenv(options.EnvGithubRef)
+	base := os.Getenv(options.EnvGithubBaseRef)
 	if base == "" {
 		return fmt.Errorf("%w: base ref", errEmpty)
 	}
