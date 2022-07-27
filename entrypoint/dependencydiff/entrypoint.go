@@ -1,8 +1,21 @@
+// Copyright 2022 Security Scorecard Authors
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package dependencydiff
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"net/http"
 	"os"
@@ -56,19 +69,28 @@ func New(ctx context.Context) error {
 	if err != nil {
 		return fmt.Errorf("error getting dependency-diff: %w", err)
 	}
+
+	// Generate a markdown string using the dependency-diffs and write it to the pull request comment.
 	report, err := dependencydiffResultsAsMarkdown(deps, base, head)
 	if err != nil {
 		return fmt.Errorf("error formatting results as markdown: %w", err)
 	}
-	err = writeToComment(ctx, ownerRepo[0], ownerRepo[1], report)
+	logger := log.NewLogger(log.DefaultLevel)
+	ghrt := roundtripper.NewTransport(ctx, logger) /* This round tripper handles the access token. */
+	ghClient := github.NewClient(&http.Client{Transport: ghrt})
+	err = writeToComment(ctx, ghClient, ownerRepo[0], ownerRepo[1], report)
 	if err != nil {
 		return fmt.Errorf("error writting the report to comment: %w", err)
 	}
-	// TODO (#issue number): give the complete dependency-diff JSON results in the Action.
+
+	// Create a new check run and visualize dependency-diffs as check run annotations.
+	err = visualizeToCheckRunAnnotations(ctx, ghClient, ownerRepo[0], ownerRepo[1], deps)
+
+	// TODO (#issue number): give the complete dependency-diff JSON results in the Action, at somewhere else.
 	return nil
 }
 
-func writeToComment(ctx context.Context, owner, repo string, report *string) error {
+func writeToComment(ctx context.Context, ghClient *github.Client, owner, repo string, report *string) error {
 	ref := os.Getenv(options.EnvGithubRef)
 	splitted := strings.Split(ref, "/")
 	// https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows#pull_request
@@ -81,9 +103,6 @@ func writeToComment(ctx context.Context, owner, repo string, report *string) err
 	if err != nil {
 		return fmt.Errorf("error converting str pr number to int: %w", err)
 	}
-	logger := log.NewLogger(log.DefaultLevel)
-	ghrt := roundtripper.NewTransport(ctx, logger) /* This round tripper handles the access token. */
-	ghClient := github.NewClient(&http.Client{Transport: ghrt})
 
 	// The current solution could result in a pull request full of our reports and drown out other comments.
 	// Create a new issue comment in the pull request and print the report there.
@@ -104,13 +123,4 @@ func writeToComment(ctx context.Context, owner, repo string, report *string) err
 		return fmt.Errorf("error creating comment: %w", err)
 	}
 	return nil
-}
-
-var (
-	errEmpty   = errors.New("empty")
-	errInvalid = errors.New("invalid")
-)
-
-func asPointer(i int64) *int64 {
-	return &i
 }

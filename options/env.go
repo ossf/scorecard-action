@@ -34,6 +34,7 @@ const (
 	EnvGitHubPullRequestNumber = "GITHUB.EVENT.PULL_REQUEST.NUMBER"
 	EnvGithubRepository        = "GITHUB_REPOSITORY"
 	EnvGithubRef               = "GITHUB_REF"
+	EnvGithubSHA               = "GITHUB_SHA"
 	EnvGithubWorkspace         = "GITHUB_WORKSPACE"
 	EnvGithubAuthToken         = "GITHUB_AUTH_TOKEN" //nolint:gosec
 	EnvScorecardFork           = "SCORECARD_IS_FORK"
