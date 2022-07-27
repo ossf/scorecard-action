@@ -103,7 +103,7 @@ func dependencydiffResultsAsMarkdown(depdiffResults []pkg.DependencyCheckResult,
 		results += current + "\n\n"
 	}
 	// TODO (#772):
-	out := "# [Scorecard Action](https://github.com/ossf/scorecard-action) Dependency-diff Report"
+	out := "# [Scorecard Action](https://github.com/ossf/scorecard-action) Dependency-diff Report\n\n"
 	out += fmt.Sprintf(
 		"Dependency-diffs (changes) between the BASE reference `%s` and the HEAD reference `%s`:\n\n",
 		base, head,
@@ -113,6 +113,7 @@ func dependencydiffResultsAsMarkdown(depdiffResults []pkg.DependencyCheckResult,
 	} else {
 		out += fmt.Sprintln(results)
 	}
+	out += experimentalFeature
 	return &out, nil
 }
 
