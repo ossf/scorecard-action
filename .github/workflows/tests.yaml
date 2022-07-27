@@ -39,7 +39,7 @@ jobs:
           go-version: '1.18'
       - name: Run Go tests
         # cannot run tests with race because we are mutating state (setting ENV variables)
-        run: go test -covermode=atomic  -coverprofile=unit-coverage.out ./...
+        run: GITHUB_AUTH_TOKEN=${{ secrets.GITHUB_TOKEN }} go test -covermode=atomic  -coverprofile=unit-coverage.out ./...
       - name: Upload codecoverage
         uses: codecov/codecov-action@81cd2dc8148241f03f5839d295e000b8f761e378 # 2.1.0
         with:
