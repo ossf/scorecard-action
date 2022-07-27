@@ -85,7 +85,9 @@ func New(ctx context.Context) error {
 
 	// Create a new check run and visualize dependency-diffs as check run annotations.
 	err = visualizeToCheckRun(ctx, ghClient, ownerRepo[0], ownerRepo[1], deps)
-
+	if err != nil {
+		return fmt.Errorf("error visualizing the results to check run: %w", err)
+	}
 	// TODO (#issue number): give the complete dependency-diff JSON results in the Action, at somewhere else.
 	return nil
 }
