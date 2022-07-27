@@ -107,7 +107,7 @@ func createAnnotations(deps []pkg.DependencyCheckResult) ([]*github.CheckRunAnno
 			a.Message = asPointerStr(msg)
 			a.RawDetails = asPointerStr(fmt.Sprintln(scResult))
 		}
-		fmt.Println(*a.Path, *a.Title, *a.RawDetails)
+		fmt.Println(*a.Path, *a.Title)
 		annotations = append(annotations, &a)
 	}
 	return annotations, nil
