@@ -89,6 +89,7 @@ func createAnnotations(deps []pkg.DependencyCheckResult) ([]*github.CheckRunAnno
 		} else {
 			a.Title = &d.Name
 		}
+		a.Message = asPointerStr("No Scorecard check results for this dependency.")
 		scResult := d.ScorecardResultWithError.ScorecardResult
 		if scResult != nil {
 			aggregateScore, err := scResult.GetAggregateScore(doc)
@@ -105,10 +106,9 @@ func createAnnotations(deps []pkg.DependencyCheckResult) ([]*github.CheckRunAnno
 			}
 			a.Message = asPointerStr(msg)
 			a.RawDetails = asPointerStr(fmt.Sprintln(scResult))
-		} else {
-			a.Message = asPointerStr("No Scorecard check results for this dependency.")
 		}
 		annotations = append(annotations, &a)
+		fmt.Println(a.Message)
 	}
 	return annotations, nil
 }
