@@ -25,7 +25,7 @@ import (
 	"github.com/ossf/scorecard/v4/pkg"
 )
 
-func visualizeToCheckRunAnnotations(ctx context.Context, ghClient *github.Client,
+func visualizeToCheckRun(ctx context.Context, ghClient *github.Client,
 	owner, repo string,
 	deps []pkg.DependencyCheckResult,
 ) error {
@@ -33,7 +33,6 @@ func visualizeToCheckRunAnnotations(ctx context.Context, ghClient *github.Client
 	if headSHA == "" {
 		return fmt.Errorf("%w: head ref", errEmpty)
 	}
-	fmt.Println(headSHA, owner, repo)
 	annotations, err := createAnnotations(deps)
 	if err != nil {
 		return fmt.Errorf("error creating annotations: %w", err)
@@ -55,12 +54,15 @@ func visualizeToCheckRunAnnotations(ctx context.Context, ghClient *github.Client
 		Conclusion: asPointerStr("neutral"),
 		Output:     &output,
 	}
-	_, _, err = ghClient.Checks.CreateCheckRun(
+	cr, resp, err := ghClient.Checks.CreateCheckRun(
 		ctx, owner, repo, opts,
 	)
 	if err != nil {
 		return fmt.Errorf("error creating the check run: %w", err)
 	}
+	fmt.Println(*cr)
+	fmt.Println(*resp)
+	fmt.Println(resp.StatusCode)
 	return nil
 }
 
@@ -107,7 +109,6 @@ func createAnnotations(deps []pkg.DependencyCheckResult) ([]*github.CheckRunAnno
 			a.Message = asPointerStr(msg)
 			a.RawDetails = asPointerStr(fmt.Sprintln(scResult))
 		}
-		fmt.Println(*a.Path, *a.Title)
 		annotations = append(annotations, &a)
 	}
 	return annotations, nil
