@@ -33,10 +33,12 @@ func visualizeToCheckRunAnnotations(ctx context.Context, ghClient *github.Client
 	if headSHA == "" {
 		return fmt.Errorf("%w: head ref", errEmpty)
 	}
+	fmt.Println(headSHA, owner, repo)
 	annotations, err := createAnnotations(deps)
 	if err != nil {
 		return fmt.Errorf("error creating annotations: %w", err)
 	}
+	fmt.Println(annotations)
 	output := github.CheckRunOutput{
 		Title:       asPointerStr("Scorecard Action Dependency-diff check results"),
 		Annotations: annotations,
