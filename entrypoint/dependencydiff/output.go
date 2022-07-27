@@ -11,13 +11,7 @@ import (
 
 const (
 	// negInif is "negative infinity" used for dependencydiff results ranking.
-	negInf              float64 = -math.MaxFloat64
-	experimentalFeature string  = `
-	> This is an experimental feature of the [Scorecard Action](https://github.com/ossf/scorecard-action). 
-	The [scores](https://github.com/ossf/scorecard#scoring) are aggregate scores calculated by the checks specified in the workflow file. 
-	Please refer to [Scorecard Checks](https://github.com/ossf/scorecard#scorecard-checks) for more details.
-	See deps.dev for a more comprehensive view of your dependencies.
-	`
+	negInf float64 = -math.MaxFloat64
 )
 
 type scoreAndDependencyName struct {
@@ -161,7 +155,7 @@ func scoreTag(score float64) string {
 	case negInf:
 		return ""
 	default:
-		return fmt.Sprintf("`Aggregate Score: %.1f` ", score)
+		return fmt.Sprintf("`Score: %.1f` ", score)
 	}
 }
 
@@ -179,7 +173,15 @@ func packageAsMarkdown(name string, version, srcRepo *string, changeType *pkg.Ch
 	case pkg.Added:
 		result += " (new) "
 	case pkg.Removed:
-		result += " (old) "
+		result = " ~~" + result + " (old)" + "~~ "
 	}
+	return result
+}
+
+func experimentalFeature() string {
+	result := "> This is an experimental feature of the [Scorecard Action](https://github.com/ossf/scorecard-action). " +
+		"The [scores](https://github.com/ossf/scorecard#scoring) are aggregate scores calculated by the checks specified in the workflow file. " +
+		"Please refer to [Scorecard Checks](https://github.com/ossf/scorecard#scorecard-checks) for more details. " +
+		"See deps.dev for a more comprehensive view of your dependencies."
 	return result
 }
