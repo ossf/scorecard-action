@@ -107,7 +107,7 @@ func dependencydiffResultsAsMarkdown(depdiffResults []pkg.DependencyCheckResult,
 	} else {
 		out += fmt.Sprintln(results)
 	}
-	out += experimentalFeature
+	out += experimentalFeature()
 	return &out, nil
 }
 
