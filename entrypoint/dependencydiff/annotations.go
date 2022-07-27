@@ -39,6 +39,7 @@ func visualizeToCheckRun(ctx context.Context, ghClient *github.Client,
 	}
 	output := github.CheckRunOutput{
 		Title:       asPointerStr("Scorecard Action Dependency-diff check results"),
+		Summary:     asPointerStr("test **11111**"),
 		Annotations: annotations,
 	}
 	opts := github.CreateCheckRunOptions{
@@ -88,6 +89,7 @@ func createAnnotations(deps []pkg.DependencyCheckResult) ([]*github.CheckRunAnno
 		} else {
 			a.Title = &d.Name
 		}
+		a.Message = asPointerStr("test message")
 		scResult := d.ScorecardResultWithError.ScorecardResult
 		if scResult != nil {
 			aggregateScore, err := scResult.GetAggregateScore(doc)
