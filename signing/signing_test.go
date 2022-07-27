@@ -79,7 +79,7 @@ func Test_ProcessSignature(t *testing.T) {
 	jsonPayload, err := os.ReadFile("testdata/results.json")
 	repoName := "ossf-tests/scorecard-action"
 	repoRef := "refs/heads/main"
-	accessToken := ""
+	accessToken := os.Getenv("GITHUB_AUTH_TOKEN")
 
 	if err != nil {
 		t.Errorf("Error reading testdata:, %v", err)
