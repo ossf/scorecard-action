@@ -37,7 +37,6 @@ func visualizeToCheckRun(ctx context.Context, ghClient *github.Client,
 	if err != nil {
 		return fmt.Errorf("error creating annotations: %w", err)
 	}
-	fmt.Println(annotations)
 	output := github.CheckRunOutput{
 		Title:       asPointerStr("Scorecard Action Dependency-diff check results"),
 		Annotations: annotations,
@@ -54,14 +53,12 @@ func visualizeToCheckRun(ctx context.Context, ghClient *github.Client,
 		Conclusion: asPointerStr("neutral"),
 		Output:     &output,
 	}
-	cr, resp, err := ghClient.Checks.CreateCheckRun(
+	_, resp, err := ghClient.Checks.CreateCheckRun(
 		ctx, owner, repo, opts,
 	)
 	if err != nil {
 		return fmt.Errorf("error creating the check run: %w", err)
 	}
-	fmt.Println(*cr)
-	fmt.Println(*resp)
 	fmt.Println(resp.StatusCode)
 	return nil
 }
