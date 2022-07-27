@@ -64,7 +64,7 @@ func New(ctx context.Context) error {
 	if err != nil {
 		return fmt.Errorf("error writting the report to comment: %w", err)
 	}
-	// TODO (#issue number): give dependency-diff JSON results in the Action.
+	// TODO (#issue number): give the complete dependency-diff JSON results in the Action.
 	return nil
 }
 

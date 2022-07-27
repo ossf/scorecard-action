@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"math"
 	"sort"
+	"strings"
 
 	docs "github.com/ossf/scorecard/v4/docs/checks"
 	"github.com/ossf/scorecard/v4/pkg"
@@ -173,7 +174,7 @@ func packageAsMarkdown(name string, version, srcRepo *string, changeType *pkg.Ch
 	case pkg.Added:
 		result += " (new) "
 	case pkg.Removed:
-		result = " ~~" + result + " (old)" + "~~ "
+		result = " ~~" + strings.Trim(result, " ") + " (old)" + "~~ "
 	}
 	return result
 }
@@ -182,6 +183,6 @@ func experimentalFeature() string {
 	result := "> This is an experimental feature of the [Scorecard Action](https://github.com/ossf/scorecard-action). " +
 		"The [scores](https://github.com/ossf/scorecard#scoring) are aggregate scores calculated by the checks specified in the workflow file. " +
 		"Please refer to [Scorecard Checks](https://github.com/ossf/scorecard#scorecard-checks) for more details. " +
-		"See deps.dev for a more comprehensive view of your dependencies."
+		"See [deps.dev](https://deps.dev/) for a more comprehensive view of your dependencies."
 	return result
 }
