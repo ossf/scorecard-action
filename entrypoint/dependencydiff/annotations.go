@@ -79,7 +79,7 @@ func createAnnotations(deps []pkg.DependencyCheckResult) ([]*github.CheckRunAnno
 		// We don't has a start line and an end line for a dependency-diff since the current data source
 		// simply walks through the manifest/lock file and doesn't has such return fields.
 		a.StartLine = asPointerInt(1) /* Fake the start line. */
-		a.EndLine = asPointerInt(1)   /* Fake the end line. */
+		a.EndLine = asPointerInt(2)   /* Fake the end line. */
 		a.AnnotationLevel = asPointerStr("notice")
 		if d.ChangeType != nil && d.Version != nil {
 			a.Title = asPointerStr(fmt.Sprintf(
@@ -89,7 +89,6 @@ func createAnnotations(deps []pkg.DependencyCheckResult) ([]*github.CheckRunAnno
 		} else {
 			a.Title = &d.Name
 		}
-		a.Message = asPointerStr("test message")
 		scResult := d.ScorecardResultWithError.ScorecardResult
 		if scResult != nil {
 			aggregateScore, err := scResult.GetAggregateScore(doc)
@@ -106,6 +105,8 @@ func createAnnotations(deps []pkg.DependencyCheckResult) ([]*github.CheckRunAnno
 			}
 			a.Message = asPointerStr(msg)
 			a.RawDetails = asPointerStr(fmt.Sprintln(scResult))
+		} else {
+			a.Message = asPointerStr("No Scorecard check results for this dependency.")
 		}
 		annotations = append(annotations, &a)
 	}
