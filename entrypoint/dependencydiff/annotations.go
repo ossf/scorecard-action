@@ -96,19 +96,19 @@ func createAnnotations(deps []pkg.DependencyCheckResult) ([]*github.CheckRunAnno
 			if err != nil {
 				return nil, fmt.Errorf("error getting the aggregate score: %w", err)
 			}
-			msg := fmt.Sprintf("Scorecard check results: \n")
-			msg += fmt.Sprintf("Aggregate Score: %.1f\n", aggregateScore)
-			for _, c := range scResult.Checks {
-				msg += fmt.Sprintf(
-					"Check name: %s, score: %.1f, reason: %s\n",
-					c.Name, float64(c.Score), c.Reason,
-				)
-			}
+			// msg := fmt.Sprintf("Scorecard check results: \n")
+			msg := fmt.Sprintf("Aggregate Score: %.1f\n", aggregateScore)
+			// for _, c := range scResult.Checks {
+			// 	msg += fmt.Sprintf(
+			// 		"Check name: %s, score: %.1f, reason: %s\n",
+			// 		c.Name, float64(c.Score), c.Reason,
+			// 	)
+			// }
 			a.Message = asPointerStr(msg)
-			a.RawDetails = asPointerStr(fmt.Sprintln(scResult))
+			// a.RawDetails = asPointerStr(fmt.Sprintln(scResult))
 		}
 		annotations = append(annotations, &a)
-		fmt.Println(a.Message)
+		fmt.Println(*a.Message)
 	}
 	return annotations, nil
 }
