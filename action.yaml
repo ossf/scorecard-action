@@ -48,7 +48,7 @@ inputs:
   change_types:
     description: "INPUT: Depenency-diff change types to surface Scorecard check results."
     required: false
-    default: ""
+    default: "added,removed"
 
 branding:
   icon: "mic"
