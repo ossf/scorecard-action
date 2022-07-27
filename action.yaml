@@ -42,13 +42,18 @@ inputs:
     required: false
     default: ${{ github.token }}
   checks:
-    description: "INPUT: Scorecard checks to run. Use this input to specify the checks to run on dependency-diffs."
+    description: "INPUT: Scorecard checks to run. Use this input to specify the checks to run for dependency-diffs."
     required: false
-    default: ""
+    default: "Maintained,Security-Policy,License,Code-Review,SAST" # Several important checks by default.
   change_types:
     description: "INPUT: Depenency-diff change types to surface Scorecard check results."
     required: false
-    default: "added,removed"
+    default: "added"
+  pull_request_head_sha:
+    description: "INPUT: The headSHA of the merging branch in a pull request. This is only used for a pull request-triggered action."
+    required: false
+    default: ${{ github.event.pull_request.head.sha }}
+
 
 branding:
   icon: "mic"

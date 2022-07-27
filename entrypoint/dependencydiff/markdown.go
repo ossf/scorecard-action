@@ -38,22 +38,7 @@ type scoreAndDependencyName struct {
 func dependencydiffResultsAsMarkdown(depdiffResults []pkg.DependencyCheckResult,
 	base, head string) (*string, error) {
 
-	added := map[string]pkg.DependencyCheckResult{}
-	removed := map[string]pkg.DependencyCheckResult{}
-	for _, d := range depdiffResults {
-		if d.ChangeType != nil {
-			switch *d.ChangeType {
-			case pkg.Added:
-				added[d.Name] = d
-			case pkg.Removed:
-				removed[d.Name] = d
-			case pkg.Updated:
-				// Do nothing, for now.
-				// The current data source GitHub Dependency Review won't give the updated dependencies,
-				// so we need to find them manually by checking the added/removed maps.
-			}
-		}
-	}
+	added, removed := dependencySliceToMaps(depdiffResults)
 	// Sort dependencies by their aggregate scores in descending orders.
 	addedSortKeys, err := getDependencySortKeys(added)
 	if err != nil {
@@ -199,4 +184,26 @@ func experimentalFeature() string {
 		"Please refer to [Scorecard Checks](https://github.com/ossf/scorecard#scorecard-checks) for more details. " +
 		"See [deps.dev](https://deps.dev/) for a more comprehensive view of your dependencies."
 	return result
+}
+
+// Convert the dependency-diff check result slice to two maps: added and removed, for added and removed dependencies respectively.
+func dependencySliceToMaps(deps []pkg.DependencyCheckResult) (map[string]pkg.DependencyCheckResult,
+	map[string]pkg.DependencyCheckResult) {
+	added := map[string]pkg.DependencyCheckResult{}
+	removed := map[string]pkg.DependencyCheckResult{}
+	for _, d := range deps {
+		if d.ChangeType != nil {
+			switch *d.ChangeType {
+			case pkg.Added:
+				added[d.Name] = d
+			case pkg.Removed:
+				removed[d.Name] = d
+			case pkg.Updated:
+				// Do nothing, for now.
+				// The current data source GitHub Dependency Review won't give the updated dependencies,
+				// so we need to find them manually by checking the added/removed maps.
+			}
+		}
+	}
+	return added, removed
 }

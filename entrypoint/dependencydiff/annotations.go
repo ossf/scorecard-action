@@ -18,18 +18,24 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"sort"
 
 	"github.com/google/go-github/v45/github"
 	"github.com/ossf/scorecard-action/options"
-	docs "github.com/ossf/scorecard/v4/docs/checks"
 	"github.com/ossf/scorecard/v4/pkg"
+)
+
+const (
+	fakeStartLine = 1
+	fakeEndLine   = 2
+	msgNoResults  = "No Scorecard check results for this dependency, or this dependency is a removed one."
 )
 
 func visualizeToCheckRun(ctx context.Context, ghClient *github.Client,
 	owner, repo string,
 	deps []pkg.DependencyCheckResult,
 ) error {
-	headSHA := os.Getenv(options.EnvGithubPullRequestHeadSHA)
+	headSHA := os.Getenv(options.EnvInputPullRequestHeadSHA)
 	if headSHA == "" {
 		return fmt.Errorf("%w: head ref", errEmpty)
 	}
@@ -68,49 +74,130 @@ func visualizeToCheckRun(ctx context.Context, ghClient *github.Client,
 
 func createAnnotations(deps []pkg.DependencyCheckResult) ([]*github.CheckRunAnnotation, error) {
 	annotations := []*github.CheckRunAnnotation{}
-	doc, err := docs.Read()
+	// Do sorting for dependencies by their aggregate scores in descending order.
+	added, removed := dependencySliceToMaps(deps)
+	addedSortKeys, err := getDependencySortKeys(added)
 	if err != nil {
-		return nil, fmt.Errorf("error getting the check doc: %w", err)
+		return nil, err
 	}
-	for _, d := range deps {
-		a := github.CheckRunAnnotation{}
-		// No need for nil pointer checking since a.Path is also a pointer type.
-		a.Path = d.ManifestPath
-		// We don't has a start line and an end line for a dependency-diff since the current data source
-		// simply walks through the manifest/lock file and doesn't has such return fields.
-		a.StartLine = asPointerInt(1) /* Fake the start line. */
-		a.EndLine = asPointerInt(2)   /* Fake the end line. */
-		a.AnnotationLevel = asPointerStr("notice")
-		if d.ChangeType != nil && d.Version != nil {
+	removedSortKeys, err := getDependencySortKeys(removed)
+	if err != nil {
+		return nil, err
+	}
+	sort.SliceStable(
+		addedSortKeys,
+		func(i, j int) bool { return addedSortKeys[i].aggregateScore > addedSortKeys[j].aggregateScore },
+	)
+	sort.SliceStable(
+		removedSortKeys,
+		func(i, j int) bool { return removedSortKeys[i].aggregateScore > removedSortKeys[j].aggregateScore },
+	)
+	for _, key := range addedSortKeys {
+		if _, ok := added[key.dependencyName]; !ok {
+			return nil, fmt.Errorf("%w: map entry", errInvalid)
+		}
+		dName := key.dependencyName
+		annotations = append(
+			annotations, annotationHelper(
+				dName, added[dName].ManifestPath, added[dName].Version,
+				added[dName].ChangeType,
+				added[dName].ScorecardResultWithError.ScorecardResult,
+			)...,
+		)
+	}
+	for _, key := range removedSortKeys {
+		if _, ok := removed[key.dependencyName]; !ok {
+			return nil, fmt.Errorf("%w: map entry", errInvalid)
+		}
+		dName := key.dependencyName
+		annotations = append(
+			annotations, annotationHelper(
+				dName, added[dName].ManifestPath, added[dName].Version,
+				added[dName].ChangeType,
+				added[dName].ScorecardResultWithError.ScorecardResult,
+			)...,
+		)
+	}
+
+	return annotations, nil
+}
+
+func annotationHelper(name string, manifest, version *string, changeType *pkg.ChangeType,
+	scorecardResult *pkg.ScorecardResult,
+) []*github.CheckRunAnnotation {
+	annotations := []*github.CheckRunAnnotation{}
+	if changeType == nil {
+		return nil
+	}
+	if scorecardResult != nil && *changeType != pkg.Removed {
+		// doc, err := docs.Read()
+		// if err != nil {
+		// 	return nil, fmt.Errorf("error getting the check doc: %w", err)
+		// }
+		// aggregateScore, err := scorecardResult.GetAggregateScore(doc)
+		// if err != nil {
+		// 	return nil, fmt.Errorf("error getting the aggregate score: %w", err)
+		// }
+
+		// Create annotations only for added dependencies and on a per-check basis.
+		for _, c := range scorecardResult.Checks {
+			a := github.CheckRunAnnotation{
+				// No need for nil pointer checking since a.Path is also a pointer type.
+				Path: manifest,
+				// TODO (#issue number): use the actual start lines and end lines in manifest/lock file if a future
+				// data source has such fields.
+				StartLine:       asPointerInt(fakeStartLine), /* Fake the start line since we don't have the data for now. */
+				EndLine:         asPointerInt(fakeEndLine),   /* Fake the end line since we don't have the data for now. */
+				AnnotationLevel: asPointerStr("notice"),
+				Message: asPointerStr(
+					fmt.Sprintf(
+						"Check: %s\n Score: %.1f\n Reason: %s",
+						c.Name, float64(c.Score), c.Reason,
+					),
+				),
+				RawDetails: asPointerStr(fmt.Sprint(*scorecardResult)),
+			}
+			if changeType != nil && version != nil {
+				a.Title = asPointerStr(fmt.Sprintf(
+					"%s dependency: %s @ %s",
+					*changeType, name, *version,
+				))
+			} else {
+				a.Title = &name
+			}
+			// Should we do this?
+			// My thought is to make this a warning if the score of a check is lower than a certain value.
+			if c.Score < 6.0 {
+				a.AnnotationLevel = asPointerStr("warning")
+			} else {
+				a.AnnotationLevel = asPointerStr("notice")
+			}
+			annotations = append(annotations, &a)
+		}
+	} else {
+		// Create exactly one annotation for those having a null scorecard check field.
+		a := github.CheckRunAnnotation{
+			Path:      manifest,
+			StartLine: asPointerInt(fakeStartLine),
+			EndLine:   asPointerInt(fakeEndLine),
+			Message:   asPointerStr(msgNoResults),
+		}
+		if *changeType == pkg.Removed {
+			a.AnnotationLevel = asPointerStr("notice")
+		} else {
+			a.AnnotationLevel = asPointerStr("warning")
+		}
+		if changeType != nil && version != nil {
 			a.Title = asPointerStr(fmt.Sprintf(
 				"%s dependency: %s @ %s",
-				*d.ChangeType, d.Name, *d.Version,
+				*changeType, name, *version,
 			))
 		} else {
-			a.Title = &d.Name
-		}
-		a.Message = asPointerStr("No Scorecard check results for this dependency.")
-		scResult := d.ScorecardResultWithError.ScorecardResult
-		if scResult != nil {
-			aggregateScore, err := scResult.GetAggregateScore(doc)
-			if err != nil {
-				return nil, fmt.Errorf("error getting the aggregate score: %w", err)
-			}
-			// msg := fmt.Sprintf("Scorecard check results: \n")
-			msg := fmt.Sprintf("Aggregate Score: %.1f\n", aggregateScore)
-			// for _, c := range scResult.Checks {
-			// 	msg += fmt.Sprintf(
-			// 		"Check name: %s, score: %.1f, reason: %s\n",
-			// 		c.Name, float64(c.Score), c.Reason,
-			// 	)
-			// }
-			a.Message = asPointerStr(msg)
-			// a.RawDetails = asPointerStr(fmt.Sprintln(scResult))
+			a.Title = &name
 		}
 		annotations = append(annotations, &a)
-		fmt.Println(*a.Message)
 	}
-	return annotations, nil
+	return annotations
 }
 
 func asPointerStr(s string) *string {
