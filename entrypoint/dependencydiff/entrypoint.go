@@ -21,7 +21,9 @@ const (
 	commentID int64 = 9867
 )
 
-func RunDependencyDiff(ctx context.Context) error {
+// New creates a new instance running the scorecard dependency-diff mode
+// used as an entrypoint for GitHub Actions.
+func New(ctx context.Context) error {
 	repoURI := os.Getenv(options.EnvGithubRepository)
 	ownerRepo := strings.Split(repoURI, "/")
 	if len(ownerRepo) != 2 {
@@ -54,8 +56,7 @@ func RunDependencyDiff(ctx context.Context) error {
 	if err != nil {
 		return fmt.Errorf("error getting dependency-diff: %w", err)
 	}
-	fmt.Println(deps)
-	report, err := DependencydiffResultsAsMarkdown(deps, base, head)
+	report, err := dependencydiffResultsAsMarkdown(deps, base, head)
 	if err != nil {
 		return fmt.Errorf("error formatting results as markdown: %w", err)
 	}
@@ -63,12 +64,11 @@ func RunDependencyDiff(ctx context.Context) error {
 	if err != nil {
 		return fmt.Errorf("error writting the report to comment: %w", err)
 	}
-	fmt.Println(*report)
+	// TODO (#issue number): give dependency-diff JSON results in the Action.
 	return nil
 }
 
 func writeToComment(ctx context.Context, owner, repo string, report *string) error {
-	fmt.Printf("env github ref: %s", options.EnvGithubRef)
 	ref := os.Getenv(options.EnvGithubRef)
 	splitted := strings.Split(ref, "/")
 	// https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows#pull_request
@@ -84,26 +84,24 @@ func writeToComment(ctx context.Context, owner, repo string, report *string) err
 	logger := log.NewLogger(log.DefaultLevel)
 	ghrt := roundtripper.NewTransport(ctx, logger) /* This round tripper handles the access token. */
 	ghClient := github.NewClient(&http.Client{Transport: ghrt})
-	// Get the issue comment in the pull request by ID.
-	cmt, _, err := ghClient.Issues.GetComment(ctx, repo, owner, commentID)
+
+	// The current solution could result in a pull request full of our reports and drown out other comments.
+	// Create a new issue comment in the pull request and print the report there.
+
+	// A better solution is to check if there is an existing comment and update it if there is. However, the GitHub API
+	// only supports comment lookup by commentID, whose context will be lost if this runs again in the Action.
+	// GitHub API docs: https://docs.github.com/en/rest/issues/comments#get-an-issue-comment
+	// The go-github API: https://github.com/google/go-github/blob/master/github/issues_comments.go#L87
+
+	// TODO (#issue number): Try to update an existing comment first, create a new one iff. there is not.
+	_, _, err = ghClient.Issues.CreateComment(
+		ctx, owner, repo, prNumber,
+		&github.IssueComment{
+			Body: report,
+		},
+	)
 	if err != nil {
-		// Create a new one if the comment doesn't exist.
-		_, _, err := ghClient.Issues.CreateComment(
-			ctx, owner, repo, prNumber,
-			&github.IssueComment{
-				Body: report,
-			},
-		)
-		if err != nil {
-			return fmt.Errorf("error creating comment: %w", err)
-		}
-	} else {
-		cmt.Body = report
-		// Edit the comment.
-		_, _, err = ghClient.Issues.EditComment(ctx, owner, repo, commentID, cmt)
-		if err != nil {
-			return fmt.Errorf("error editing comment: %w", err)
-		}
+		return fmt.Errorf("error creating comment: %w", err)
 	}
 	return nil
 }

@@ -15,12 +15,8 @@
 package main
 
 import (
-	"context"
-	"fmt"
-	"log"
 	"os"
 
-	"github.com/ossf/scorecard-action/dependencydiff"
 	"github.com/ossf/scorecard-action/options"
 )
 
@@ -32,14 +28,9 @@ func main() {
 	event := os.Getenv(options.EnvGithubEventName)
 	switch event {
 	case EVENT_PULL_REQUEST:
-		fmt.Println(event)
-		// Run the dependency-diff on pull requests.
-		ctx := context.Background()
-		err := dependencydiff.RunDependencyDiff(ctx)
-		if err != nil {
-			log.Fatalf("error running dependency-diff: %v", err)
-		}
+		// This is an experimental feature.
+		RunDependencyDiff()
 	default:
-		fmt.Println(event)
+		RunScorecardAction()
 	}
 }

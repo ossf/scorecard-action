@@ -11,7 +11,13 @@ import (
 
 const (
 	// negInif is "negative infinity" used for dependencydiff results ranking.
-	negInf = -math.MaxFloat64
+	negInf              float64 = -math.MaxFloat64
+	experimentalFeature string  = `
+	> This is an experimental feature of the [Scorecard Action](https://github.com/ossf/scorecard-action). 
+	The [scores](https://github.com/ossf/scorecard#scoring) are aggregate scores calculated by the checks specified in the workflow file. 
+	Please refer to [Scorecard Checks](https://github.com/ossf/scorecard#scorecard-checks) for more details.
+	See deps.dev for a more comprehensive view of your dependencies.
+	`
 )
 
 type scoreAndDependencyName struct {
@@ -19,8 +25,8 @@ type scoreAndDependencyName struct {
 	aggregateScore float64
 }
 
-// DependencydiffResultsAsMarkdown exports the dependencydiff results as markdown.
-func DependencydiffResultsAsMarkdown(depdiffResults []pkg.DependencyCheckResult,
+// dependencydiffResultsAsMarkdown exports the dependencydiff results as markdown.
+func dependencydiffResultsAsMarkdown(depdiffResults []pkg.DependencyCheckResult,
 	base, head string) (*string, error) {
 
 	added := map[string]pkg.DependencyCheckResult{}
@@ -69,14 +75,12 @@ func DependencydiffResultsAsMarkdown(depdiffResults []pkg.DependencyCheckResult,
 		}
 		current += scoreTag(key.aggregateScore)
 		newResult := added[dName]
-		current += fmt.Sprintf(
-			"%s @ %s (new) ",
-			newResult.Name, *newResult.Version,
+		current += packageAsMarkdown(
+			newResult.Name, newResult.Version, newResult.SourceRepository, newResult.ChangeType,
 		)
 		if oldResult, ok := removed[dName]; ok {
-			current += fmt.Sprintf(
-				"~~%s @ %s (removed)~~ ",
-				oldResult.Name, *oldResult.Version,
+			current += packageAsMarkdown(
+				oldResult.Name, oldResult.Version, oldResult.SourceRepository, oldResult.ChangeType,
 			)
 		}
 		results += current + "\n\n"
@@ -93,14 +97,15 @@ func DependencydiffResultsAsMarkdown(depdiffResults []pkg.DependencyCheckResult,
 		current := removedTag()
 		current += scoreTag(key.aggregateScore)
 		oldResult := removed[dName]
-		current += fmt.Sprintf(
-			"~~%s @ %s~~ ",
-			oldResult.Name, *oldResult.Version,
+		current += packageAsMarkdown(
+			oldResult.Name, oldResult.Version, oldResult.SourceRepository, oldResult.ChangeType,
 		)
 		results += current + "\n\n"
 	}
-	out := fmt.Sprintf(
-		"Dependency-diffs (changes) between the BASE commit `%s` and the HEAD commit `%s`:\n\n",
+	// TODO (#772):
+	out := "# [Scorecard Action](https://github.com/ossf/scorecard-action) Dependency-diff Report"
+	out += fmt.Sprintf(
+		"Dependency-diffs (changes) between the BASE reference `%s` and the HEAD reference `%s`:\n\n",
 		base, head,
 	)
 	if results == "" {
@@ -129,7 +134,7 @@ func getDependencySortKeys(dcMap map[string]pkg.DependencyCheckResult,
 		if scResults != nil {
 			score, err := scResults.GetAggregateScore(doc)
 			if err != nil {
-				return nil, err
+				return nil, fmt.Errorf("error getting the aggregate score: %w", err)
 			}
 			scoreAndName.aggregateScore = score
 		}
@@ -139,15 +144,15 @@ func getDependencySortKeys(dcMap map[string]pkg.DependencyCheckResult,
 }
 
 func addedTag() string {
-	return fmt.Sprintf(":sparkles: **`" + "added" + "`** ")
+	return fmt.Sprintf(" :sparkles: **`" + "added" + "`** ")
 }
 
 func updatedTag() string {
-	return fmt.Sprintf("**`" + "updated" + "`** ")
+	return fmt.Sprintf(" **`" + "updated" + "`** ")
 }
 
 func removedTag() string {
-	return fmt.Sprintf("~~**`" + "removed" + "`**~~ ")
+	return fmt.Sprintf(" ~~**`" + "removed" + "`**~~ ")
 }
 
 func scoreTag(score float64) string {
@@ -155,6 +160,25 @@ func scoreTag(score float64) string {
 	case negInf:
 		return ""
 	default:
-		return fmt.Sprintf("`Score: %.1f` ", score)
+		return fmt.Sprintf("`Aggregate Score: %.1f` ", score)
 	}
+}
+
+func packageAsMarkdown(name string, version, srcRepo *string, changeType *pkg.ChangeType,
+) string {
+	result := ""
+	result += fmt.Sprintf(" %s", name)
+	if srcRepo != nil {
+		result = "[" + result + "]" + "(" + *srcRepo + ")"
+	}
+	if version != nil {
+		result += fmt.Sprintf(" @ %s", *version)
+	}
+	switch *changeType {
+	case pkg.Added:
+		result += " (new) "
+	case pkg.Removed:
+		result += " (old) "
+	}
+	return result
 }
