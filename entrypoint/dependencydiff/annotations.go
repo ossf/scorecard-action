@@ -59,7 +59,9 @@ func visualizeToCheckRun(ctx context.Context, ghClient *github.Client,
 	if err != nil {
 		return fmt.Errorf("error creating the check run: %w", err)
 	}
+	fmt.Println("*************************************")
 	fmt.Println(resp.StatusCode)
+	fmt.Println("*************************************")
 	return nil
 }
 
@@ -87,10 +89,7 @@ func createAnnotations(deps []pkg.DependencyCheckResult) ([]*github.CheckRunAnno
 			a.Title = &d.Name
 		}
 		scResult := d.ScorecardResultWithError.ScorecardResult
-		if scResult == nil {
-			a.Message = nil
-			a.RawDetails = nil
-		} else {
+		if scResult != nil {
 			aggregateScore, err := scResult.GetAggregateScore(doc)
 			if err != nil {
 				return nil, fmt.Errorf("error getting the aggregate score: %w", err)
