@@ -29,7 +29,7 @@ func visualizeToCheckRunAnnotations(ctx context.Context, ghClient *github.Client
 	owner, repo string,
 	deps []pkg.DependencyCheckResult,
 ) error {
-	headSHA := os.Getenv(options.EnvGithubSHA)
+	headSHA := os.Getenv(options.EnvGithubPullRequestHeadSHA)
 	if headSHA == "" {
 		return fmt.Errorf("%w: head ref", errEmpty)
 	}
@@ -107,6 +107,7 @@ func createAnnotations(deps []pkg.DependencyCheckResult) ([]*github.CheckRunAnno
 			a.Message = asPointerStr(msg)
 			a.RawDetails = asPointerStr(fmt.Sprintln(scResult))
 		}
+		fmt.Println(*a.Path, *a.Title, *a.RawDetails)
 		annotations = append(annotations, &a)
 	}
 	return annotations, nil

@@ -24,21 +24,20 @@ import (
 //
 //nolint:revive,nolintlint
 const (
-	EnvEnableSarif             = "ENABLE_SARIF"
-	EnvEnableLicense           = "ENABLE_LICENSE"
-	EnvEnableDangerousWorkflow = "ENABLE_DANGEROUS_WORKFLOW"
-	EnvGithubBaseRef           = "GITHUB_BASE_REF"
-	EnvGithubEventPath         = "GITHUB_EVENT_PATH"
-	EnvGithubEventName         = "GITHUB_EVENT_NAME"
-	EnvGitHubHeadRef           = "GITHUB_HEAD_REF"
-	EnvGitHubPullRequestNumber = "GITHUB.EVENT.PULL_REQUEST.NUMBER"
-	EnvGithubRepository        = "GITHUB_REPOSITORY"
-	EnvGithubRef               = "GITHUB_REF"
-	EnvGithubSHA               = "GITHUB_SHA"
-	EnvGithubWorkspace         = "GITHUB_WORKSPACE"
-	EnvGithubAuthToken         = "GITHUB_AUTH_TOKEN" //nolint:gosec
-	EnvScorecardFork           = "SCORECARD_IS_FORK"
-	EnvScorecardPrivateRepo    = "SCORECARD_PRIVATE_REPOSITORY"
+	EnvEnableSarif              = "ENABLE_SARIF"
+	EnvEnableLicense            = "ENABLE_LICENSE"
+	EnvEnableDangerousWorkflow  = "ENABLE_DANGEROUS_WORKFLOW"
+	EnvGithubBaseRef            = "GITHUB_BASE_REF"
+	EnvGithubEventPath          = "GITHUB_EVENT_PATH"
+	EnvGithubEventName          = "GITHUB_EVENT_NAME"
+	EnvGitHubHeadRef            = "GITHUB_HEAD_REF"
+	EnvGithubRepository         = "GITHUB_REPOSITORY"
+	EnvGithubRef                = "GITHUB_REF"
+	EnvGithubPullRequestHeadSHA = "GITHUB_PR_HEAD_SHA"
+	EnvGithubWorkspace          = "GITHUB_WORKSPACE"
+	EnvGithubAuthToken          = "GITHUB_AUTH_TOKEN" //nolint:gosec
+	EnvScorecardFork            = "SCORECARD_IS_FORK"
+	EnvScorecardPrivateRepo     = "SCORECARD_PRIVATE_REPOSITORY"
 
 	// TODO(input): INPUT_ constants should be removed in a future release once
 	//              they have replacements in upstream scorecard.
