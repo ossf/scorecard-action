@@ -61,7 +61,7 @@ func visualizeToCheckRun(ctx context.Context, ghClient *github.Client,
 		// TODO (#issue number): Leave this as nil for now to make it explicit. This might be a
 		// corresponding scorecard check page for a specific package once we have the security-scorecard.dev website.
 		// https://github.com/google/go-github/blob/master/github/checks.go#L142
-		DetailsURL: nil,
+		DetailsURL: asPointerStr("https://deps.dev/"),
 		Status:     asPointerStr("completed"),
 		Conclusion: asPointerStr("neutral"),
 		Output:     &output,
@@ -169,7 +169,7 @@ func annotationHelper(name string, manifest, version *string, aggregate float64,
 			if aggregate != checker.InconclusiveResultScore {
 				a.Title = asPointerStr(
 					fmt.Sprintf(
-						"%s [Overall aggregate score: %.1f]", *a.Title, aggregate,
+						"%s `Overall aggregate score: %.1f`", *a.Title, aggregate,
 					),
 				)
 			}

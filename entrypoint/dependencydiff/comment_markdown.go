@@ -15,13 +15,19 @@
 package dependencydiff
 
 import (
+	"context"
 	"fmt"
 	"math"
+	"net/url"
+	"os"
 	"sort"
+	"strconv"
 	"strings"
 
+	"github.com/google/go-github/v45/github"
+	"github.com/ossf/scorecard-action/options"
 	"github.com/ossf/scorecard/v4/checker"
-	docs "github.com/ossf/scorecard/v4/docs/checks"
+
 	"github.com/ossf/scorecard/v4/pkg"
 )
 
@@ -33,6 +39,41 @@ const (
 type scoreAndDependencyName struct {
 	dependencyName string
 	aggregateScore float64
+}
+
+func writeToComment(ctx context.Context, ghClient *github.Client, owner, repo string, report *string) error {
+	ref := os.Getenv(options.EnvGithubRef)
+	splitted := strings.Split(ref, "/")
+	// https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows#pull_request
+	// For a pull request-triggred workflow, the env GITHUB_REF has the following format:
+	// refs/pull/:prNumber/merge.
+	if len(splitted) != 4 {
+		return fmt.Errorf("%w: github ref", errEmpty)
+	}
+	prNumber, err := strconv.Atoi(splitted[2])
+	if err != nil {
+		return fmt.Errorf("error converting str pr number to int: %w", err)
+	}
+
+	// The current solution could result in a pull request full of our reports and drown out other comments.
+	// Create a new issue comment in the pull request and print the report there.
+
+	// A better solution is to check if there is an existing comment and update it if there is. However, the GitHub API
+	// only supports comment lookup by commentID, whose context will be lost if this runs again in the Action.
+	// GitHub API docs: https://docs.github.com/en/rest/issues/comments#get-an-issue-comment
+	// The go-github API: https://github.com/google/go-github/blob/master/github/issues_comments.go#L87
+
+	// TODO (#issue number): Try to update an existing comment first, create a new one iff. there is not.
+	_, _, err = ghClient.Issues.CreateComment(
+		ctx, owner, repo, prNumber,
+		&github.IssueComment{
+			Body: report,
+		},
+	)
+	if err != nil {
+		return fmt.Errorf("error creating comment: %w", err)
+	}
+	return nil
 }
 
 // dependencydiffResultsAsMarkdown exports the dependencydiff results as markdown.
@@ -68,8 +109,18 @@ func dependencydiffResultsAsMarkdown(depdiffResults []pkg.DependencyCheckResult,
 			// Dependency in the added map also found in the removed map, indicating an updated one.
 			current += updatedTag()
 		}
-		current += scoreTag(key.aggregateScore)
 		newResult := added[dName]
+		if newResult.Ecosystem != nil && newResult.Version != nil {
+			ok, err := entryExists(*newResult.Ecosystem, newResult.Name, *newResult.Version)
+			if err != nil {
+				return nil, err
+			}
+			if ok {
+				current += depsDevTag(*newResult.Ecosystem, newResult.Name)
+			}
+		}
+		current += scoreTag(key.aggregateScore)
+
 		current += packageAsMarkdown(
 			newResult.Name, newResult.Version, newResult.SourceRepository, newResult.ChangeType,
 		)
@@ -114,54 +165,6 @@ func dependencydiffResultsAsMarkdown(depdiffResults []pkg.DependencyCheckResult,
 	return &out, nil
 }
 
-func getDependencySortKeys(dcMap map[string]pkg.DependencyCheckResult,
-) ([]scoreAndDependencyName, error) {
-	sortKeys := []scoreAndDependencyName{}
-	doc, err := docs.Read()
-	if err != nil {
-		return nil, fmt.Errorf("error reading docs: %w", err)
-	}
-	for k := range dcMap {
-		scoreAndName := scoreAndDependencyName{
-			dependencyName: dcMap[k].Name,
-			aggregateScore: negInf,
-			// Since this struct is for sorting, the dependency having a score of negative infinite
-			// will be put to the very last, unless its agregate score is not empty.
-		}
-		scResults := dcMap[k].ScorecardResultWithError.ScorecardResult
-		if scResults != nil {
-			score, err := scResults.GetAggregateScore(doc)
-			if err != nil {
-				return nil, fmt.Errorf("error getting the aggregate score: %w", err)
-			}
-			scoreAndName.aggregateScore = score
-		}
-		sortKeys = append(sortKeys, scoreAndName)
-	}
-	return sortKeys, nil
-}
-
-func addedTag() string {
-	return fmt.Sprintf(" :sparkles: **`" + "added" + "`** ")
-}
-
-func updatedTag() string {
-	return fmt.Sprintf(" **`" + "updated" + "`** ")
-}
-
-func removedTag() string {
-	return fmt.Sprintf(" ~~**`" + "removed" + "`**~~ ")
-}
-
-func scoreTag(score float64) string {
-	switch score {
-	case negInf:
-		return ""
-	default:
-		return fmt.Sprintf("`Score: %.1f` ", score)
-	}
-}
-
 func packageAsMarkdown(name string, version, srcRepo *string, changeType *pkg.ChangeType,
 ) string {
 	result := ""
@@ -182,28 +185,15 @@ func experimentalFeature() string {
 	result := "> This is an experimental feature of the [Scorecard Action](https://github.com/ossf/scorecard-action). " +
 		"The [scores](https://github.com/ossf/scorecard#scoring) are aggregate scores calculated by the checks specified in the workflow file. " +
 		"Please refer to [Scorecard Checks](https://github.com/ossf/scorecard#scorecard-checks) for more details. " +
-		"See [deps.dev](https://deps.dev/) for a more comprehensive view of your dependencies."
+		"Please also see the corresponding [deps.dev](https://deps.dev/) tag for a more comprehensive view of your dependencies."
 	return result
 }
 
-// Convert the dependency-diff check result slice to two maps: added and removed, for added and removed dependencies respectively.
-func dependencySliceToMaps(deps []pkg.DependencyCheckResult) (map[string]pkg.DependencyCheckResult,
-	map[string]pkg.DependencyCheckResult) {
-	added := map[string]pkg.DependencyCheckResult{}
-	removed := map[string]pkg.DependencyCheckResult{}
-	for _, d := range deps {
-		if d.ChangeType != nil {
-			switch *d.ChangeType {
-			case pkg.Added:
-				added[d.Name] = d
-			case pkg.Removed:
-				removed[d.Name] = d
-			case pkg.Updated:
-				// Do nothing, for now.
-				// The current data source GitHub Dependency Review won't give the updated dependencies,
-				// so we need to find them manually by checking the added/removed maps.
-			}
-		}
-	}
-	return added, removed
+func depsDevTag(system, name string) string {
+	url := fmt.Sprintf(
+		"https://deps.dev/%s/%s",
+		url.PathEscape(strings.ToLower(system)),
+		url.PathEscape(strings.ToLower(name)),
+	)
+	return fmt.Sprintf(" **`[deps.dev](%s)`** ", url)
 }

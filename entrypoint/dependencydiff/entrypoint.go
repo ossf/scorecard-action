@@ -19,7 +19,6 @@ import (
 	"fmt"
 	"net/http"
 	"os"
-	"strconv"
 	"strings"
 
 	"github.com/google/go-github/v45/github"
@@ -89,40 +88,5 @@ func New(ctx context.Context) error {
 		return fmt.Errorf("error visualizing the results to check run: %w", err)
 	}
 	// TODO (#issue number): give the complete dependency-diff JSON results in the Action, at somewhere else.
-	return nil
-}
-
-func writeToComment(ctx context.Context, ghClient *github.Client, owner, repo string, report *string) error {
-	ref := os.Getenv(options.EnvGithubRef)
-	splitted := strings.Split(ref, "/")
-	// https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows#pull_request
-	// For a pull request-triggred workflow, the env GITHUB_REF has the following format:
-	// refs/pull/:prNumber/merge.
-	if len(splitted) != 4 {
-		return fmt.Errorf("%w: github ref", errEmpty)
-	}
-	prNumber, err := strconv.Atoi(splitted[2])
-	if err != nil {
-		return fmt.Errorf("error converting str pr number to int: %w", err)
-	}
-
-	// The current solution could result in a pull request full of our reports and drown out other comments.
-	// Create a new issue comment in the pull request and print the report there.
-
-	// A better solution is to check if there is an existing comment and update it if there is. However, the GitHub API
-	// only supports comment lookup by commentID, whose context will be lost if this runs again in the Action.
-	// GitHub API docs: https://docs.github.com/en/rest/issues/comments#get-an-issue-comment
-	// The go-github API: https://github.com/google/go-github/blob/master/github/issues_comments.go#L87
-
-	// TODO (#issue number): Try to update an existing comment first, create a new one iff. there is not.
-	_, _, err = ghClient.Issues.CreateComment(
-		ctx, owner, repo, prNumber,
-		&github.IssueComment{
-			Body: report,
-		},
-	)
-	if err != nil {
-		return fmt.Errorf("error creating comment: %w", err)
-	}
 	return nil
 }
