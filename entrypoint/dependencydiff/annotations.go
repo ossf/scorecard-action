@@ -29,7 +29,7 @@ import (
 const (
 	fakeStartLine = 1
 	fakeEndLine   = 2
-	msgNoResults  = "No Scorecard check results available for this dependency, or this is a removed one."
+	msgNoResults  = "No Scorecard check results are available for this dependency, or this is a removed one."
 )
 
 func visualizeToCheckRun(ctx context.Context, ghClient *github.Client,
@@ -48,7 +48,7 @@ func visualizeToCheckRun(ctx context.Context, ghClient *github.Client,
 		Title: asPointerStr("Scorecard Action Dependency-diff check results"),
 		Summary: asPointerStr(
 			fmt.Sprintf(
-				":sparkles: **%d** dependency changes found, **%d** annotations created for added dependencies.",
+				":sparkles: **%d** dependency-diffs (changes) found, **%d** annotations created.",
 				len(deps), len(annotations),
 			),
 		),
@@ -152,7 +152,7 @@ func annotationHelper(name string, manifest, version *string, aggregate float64,
 				AnnotationLevel: asPointerStr("notice"),
 				Message: asPointerStr(
 					fmt.Sprintf(
-						"Check: %s\n Score: %.1f\n Reason: %s",
+						"Check: %s\nScore: %.1f\nReason: %s",
 						c.Name, float64(c.Score), c.Reason,
 					),
 				),

@@ -172,11 +172,8 @@ func packageAsMarkdown(name string, version, srcRepo *string, changeType *pkg.Ch
 	if version != nil {
 		result += fmt.Sprintf(" @ %s", *version)
 	}
-	switch *changeType {
-	case pkg.Added:
-		result += " (new) "
-	case pkg.Removed:
-		result = " ~~" + strings.Trim(result, " ") + " (old)" + "~~ "
+	if *changeType == pkg.Removed {
+		result = " ~~" + strings.Trim(result, " ") + "~~ "
 	}
 	return result
 }
