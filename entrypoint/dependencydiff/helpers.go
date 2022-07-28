@@ -104,6 +104,8 @@ func entryExists(system, name, version string) (bool, error) {
 	if err != nil {
 		return false, fmt.Errorf("error requesting deps.dec/_: %w", err)
 	}
+	fmt.Println(url)
+	fmt.Println(resp.StatusCode)
 	switch resp.StatusCode {
 	case http.StatusOK:
 		return true, nil
