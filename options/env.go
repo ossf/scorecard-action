@@ -27,10 +27,10 @@ const (
 	EnvEnableSarif             = "ENABLE_SARIF"
 	EnvEnableLicense           = "ENABLE_LICENSE"
 	EnvEnableDangerousWorkflow = "ENABLE_DANGEROUS_WORKFLOW"
+	EnvGithubBaseRef           = "GITHUB_BASE_REF"
 	EnvGithubEventPath         = "GITHUB_EVENT_PATH"
 	EnvGithubEventName         = "GITHUB_EVENT_NAME"
 	EnvGitHubHeadRef           = "GITHUB_HEAD_REF"
-	EnvGitHubPullRequestNumber = "GITHUB.EVENT.PULL_REQUEST.NUMBER"
 	EnvGithubRepository        = "GITHUB_REPOSITORY"
 	EnvGithubRef               = "GITHUB_REF"
 	EnvGithubWorkspace         = "GITHUB_WORKSPACE"
@@ -40,19 +40,18 @@ const (
 
 	// TODO(input): INPUT_ constants should be removed in a future release once
 	//              they have replacements in upstream scorecard.
-	EnvInputRepoToken         = "INPUT_REPO_TOKEN"             //nolint:gosec
-	EnvInputInternalRepoToken = "INPUT_INTERNAL_DEFAULT_TOKEN" //nolint:gosec
-	EnvInputResultsFile       = "INPUT_RESULTS_FILE"
-	EnvInputResultsFormat     = "INPUT_RESULTS_FORMAT"
-	EnvInputPublishResults    = "INPUT_PUBLISH_RESULTS"
-	EnvInputChecks            = "INPUT_CHECKS"
-	EnvInputChangeTypes       = "INPUT_CHANGE_TYPES"
+	EnvInputRepoToken          = "INPUT_REPO_TOKEN"             //nolint:gosec
+	EnvInputInternalRepoToken  = "INPUT_INTERNAL_DEFAULT_TOKEN" //nolint:gosec
+	EnvInputResultsFile        = "INPUT_RESULTS_FILE"
+	EnvInputResultsFormat      = "INPUT_RESULTS_FORMAT"
+	EnvInputPublishResults     = "INPUT_PUBLISH_RESULTS"
+	EnvInputChecks             = "INPUT_CHECKS"
+	EnvInputChangeTypes        = "INPUT_CHANGE_TYPES"
+	EnvInputPullRequestHeadSHA = "INPUT_PULL_REQUEST_HEAD_SHA"
 )
 
-// Errors
-
+// Errors.
 var (
-	// Errors.
 	errEmptyGitHubAuthToken = errEnvVarIsEmptyWithKey(EnvGithubAuthToken)
 
 	errEnvVarIsEmpty = errors.New("env var is empty")
