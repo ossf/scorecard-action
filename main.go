@@ -21,13 +21,14 @@ import (
 )
 
 const (
-	EVENT_PULL_REQUEST = "pull_request"
+	eventPullRequest = "pull_request"
 )
 
 func main() {
 	event := os.Getenv(options.EnvGithubEventName)
 	switch event {
-	case EVENT_PULL_REQUEST:
+	case eventPullRequest:
+		RunScorecardAction()
 		// This is an experimental feature.
 		RunDependencyDiff()
 	default:
