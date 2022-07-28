@@ -22,6 +22,8 @@ import (
 	"github.com/ossf/scorecard-action/entrypoint/dependencydiff"
 )
 
+// RunDependencyDiff runs the dependency-diff on pull requests.
+// TODO (#issue number): add e2e test.
 func RunDependencyDiff() {
 	// Run the dependency-diff on pull requests.
 	ctx := context.Background()
