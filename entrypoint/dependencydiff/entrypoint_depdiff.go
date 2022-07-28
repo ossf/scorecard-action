@@ -83,6 +83,5 @@ func New(ctx context.Context) error {
 	if err != nil {
 		return fmt.Errorf("error visualizing the results to check run: %w", err)
 	}
-	// TODO (#issue number): give the complete dependency-diff JSON results in the Action, at somewhere else.
 	return nil
 }
