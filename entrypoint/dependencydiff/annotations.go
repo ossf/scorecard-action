@@ -22,13 +22,14 @@ import (
 
 	"github.com/google/go-github/v45/github"
 	"github.com/ossf/scorecard-action/options"
+	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/pkg"
 )
 
 const (
 	fakeStartLine = 1
 	fakeEndLine   = 2
-	msgNoResults  = "No Scorecard check results for this dependency, or this dependency is a removed one."
+	msgNoResults  = "No Scorecard check results available for this dependency, or this is a removed one."
 )
 
 func visualizeToCheckRun(ctx context.Context, ghClient *github.Client,
@@ -44,8 +45,13 @@ func visualizeToCheckRun(ctx context.Context, ghClient *github.Client,
 		return fmt.Errorf("error creating annotations: %w", err)
 	}
 	output := github.CheckRunOutput{
-		Title:       asPointerStr("Scorecard Action Dependency-diff check results"),
-		Summary:     asPointerStr("test **11111**"),
+		Title: asPointerStr("Scorecard Action Dependency-diff check results"),
+		Summary: asPointerStr(
+			fmt.Sprintf(
+				":sparkles: **%d** dependency changes found, **%d** annotations created for added dependencies.",
+				len(deps), len(annotations),
+			),
+		),
 		Annotations: annotations,
 	}
 	opts := github.CreateCheckRunOptions{
@@ -60,15 +66,12 @@ func visualizeToCheckRun(ctx context.Context, ghClient *github.Client,
 		Conclusion: asPointerStr("neutral"),
 		Output:     &output,
 	}
-	_, resp, err := ghClient.Checks.CreateCheckRun(
+	_, _, err = ghClient.Checks.CreateCheckRun(
 		ctx, owner, repo, opts,
 	)
 	if err != nil {
 		return fmt.Errorf("error creating the check run: %w", err)
 	}
-	fmt.Println("*************************************")
-	fmt.Println(resp.StatusCode)
-	fmt.Println("*************************************")
 	return nil
 }
 
@@ -97,12 +100,16 @@ func createAnnotations(deps []pkg.DependencyCheckResult) ([]*github.CheckRunAnno
 			return nil, fmt.Errorf("%w: map entry", errInvalid)
 		}
 		dName := key.dependencyName
+		results, err := annotationHelper(
+			dName, added[dName].ManifestPath, added[dName].Version,
+			key.aggregateScore, added[dName].ChangeType,
+			added[dName].ScorecardResultWithError.ScorecardResult,
+		)
+		if err != nil {
+			return nil, err
+		}
 		annotations = append(
-			annotations, annotationHelper(
-				dName, added[dName].ManifestPath, added[dName].Version,
-				added[dName].ChangeType,
-				added[dName].ScorecardResultWithError.ScorecardResult,
-			)...,
+			annotations, results...,
 		)
 	}
 	for _, key := range removedSortKeys {
@@ -110,35 +117,29 @@ func createAnnotations(deps []pkg.DependencyCheckResult) ([]*github.CheckRunAnno
 			return nil, fmt.Errorf("%w: map entry", errInvalid)
 		}
 		dName := key.dependencyName
+		results, err := annotationHelper(
+			dName, removed[dName].ManifestPath, removed[dName].Version,
+			key.aggregateScore, removed[dName].ChangeType,
+			removed[dName].ScorecardResultWithError.ScorecardResult,
+		)
+		if err != nil {
+			return nil, err
+		}
 		annotations = append(
-			annotations, annotationHelper(
-				dName, added[dName].ManifestPath, added[dName].Version,
-				added[dName].ChangeType,
-				added[dName].ScorecardResultWithError.ScorecardResult,
-			)...,
+			annotations, results...,
 		)
 	}
-
 	return annotations, nil
 }
 
-func annotationHelper(name string, manifest, version *string, changeType *pkg.ChangeType,
-	scorecardResult *pkg.ScorecardResult,
-) []*github.CheckRunAnnotation {
+func annotationHelper(name string, manifest, version *string, aggregate float64,
+	changeType *pkg.ChangeType, scorecardResult *pkg.ScorecardResult,
+) ([]*github.CheckRunAnnotation, error) {
 	annotations := []*github.CheckRunAnnotation{}
 	if changeType == nil {
-		return nil
+		return nil, fmt.Errorf("%w: dependency change type", errInvalid)
 	}
-	if scorecardResult != nil && *changeType != pkg.Removed {
-		// doc, err := docs.Read()
-		// if err != nil {
-		// 	return nil, fmt.Errorf("error getting the check doc: %w", err)
-		// }
-		// aggregateScore, err := scorecardResult.GetAggregateScore(doc)
-		// if err != nil {
-		// 	return nil, fmt.Errorf("error getting the aggregate score: %w", err)
-		// }
-
+	if *changeType != pkg.Removed && scorecardResult != nil {
 		// Create annotations only for added dependencies and on a per-check basis.
 		for _, c := range scorecardResult.Checks {
 			a := github.CheckRunAnnotation{
@@ -164,6 +165,13 @@ func annotationHelper(name string, manifest, version *string, changeType *pkg.Ch
 				))
 			} else {
 				a.Title = &name
+			}
+			if aggregate != checker.InconclusiveResultScore {
+				a.Title = asPointerStr(
+					fmt.Sprintf(
+						"%s [Overall aggregate score: %.1f]", *a.Title, aggregate,
+					),
+				)
 			}
 			// Should we do this?
 			// My thought is to make this a warning if the score of a check is lower than a certain value.
@@ -197,7 +205,7 @@ func annotationHelper(name string, manifest, version *string, changeType *pkg.Ch
 		}
 		annotations = append(annotations, &a)
 	}
-	return annotations
+	return annotations, nil
 }
 
 func asPointerStr(s string) *string {

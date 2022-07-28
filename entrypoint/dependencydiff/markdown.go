@@ -20,6 +20,7 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/ossf/scorecard/v4/checker"
 	docs "github.com/ossf/scorecard/v4/docs/checks"
 	"github.com/ossf/scorecard/v4/pkg"
 )
@@ -89,7 +90,9 @@ func dependencydiffResultsAsMarkdown(depdiffResults []pkg.DependencyCheckResult,
 			continue
 		}
 		current := removedTag()
-		current += scoreTag(key.aggregateScore)
+		if key.aggregateScore != checker.InconclusiveResultScore {
+			current += scoreTag(key.aggregateScore)
+		}
 		oldResult := removed[dName]
 		current += packageAsMarkdown(
 			oldResult.Name, oldResult.Version, oldResult.SourceRepository, oldResult.ChangeType,
