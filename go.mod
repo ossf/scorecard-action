@@ -8,7 +8,7 @@ require (
 	github.com/google/go-github/v42 v42.0.0
 	github.com/google/go-github/v45 v45.2.0
 	github.com/gregjones/httpcache v0.0.0-20190611155906-901d90724c79
-	github.com/ossf/scorecard/v4 v4.4.1-0.20220727223237-5fa75960db68
+	github.com/ossf/scorecard/v4 v4.4.1-0.20220725142808-8f96d6ba2517
 	github.com/sigstore/cosign v1.10.0
 	github.com/sirupsen/logrus v1.9.0
 	github.com/spf13/cobra v1.5.0
