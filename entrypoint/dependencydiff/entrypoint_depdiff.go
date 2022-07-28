@@ -29,10 +29,6 @@ import (
 	"github.com/ossf/scorecard/v4/pkg"
 )
 
-const (
-	commentID int64 = 9867
-)
-
 // New creates a new instance running the scorecard dependency-diff mode
 // used as an entrypoint for GitHub Actions.
 func New(ctx context.Context) error {
