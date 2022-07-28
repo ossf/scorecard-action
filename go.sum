@@ -1327,8 +1327,8 @@ github.com/openzipkin-contrib/zipkin-go-opentracing v0.4.5/go.mod h1:/wsWhb9smxS
 github.com/openzipkin/zipkin-go v0.1.6/go.mod h1:QgAqvLzwWbR/WpD4A3cGpPtJrZXNIiJc5AZX7/PBEpw=
 github.com/openzipkin/zipkin-go v0.2.1/go.mod h1:NaW6tEwdmWMaCDZzg8sh+IBNOxHMPnhQw8ySjnjRyN4=
 github.com/openzipkin/zipkin-go v0.2.2/go.mod h1:NaW6tEwdmWMaCDZzg8sh+IBNOxHMPnhQw8ySjnjRyN4=
-github.com/ossf/scorecard/v4 v4.4.1-0.20220723104210-d77f59f0ef8a h1:J6CNW4H26vFzDMBSqS+rMkdxa6zZUyw87FhnMNRfHOQ=
-github.com/ossf/scorecard/v4 v4.4.1-0.20220723104210-d77f59f0ef8a/go.mod h1:PFmsDU3Jq2QP8V7FgH9QzytBea44QQ8cW+kumj2QhBw=
+github.com/ossf/scorecard/v4 v4.4.1-0.20220727223237-5fa75960db68 h1:RKnyecXGMwdliLShB6d6FFg6BbpB/1sbpsXwjCf6LXc=
+github.com/ossf/scorecard/v4 v4.4.1-0.20220727223237-5fa75960db68/go.mod h1:PFmsDU3Jq2QP8V7FgH9QzytBea44QQ8cW+kumj2QhBw=
 github.com/otiai10/copy v1.2.0/go.mod h1:rrF5dJ5F0t/EWSYODDu4j9/vEeYHMkc8jt0zJChqQWw=
 github.com/otiai10/curr v0.0.0-20150429015615-9b4961190c95/go.mod h1:9qAhocn7zKJG+0mI8eUu6xqkFDYS2kb2saOteoSB3cE=
 github.com/otiai10/curr v1.0.0/go.mod h1:LskTG5wDwr8Rs+nNQ+1LlxRjAtTZZjtJW4rMXl6j4vs=
