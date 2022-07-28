@@ -169,7 +169,7 @@ func annotationHelper(name string, manifest, version *string, aggregate float64,
 			if aggregate != checker.InconclusiveResultScore {
 				a.Title = asPointerStr(
 					fmt.Sprintf(
-						"%s `Overall aggregate score: %.1f`", *a.Title, aggregate,
+						"%s  [Overall aggregate score: %.1f]", *a.Title, aggregate,
 					),
 				)
 			}
