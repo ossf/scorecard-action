@@ -95,7 +95,7 @@ func dependencySliceToMaps(deps []pkg.DependencyCheckResult) (map[string]pkg.Dep
 
 func entryExists(system, name, version string) (bool, error) {
 	url := fmt.Sprintf(
-		"deps.dev/_/s/%s/p/%s/v/%s",
+		"https://deps.dev/_/s/%s/p/%s/v/%s",
 		url.PathEscape(system),
 		url.PathEscape(name),
 		url.PathEscape(version),
