@@ -167,11 +167,3 @@ func Test_writeToComment(t *testing.T) {
 		})
 	}
 }
-
-func asPointerChangeType(ct pkg.ChangeType) *pkg.ChangeType {
-	return &ct
-}
-
-func asPointerStr(s string) *string {
-	return &s
-}

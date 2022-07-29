@@ -111,3 +111,11 @@ func entryExists(system, name, version string) (bool, error) {
 		return false, nil
 	}
 }
+
+func asPointerChangeType(ct pkg.ChangeType) *pkg.ChangeType {
+	return &ct
+}
+
+func asPointerStr(s string) *string {
+	return &s
+}
