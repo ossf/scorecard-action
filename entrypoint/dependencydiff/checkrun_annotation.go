@@ -207,11 +207,3 @@ func annotationHelper(name string, manifest, version *string, aggregate float64,
 	}
 	return annotations, nil
 }
-
-func asPointerStr(s string) *string {
-	return &s
-}
-
-func asPointerInt(i int) *int {
-	return &i
-}

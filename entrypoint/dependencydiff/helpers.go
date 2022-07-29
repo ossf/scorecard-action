@@ -111,3 +111,11 @@ func entryExists(system, name, version string) (bool, error) {
 		return false, nil
 	}
 }
+
+func asPointerStr(s string) *string {
+	return &s
+}
+
+func asPointerInt(i int) *int {
+	return &i
+}
