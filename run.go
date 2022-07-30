@@ -17,9 +17,12 @@ package main
 import (
 	"context"
 	"log"
+	"os"
 
 	"github.com/ossf/scorecard-action/entrypoint"
 	"github.com/ossf/scorecard-action/entrypoint/dependencydiff"
+	"github.com/ossf/scorecard-action/options"
+	"github.com/ossf/scorecard-action/signing"
 )
 
 // RunDependencyDiff runs the dependency-diff on pull requests.
@@ -44,24 +47,24 @@ func RunScorecardAction() {
 		log.Fatalf("error during command execution: %v", err)
 	}
 
-	// if os.Getenv(options.EnvInputPublishResults) == "true" {
-	// 	// Get json results by re-running scorecard.
-	// 	jsonPayload, err := signing.GetJSONScorecardResults()
-	// 	if err != nil {
-	// 		log.Fatalf("error generating json scorecard results: %v", err)
-	// 	}
+	if os.Getenv(options.EnvInputPublishResults) == "true" {
+		// Get json results by re-running scorecard.
+		jsonPayload, err := signing.GetJSONScorecardResults()
+		if err != nil {
+			log.Fatalf("error generating json scorecard results: %v", err)
+		}
 
-	// 	// Sign json results.
-	// 	if err = signing.SignScorecardResult("results.json"); err != nil {
-	// 		log.Fatalf("error signing scorecard json results: %v", err)
-	// 	}
+		// Sign json results.
+		if err = signing.SignScorecardResult("results.json"); err != nil {
+			log.Fatalf("error signing scorecard json results: %v", err)
+		}
 
-	// 	// Processes json results.
-	// 	repoName := os.Getenv(options.EnvGithubRepository)
-	// 	repoRef := os.Getenv(options.EnvGithubRef)
-	// 	accessToken := os.Getenv(options.EnvInputRepoToken)
-	// 	if err := signing.ProcessSignature(jsonPayload, repoName, repoRef, accessToken); err != nil {
-	// 		log.Fatalf("error processing signature: %v", err)
-	// 	}
-	// }
+		// Processes json results.
+		repoName := os.Getenv(options.EnvGithubRepository)
+		repoRef := os.Getenv(options.EnvGithubRef)
+		accessToken := os.Getenv(options.EnvInputRepoToken)
+		if err := signing.ProcessSignature(jsonPayload, repoName, repoRef, accessToken); err != nil {
+			log.Fatalf("error processing signature: %v", err)
+		}
+	}
 }

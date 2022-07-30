@@ -26,7 +26,6 @@ import (
 
 	"github.com/google/go-github/v45/github"
 	"github.com/ossf/scorecard-action/options"
-	"github.com/ossf/scorecard/v4/checker"
 
 	"github.com/ossf/scorecard/v4/pkg"
 )
@@ -139,16 +138,15 @@ func dependencydiffResultsAsMarkdown(depdiffResults []pkg.DependencyCheckResult,
 		}
 		newResult := added[dName]
 		if newResult.Ecosystem != nil && newResult.Version != nil {
-			ok, err := entryExists(*newResult.Ecosystem, newResult.Name, *newResult.Version)
+			found, err := entryExists(*newResult.Ecosystem, newResult.Name, *newResult.Version)
 			if err != nil {
 				return nil, err
 			}
-			if ok {
+			if found {
 				current += depsDevTag(*newResult.Ecosystem, newResult.Name)
 			}
 		}
 		current += scoreTag(key.aggregateScore)
-
 		current += packageAsMarkdown(
 			newResult.Name, newResult.Version, newResult.SourceRepository, newResult.ChangeType,
 		)
@@ -169,10 +167,17 @@ func dependencydiffResultsAsMarkdown(depdiffResults []pkg.DependencyCheckResult,
 			continue
 		}
 		current := removedTag()
-		if key.aggregateScore != checker.InconclusiveResultScore {
-			current += scoreTag(key.aggregateScore)
-		}
 		oldResult := removed[dName]
+		if oldResult.Ecosystem != nil && oldResult.Version != nil {
+			found, err := entryExists(*oldResult.Ecosystem, oldResult.Name, *oldResult.Version)
+			if err != nil {
+				return nil, err
+			}
+			if found {
+				current += depsDevTag(*oldResult.Ecosystem, oldResult.Name)
+			}
+		}
+		current += scoreTag(key.aggregateScore)
 		current += packageAsMarkdown(
 			oldResult.Name, oldResult.Version, oldResult.SourceRepository, oldResult.ChangeType,
 		)
@@ -181,7 +186,7 @@ func dependencydiffResultsAsMarkdown(depdiffResults []pkg.DependencyCheckResult,
 	// TODO (#772):
 	out := "# [Scorecard Action](https://github.com/ossf/scorecard-action) Dependency-diff Report\n\n"
 	out += fmt.Sprintf(
-		"Dependency-diffs (changes) between the **BASE `%s`** and the **HEAD `%s`**:\n\n",
+		"Dependency-diffs (changes) between the **BASE** `%s` and the **HEAD** `%s`:\n\n",
 		base, head,
 	)
 	if results == "" {

@@ -61,7 +61,7 @@ branding:
 
 runs:
   using: "docker"
-  image: "Dockerfile"
-#   image: "docker://gcr.io/openssf/scorecard-action:v2.0.0-beta.1"
+  # image: "Dockerfile"
+  image: "docker://gcr.io/openssf/scorecard-action:v2.0.0-beta.1"
 
 

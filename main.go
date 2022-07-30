@@ -28,7 +28,6 @@ func main() {
 	event := os.Getenv(options.EnvGithubEventName)
 	switch event {
 	case eventPullRequest:
-		RunScorecardAction()
 		// This is an experimental feature.
 		RunDependencyDiff()
 	default:
