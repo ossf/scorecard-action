@@ -17,6 +17,7 @@ package dependencydiff
 import "errors"
 
 var (
-	errEmpty   = errors.New("empty")
-	errInvalid = errors.New("invalid")
+	errEmpty          = errors.New("empty")
+	errInvalid        = errors.New("invalid")
+	errShouldNotBeNil = errors.New("should not be nil")
 )

@@ -34,6 +34,9 @@ import (
 const (
 	// negInif is "negative infinity" used for dependencydiff results ranking.
 	negInf float64 = -math.MaxFloat64
+
+	// commentMarkdownID uses a markdown comment syntax to uniquely identify our generated comment.
+	commentMarkdownID string = "<!-- scorecard action dependency-diff-as-a-comment -->"
 )
 
 type scoreAndDependencyName struct {
@@ -42,6 +45,10 @@ type scoreAndDependencyName struct {
 }
 
 func writeToComment(ctx context.Context, ghClient *github.Client, owner, repo string, report *string) error {
+	if report == nil {
+		// The markdown comment report should not be nil if there's no error.
+		return fmt.Errorf("report %w", errShouldNotBeNil)
+	}
 	ref := os.Getenv(options.EnvGithubRef)
 	splitted := strings.Split(ref, "/")
 	// https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows#pull_request
@@ -55,20 +62,41 @@ func writeToComment(ctx context.Context, ghClient *github.Client, owner, repo st
 		return fmt.Errorf("error converting str pr number to int: %w", err)
 	}
 
-	// The current solution could result in a pull request full of our reports and drown out other comments.
-	// Create a new issue comment in the pull request and print the report there.
-
-	// A better solution is to check if there is an existing comment and update it if there is. However, the GitHub API
-	// only supports comment lookup by commentID, whose context will be lost if this runs again in the Action.
-	// GitHub API docs: https://docs.github.com/en/rest/issues/comments#get-an-issue-comment
-	// The go-github API: https://github.com/google/go-github/blob/master/github/issues_comments.go#L87
-
-	// TODO (#issue number): Try to update an existing comment first, create a new one iff. there is not.
+	// Generate our report comment.
+	reportComment := github.IssueComment{
+		Body: asPointerStr(
+			commentBodyWithMarkdownID(commentMarkdownID, *report),
+		),
+	}
+	// Get the current comments in the pull request.
+	comments, _, err := ghClient.Issues.ListComments(
+		ctx, owner, repo, prNumber, nil,
+	)
+	if len(comments) != 0 {
+		// Iterate the list of comments and find ours.
+		for _, comment := range comments {
+			if comment.Body == nil || comment.ID == nil {
+				continue
+			}
+			if strings.Contains(*comment.Body, commentMarkdownID) {
+				// Found our previous left comment.
+				_, _, err := ghClient.Issues.EditComment(
+					ctx, owner, repo, *comment.ID, &reportComment,
+				)
+				if err != nil {
+					return fmt.Errorf("error updating comment: %w", err)
+				}
+				// Directly return nil if we have successfully updated the comment.
+				return nil
+			}
+		}
+	}
+	// If it still hasn't returned until here, meaning either (1) we don't find our comments
+	// in the list of comments, or (2) the list of comments is an empty one.
+	// We create and leave there a new comment then.
 	_, _, err = ghClient.Issues.CreateComment(
 		ctx, owner, repo, prNumber,
-		&github.IssueComment{
-			Body: report,
-		},
+		&reportComment,
 	)
 	if err != nil {
 		return fmt.Errorf("error creating comment: %w", err)
@@ -196,4 +224,8 @@ func depsDevTag(system, name string) string {
 		url.PathEscape(strings.ToLower(name)),
 	)
 	return fmt.Sprintf(" **`[deps.dev](%s)`** ", url)
+}
+
+func commentBodyWithMarkdownID(id, report string) string {
+	return fmt.Sprintf("%s\n%s", id, report)
 }
