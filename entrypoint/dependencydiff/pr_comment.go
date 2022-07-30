@@ -93,7 +93,7 @@ func writeToComment(ctx context.Context, ghClient *github.Client, owner, repo st
 	}
 	// If it still hasn't returned until here, meaning either (1) we don't find our comments
 	// in the list of comments, or (2) the list of comments is an empty one.
-	// We create and leave there a new comment then.
+	// We create and leave a new comment there.
 	_, _, err = ghClient.Issues.CreateComment(
 		ctx, owner, repo, prNumber,
 		&reportComment,
