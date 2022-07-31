@@ -23,6 +23,7 @@ import (
 	"github.com/google/go-github/v45/github"
 	"github.com/ossf/scorecard-action/options"
 	"github.com/ossf/scorecard/v4/checker"
+	"github.com/ossf/scorecard/v4/log"
 	"github.com/ossf/scorecard/v4/pkg"
 )
 
@@ -55,12 +56,8 @@ func visualizeToCheckRun(ctx context.Context, ghClient *github.Client,
 		Annotations: annotations,
 	}
 	opts := github.CreateCheckRunOptions{
-		Name:    "Scorecard Action Dependency-diff",
-		HeadSHA: headSHA,
-		// DetailsURL should be the integrator's site that has the full details of the check.
-		// TODO (#issue number): Leave this as nil for now to make it explicit. This might be a
-		// corresponding scorecard check page for a specific package once we have the security-scorecard.dev website.
-		// https://github.com/google/go-github/blob/master/github/checks.go#L142
+		Name:       "Scorecard Action Dependency-diff",
+		HeadSHA:    headSHA,
 		DetailsURL: asPointerStr("https://deps.dev/"),
 		Status:     asPointerStr("completed"),
 		Conclusion: asPointerStr("neutral"),
@@ -100,16 +97,16 @@ func createAnnotations(deps []pkg.DependencyCheckResult) ([]*github.CheckRunAnno
 			return nil, fmt.Errorf("%w: map entry", errInvalid)
 		}
 		dName := key.dependencyName
-		results, err := annotationHelper(
+		a, err := resultToAnnotation(
 			dName, added[dName].ManifestPath, added[dName].Version,
 			key.aggregateScore, added[dName].ChangeType,
 			added[dName].ScorecardResultWithError.ScorecardResult,
 		)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("error in annotation helper: %w", err)
 		}
 		annotations = append(
-			annotations, results...,
+			annotations, a...,
 		)
 	}
 	for _, key := range removedSortKeys {
@@ -117,7 +114,7 @@ func createAnnotations(deps []pkg.DependencyCheckResult) ([]*github.CheckRunAnno
 			return nil, fmt.Errorf("%w: map entry", errInvalid)
 		}
 		dName := key.dependencyName
-		results, err := annotationHelper(
+		results, err := resultToAnnotation(
 			dName, removed[dName].ManifestPath, removed[dName].Version,
 			key.aggregateScore, removed[dName].ChangeType,
 			removed[dName].ScorecardResultWithError.ScorecardResult,
@@ -132,7 +129,7 @@ func createAnnotations(deps []pkg.DependencyCheckResult) ([]*github.CheckRunAnno
 	return annotations, nil
 }
 
-func annotationHelper(name string, manifest, version *string, aggregate float64,
+func resultToAnnotation(name string, manifest, version *string, aggregate float64,
 	changeType *pkg.ChangeType, scorecardResult *pkg.ScorecardResult,
 ) ([]*github.CheckRunAnnotation, error) {
 	annotations := []*github.CheckRunAnnotation{}
@@ -156,8 +153,12 @@ func annotationHelper(name string, manifest, version *string, aggregate float64,
 						c.Name, float64(c.Score), c.Reason,
 					),
 				),
-				RawDetails: asPointerStr(fmt.Sprint(*scorecardResult)),
 			}
+			details := ""
+			for _, d := range c.Details {
+				details += pkg.DetailToString(&d, log.DefaultLevel)
+			}
+			a.RawDetails = &details
 			if changeType != nil && version != nil {
 				a.Title = asPointerStr(fmt.Sprintf(
 					"%s dependency: %s @ %s",
@@ -173,9 +174,9 @@ func annotationHelper(name string, manifest, version *string, aggregate float64,
 					),
 				)
 			}
-			// Should we do this?
-			// My thought is to make this a warning if the score of a check is lower than a certain value.
 			if c.Score < 6.0 {
+				// Should we do this?
+				// My thought is to make this a warning if the score of a check is lower than a certain value.
 				a.AnnotationLevel = asPointerStr("warning")
 			} else {
 				a.AnnotationLevel = asPointerStr("notice")
