@@ -73,10 +73,16 @@ func New(ctx context.Context) error {
 	logger := log.NewLogger(log.DefaultLevel)
 	ghrt := roundtripper.NewTransport(ctx, logger) /* This round tripper handles the access token. */
 	ghClient := github.NewClient(&http.Client{Transport: ghrt})
+
 	err = writeToComment(ctx, ghClient, ownerRepo[0], ownerRepo[1], report)
 	if err != nil {
 		return fmt.Errorf("error writting the report to comment: %w", err)
 	}
 
+	// Create a new check run and visualize dependency-diffs as check run annotations.
+	err = visualizeToCheckRun(ctx, ghClient, ownerRepo[0], ownerRepo[1], deps)
+	if err != nil {
+		return fmt.Errorf("error visualizing the results to check run: %w", err)
+	}
 	return nil
 }
