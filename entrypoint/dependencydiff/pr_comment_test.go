@@ -16,9 +16,12 @@ package dependencydiff
 
 import (
 	"context"
-	"errors"
+	"net/http"
+	"os"
 	"testing"
 
+	"github.com/google/go-github/v45/github"
+	"github.com/ossf/scorecard-action/options"
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/pkg"
 )
@@ -142,27 +145,28 @@ func Test_writeToComment(t *testing.T) {
 	t.Parallel()
 	//nolint
 	tests := []struct {
-		name      string
-		errWanted error
+		name    string
+		wantErr bool
 	}{
 
 		{
-			name:      "empty github reference",
-			errWanted: errEmpty,
+			name:    "empty github reference",
+			wantErr: true,
 		},
 	}
 	for _, tt := range tests {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
+			os.Setenv(options.EnvGithubRef, "refs/pull/67/merge")
 			err := writeToComment(
 				context.Background(),
-				nil,
+				github.NewClient(http.DefaultClient),
 				"owner", "repo",
 				asPointerStr("test report"),
 			)
-			if !errors.Is(err, tt.errWanted) {
-				t.Errorf("error wanted: %v, got %v", tt.errWanted, err)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("want err: %v, got %v", tt.wantErr, err)
 			}
 		})
 	}
