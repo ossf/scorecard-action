@@ -8,7 +8,7 @@ require (
 	github.com/google/go-github/v42 v42.0.0
 	github.com/google/go-github/v45 v45.2.0
 	github.com/gregjones/httpcache v0.0.0-20190611155906-901d90724c79
-	github.com/ossf/scorecard/v4 v4.4.1-0.20220725142808-8f96d6ba2517
+	github.com/ossf/scorecard/v4 v4.4.1-0.20220801175846-7de97139f6c9
 	github.com/sigstore/cosign v1.10.0
 	github.com/sirupsen/logrus v1.9.0
 	github.com/spf13/cobra v1.5.0
@@ -249,13 +249,13 @@ require (
 	golang.org/x/term v0.0.0-20220722155259-a9ba230a4035 // indirect
 	golang.org/x/text v0.3.7 // indirect
 	golang.org/x/time v0.0.0-20220722155302-e5dcc9cfc0b9 // indirect
-	golang.org/x/tools v0.1.11 // indirect
+	golang.org/x/tools v0.1.12 // indirect
 	golang.org/x/xerrors v0.0.0-20220609144429-65e65417b02f // indirect
 	google.golang.org/api v0.88.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
 	google.golang.org/genproto v0.0.0-20220722212130-b98a9ff5e252 // indirect
 	google.golang.org/grpc v1.48.0 // indirect
-	google.golang.org/protobuf v1.28.0 // indirect
+	google.golang.org/protobuf v1.28.1 // indirect
 	gopkg.in/cheggaaa/pb.v1 v1.0.28 // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	gopkg.in/ini.v1 v1.66.6 // indirect
