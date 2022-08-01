@@ -228,7 +228,7 @@ func depsDevTag(system, name string) string {
 		url.PathEscape(strings.ToLower(system)),
 		url.PathEscape(strings.ToLower(name)),
 	)
-	return fmt.Sprintf(" **`[deps.dev](%s)`** ", url)
+	return fmt.Sprintf(" **[deps.dev](%s)** ", url)
 }
 
 func commentBodyWithMarkdownID(id, report string) string {
