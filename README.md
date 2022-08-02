@@ -23,6 +23,8 @@ ________
 - [Workflow Setup](#workflow-setup)
 
 [View Results](#view-results)
+- [Scorecard Badge](#scorecard-badge)
+- [Code Scanning Alerts](#code-scanning-alerts)
 - [Verify Runs](#verify-runs)
 - [Troubleshooting](#troubleshooting)
 
