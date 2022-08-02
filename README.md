@@ -103,7 +103,23 @@ Then click "Add More Scanning Tools."
 
 ## View Results
 
-The workflow is preconfigured to run on every repository contribution. After making a code change, you can view a list of results by going to the Security tab and clicking "Code Scanning Alerts" (it can take a couple minutes for the run to complete and the results to show up). Click on the individual alerts for more information, including remediation instructions. You will need to click "Show more" to expand the full remediation instructions.
+The workflow is preconfigured to run on every repository contribution. After making a code change, you can view the results for the change either through the Scorecard Badge, Code Scanning Alerts or GitHub Workflow Runs.
+
+### Scorecard Badge
+
+Starting with scorecard-action:v2, users can add a Scorecard Badge to their README to display the latest status of their Scorecard results. This requires setting `publish_results: true` for the action and enabling `id-token: write` permission for the job (needed to access GitHub OIDC token). The badge is updated on every run of scorecard-action and points to the latest result. To add a badge to your README, copy and paste the below lines:
+
+```
+[![OpenSSF Scorecard]
+(https://api.securityscorecards.dev/projects/github.com/{org}/{repo}/badge)]
+(https://api.securityscorecards.dev/projects/github.com/{org}/{repo})
+```
+
+![image](/images/badge.png)
+
+### Code Scanning Alerts
+
+A list of results is accessible by going in the Security tab and clicking "Code Scanning Alerts" (it can take a couple minutes for the run to complete and the results to show up). Click on the individual alerts for more information, including remediation instructions. You will need to click "Show more" to expand the full remediation instructions.
 
 ![image](/images/remediation.png)
 
