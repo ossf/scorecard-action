@@ -54,10 +54,6 @@ func addedTag() string {
 	return fmt.Sprintf(" :sparkles: **`" + "added" + "`** ")
 }
 
-func updatedTag() string {
-	return fmt.Sprintf(" **`" + "updated" + "`** ")
-}
-
 func removedTag() string {
 	return fmt.Sprintf(" ~~**`" + "removed" + "`**~~ ")
 }

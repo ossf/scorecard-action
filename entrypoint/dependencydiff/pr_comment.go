@@ -132,27 +132,16 @@ func dependencydiffResultsAsMarkdown(depdiffResults []pkg.DependencyCheckResult,
 			continue
 		}
 		current := addedTag()
-		if _, ok := removed[dName]; ok {
-			// Dependency in the added map also found in the removed map, indicating an updated one.
-			current += updatedTag()
-		}
 		newResult := added[dName]
-		if newResult.Ecosystem != nil && newResult.Version != nil {
-			found, err := entryExists(*newResult.Ecosystem, newResult.Name, *newResult.Version)
-			if err != nil {
-				return nil, err
-			}
-			if found {
-				current += depsDevTag(*newResult.Ecosystem, newResult.Name)
-			}
-		}
 		current += scoreTag(key.aggregateScore)
 		current += packageAsMarkdown(
-			newResult.Name, newResult.Version, newResult.SourceRepository, newResult.ChangeType,
+			newResult.Name, newResult.Ecosystem,
+			newResult.Version, newResult.ChangeType,
 		)
 		if oldResult, ok := removed[dName]; ok {
 			current += packageAsMarkdown(
-				oldResult.Name, oldResult.Version, oldResult.SourceRepository, oldResult.ChangeType,
+				oldResult.Name, oldResult.Ecosystem,
+				oldResult.Version, oldResult.ChangeType,
 			)
 		}
 		results += current + "\n\n"
@@ -168,25 +157,16 @@ func dependencydiffResultsAsMarkdown(depdiffResults []pkg.DependencyCheckResult,
 		}
 		current := removedTag()
 		oldResult := removed[dName]
-		if oldResult.Ecosystem != nil && oldResult.Version != nil {
-			found, err := entryExists(*oldResult.Ecosystem, oldResult.Name, *oldResult.Version)
-			if err != nil {
-				return nil, err
-			}
-			if found {
-				current += depsDevTag(*oldResult.Ecosystem, oldResult.Name)
-			}
-		}
 		current += scoreTag(key.aggregateScore)
 		current += packageAsMarkdown(
-			oldResult.Name, oldResult.Version, oldResult.SourceRepository, oldResult.ChangeType,
+			oldResult.Name, oldResult.Ecosystem,
+			oldResult.Version, oldResult.ChangeType,
 		)
 		results += current + "\n\n"
 	}
-	// TODO (#772):
 	out := "# [Scorecard Action](https://github.com/ossf/scorecard-action) Dependency-diff Report\n\n"
 	out += fmt.Sprintf(
-		"Dependency-diffs (changes) between the **BASE** `%s` and the **HEAD** `%s`:\n\n",
+		"Dependency-diffs (changes) between the base `%s` and the head `%s`:\n\n",
 		base, head,
 	)
 	if results == "" {
@@ -198,12 +178,18 @@ func dependencydiffResultsAsMarkdown(depdiffResults []pkg.DependencyCheckResult,
 	return &out, nil
 }
 
-func packageAsMarkdown(name string, version, srcRepo *string, changeType *pkg.ChangeType,
+func packageAsMarkdown(name string, ecosys, version *string,
+	changeType *pkg.ChangeType,
 ) string {
-	result := ""
-	result += fmt.Sprintf(" %s", name)
-	if srcRepo != nil {
-		result = "[" + result + "]" + "(" + *srcRepo + ")"
+	result := fmt.Sprintf("%s ", name)
+	if ecosys != nil && version != nil {
+		fmt.Println(name, *ecosys, *version)
+		// We only care about if there is an entry, so don't need to handle the error here.
+		found, _ := entryExists(*ecosys, name, *version)
+		if found {
+			link := depsDevLink(*ecosys, name)
+			result = "[" + result + "]" + "(" + link + ")"
+		}
 	}
 	if version != nil {
 		result += fmt.Sprintf(" @ %s", *version)
@@ -222,13 +208,13 @@ func experimentalFeature() string {
 	return result
 }
 
-func depsDevTag(system, name string) string {
+func depsDevLink(system, name string) string {
 	url := fmt.Sprintf(
 		"https://deps.dev/%s/%s",
 		url.PathEscape(strings.ToLower(system)),
 		url.PathEscape(strings.ToLower(name)),
 	)
-	return fmt.Sprintf(" **[deps.dev](%s)** ", url)
+	return url
 }
 
 func commentBodyWithMarkdownID(id, report string) string {
