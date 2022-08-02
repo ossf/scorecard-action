@@ -115,6 +115,8 @@ Starting with scorecard-action:v2, users can add a Scorecard Badge to their READ
 (https://api.securityscorecards.dev/projects/github.com/{org}/{repo})
 ```
 
+Once this badge is added, clicking on the badge will take users to the latest run result of Scorecard.
+
 ![image](/images/badge.png)
 
 ### Code Scanning Alerts
