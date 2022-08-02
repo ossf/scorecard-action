@@ -131,13 +131,7 @@ func dependencydiffResultsAsMarkdown(depdiffResults []pkg.DependencyCheckResult,
 		if _, ok := added[dName]; !ok {
 			continue
 		}
-		current := ""
-		if _, ok := removed[dName]; ok {
-			// Dependency in the added map also found in the removed map, indicating an updated one.
-			current += updatedTag()
-		} else {
-			current += addedTag()
-		}
+		current := addedTag()
 		newResult := added[dName]
 		current += scoreTag(key.aggregateScore)
 		current += packageAsMarkdown(
@@ -170,10 +164,9 @@ func dependencydiffResultsAsMarkdown(depdiffResults []pkg.DependencyCheckResult,
 		)
 		results += current + "\n\n"
 	}
-	// TODO (#772):
 	out := "# [Scorecard Action](https://github.com/ossf/scorecard-action) Dependency-diff Report\n\n"
 	out += fmt.Sprintf(
-		"Dependency-diffs (changes) between the **BASE** `%s` and the **HEAD** `%s`:\n\n",
+		"Dependency-diffs (changes) between the base `%s` and the head `%s`:\n\n",
 		base, head,
 	)
 	if results == "" {
@@ -188,11 +181,14 @@ func dependencydiffResultsAsMarkdown(depdiffResults []pkg.DependencyCheckResult,
 func packageAsMarkdown(name string, ecosys, version *string,
 	changeType *pkg.ChangeType,
 ) string {
-	result := fmt.Sprintf(" %s", name)
+	result := fmt.Sprintf("%s ", name)
 	if ecosys != nil && version != nil {
+		fmt.Println(name, *ecosys, *version)
+		// We only care about if there is an entry, so don't need to handle the error here.
 		found, _ := entryExists(*ecosys, name, *version)
 		if found {
 			link := depsDevLink(*ecosys, name)
+			fmt.Println(link)
 			result = "[" + result + "]" + "(" + link + ")"
 		}
 	}
@@ -202,7 +198,6 @@ func packageAsMarkdown(name string, ecosys, version *string,
 	if *changeType == pkg.Removed {
 		result = " ~~" + strings.Trim(result, " ") + "~~ "
 	}
-
 	return result
 }
 
