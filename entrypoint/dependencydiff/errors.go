@@ -1,4 +1,4 @@
-// Copyright OpenSSF Authors
+// Copyright 2022 Security Scorecard Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,25 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package main
+package dependencydiff
 
-import (
-	"os"
+import "errors"
 
-	"github.com/ossf/scorecard-action/options"
+var (
+	errEmpty          = errors.New("empty")
+	errInvalid        = errors.New("invalid")
+	errShouldNotBeNil = errors.New("should not be nil")
 )
-
-const (
-	eventPullRequest = "pull_request"
-)
-
-func main() {
-	event := os.Getenv(options.EnvGithubEventName)
-	switch event {
-	case eventPullRequest:
-		// This is an experimental feature.
-		RunDependencyDiff()
-	default:
-		RunScorecardAction()
-	}
-}
