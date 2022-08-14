@@ -115,6 +115,7 @@ func ProcessSignature(jsonPayload []byte, repoName, repoRef, accessToken string)
 	if err != nil {
 		return fmt.Errorf("creating HTTP request: %w", err)
 	}
+	req.Header.Set("Content-Type", "application/json")
 
 	ctx, cancel := context.WithTimeout(req.Context(), 10*time.Second)
 	defer cancel()
