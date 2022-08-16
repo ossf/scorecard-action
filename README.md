@@ -19,7 +19,7 @@ scorecard-action:v2 has a new requirement for the job running the ossf/scorecard
 
 If you are using custom steps in the job, it may fail.
 We understand that this is restrictive, but currently it's necessary to ensure the integrity of the results that we publish, since GitHub workflow steps run in the same environment as the job they belong to. 
-We are working on making this feature more flexible and hope to drop this requirement in the future.  
+If possible, we will work on making this feature more flexible so we can drop this requirement in the future.  
 ________
 [Installation](#installation) 
 - [Authentication](#authentication-with-pat)
