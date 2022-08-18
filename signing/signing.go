@@ -33,8 +33,6 @@ import (
 	"github.com/sigstore/cosign/cmd/cosign/cli/sign"
 )
 
-const scorecardAPI = "https://api.securityscorecards.dev"
-
 // SignScorecardResult signs the results file and uploads the attestation to the Rekor transparency log.
 func SignScorecardResult(scorecardResultsFile string) error {
 	if err := os.Setenv("COSIGN_EXPERIMENTAL", "true"); err != nil {
@@ -108,10 +106,7 @@ func ProcessSignature(jsonPayload []byte, repoName, repoRef, accessToken string)
 
 	// Call scorecard-webapp-api to process and upload signature.
 	// Setup HTTP request and context.
-	apiURL := scorecardAPI
-	if scorecardURL, exists := os.LookupEnv("SCORECARD_API_URL"); exists {
-		apiURL = scorecardURL
-	}
+	apiURL := os.Getenv(options.EnvInputPublishBaseURL)
 	rawURL := fmt.Sprintf("%s/projects/github.com/%s", apiURL, repoName)
 	parsedURL, err := url.Parse(rawURL)
 	if err != nil {

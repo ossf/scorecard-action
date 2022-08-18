@@ -43,6 +43,7 @@ const (
 	EnvInputResultsFile       = "INPUT_RESULTS_FILE"
 	EnvInputResultsFormat     = "INPUT_RESULTS_FORMAT"
 	EnvInputPublishResults    = "INPUT_PUBLISH_RESULTS"
+	EnvInputPublishBaseURL    = "INPUT_PUBLISH_BASE_URL"
 )
 
 // Errors
