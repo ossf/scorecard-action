@@ -106,7 +106,7 @@ func ProcessSignature(jsonPayload []byte, repoName, repoRef, accessToken string)
 
 	// Call scorecard-webapp-api to process and upload signature.
 	// Setup HTTP request and context.
-	apiURL := os.Getenv(options.EnvInputPublishBaseURL)
+	apiURL := os.Getenv(options.EnvInputInternalPublishBaseURL)
 	rawURL := fmt.Sprintf("%s/projects/github.com/%s", apiURL, repoName)
 	parsedURL, err := url.Parse(rawURL)
 	if err != nil {

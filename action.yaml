@@ -37,7 +37,7 @@ inputs:
     required: false
     default: false
 
-  publish_base_url:
+  internal_publish_base_url:
     description: "INPUT: Base URL for publishing results. Used for testing."
     required: false
     default: "https://api.securityscorecards.dev"
