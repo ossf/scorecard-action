@@ -37,6 +37,11 @@ inputs:
     required: false
     default: false
 
+  internal_publish_base_url:
+    description: "INPUT: Base URL for publishing results. Used for testing."
+    required: false
+    default: "https://api.securityscorecards.dev"
+
   internal_default_token:
     description: "INPUT: Default GitHub token. (Internal purpose only, not intended for developers to set. Used for pull requests configured with a PAT)."
     required: false
@@ -48,4 +53,4 @@ branding:
 
 runs:
   using: "docker"
-  image: "docker://gcr.io/openssf/scorecard-action:v2.0.0-alpha.1"
+  image: "docker://gcr.io/openssf/scorecard-action:v2.0.0-alpha.2"

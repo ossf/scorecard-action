@@ -19,6 +19,8 @@ package signing
 import (
 	"os"
 	"testing"
+
+	"github.com/ossf/scorecard-action/options"
 )
 
 // TODO: For this test to work, fake the OIDC token retrieval with something like.
@@ -80,6 +82,7 @@ func Test_ProcessSignature(t *testing.T) {
 	repoName := "ossf-tests/scorecard-action"
 	repoRef := "refs/heads/main"
 	accessToken := os.Getenv("GITHUB_AUTH_TOKEN")
+	os.Setenv(options.EnvInputInternalPublishBaseURL, "https://api.securityscorecards.dev")
 
 	if err != nil {
 		t.Errorf("Error reading testdata:, %v", err)
