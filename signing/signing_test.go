@@ -80,6 +80,7 @@ func Test_ProcessSignature(t *testing.T) {
 	repoName := "ossf-tests/scorecard-action"
 	repoRef := "refs/heads/main"
 	accessToken := os.Getenv("GITHUB_AUTH_TOKEN")
+	os.Setenv("INPUT_PUBLISH_BASE_URL", "https://api.securityscorecards.dev")
 
 	if err != nil {
 		t.Errorf("Error reading testdata:, %v", err)
