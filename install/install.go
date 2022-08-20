@@ -22,7 +22,7 @@ import (
 	"log"
 	"os"
 
-	"github.com/google/go-github/v42/github"
+	"github.com/google/go-github/v46/github"
 
 	scagh "github.com/ossf/scorecard-action/install/github"
 	"github.com/ossf/scorecard-action/install/options"

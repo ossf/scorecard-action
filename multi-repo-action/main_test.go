@@ -14,12 +14,12 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
-//nolint
+// nolint
 // TODO(lint): Remove nolint directive and fix lint warnings
 package main
 
 import (
-	"github.com/google/go-github/v42/github"
+	"github.com/google/go-github/v46/github"
 )
 
 var client *github.Client

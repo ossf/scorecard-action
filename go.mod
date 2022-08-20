@@ -5,7 +5,7 @@ go 1.18
 require (
 	github.com/caarlos0/env/v6 v6.9.3
 	github.com/google/go-cmp v0.5.8
-	github.com/google/go-github/v42 v42.0.0
+	github.com/google/go-github/v46 v46.0.0
 	github.com/gregjones/httpcache v0.0.0-20190611155906-901d90724c79
 	github.com/ossf/scorecard/v4 v4.6.0
 	github.com/sigstore/cosign v1.11.0
