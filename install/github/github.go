@@ -17,22 +17,12 @@
 package github
 
 import (
-	"context"
-	"fmt"
-	"net/http"
-	"os"
-	"path/filepath"
-	"strings"
-
-	"github.com/google/go-github/v46/github"
-	"github.com/gregjones/httpcache"
-	"github.com/gregjones/httpcache/diskcache"
-	"github.com/sirupsen/logrus"
-	"golang.org/x/oauth2"
-	kgh "sigs.k8s.io/release-sdk/github"
-	"sigs.k8s.io/release-utils/env"
+	_ "github.com/google/go-github/v46/github"
+	_ "sigs.k8s.io/release-sdk/github"
+	_ "sigs.k8s.io/release-utils/env"
 )
 
+/*
 // From https://github.com/kubernetes-sigs/release-sdk/blob/e23d2c82bbb41a007cdf019c30930e8fd2649c01/github/github.go
 
 // GitHub is a wrapper around GitHub related functionality.
@@ -328,3 +318,4 @@ func (g *githubClient) CreatePullRequest(
 	logrus.Infof("Successfully created PR #%d", pr.GetNumber())
 	return pr, nil
 }
+*/
