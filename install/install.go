@@ -55,12 +55,11 @@ func Run(o *options.Options) error {
 
 	// Get github user client.
 	ctx := context.Background()
-	gh := scagh.New()
-	client := gh.Client()
+	gh := scagh.New(ctx)
 
 	// If not provided, get all repositories under organization.
 	if len(o.Repositories) == 0 {
-		repos, _, err := client.GetRepositoriesByOrg(ctx, o.Owner)
+		repos, _, err := gh.GetRepositoriesByOrg(ctx, o.Owner)
 		if err != nil {
 			return fmt.Errorf("getting repos for owner (%s): %w", o.Owner, err)
 		}
@@ -81,7 +80,7 @@ func Run(o *options.Options) error {
 	// TODO: Capture repo access errors
 	for _, repoName := range o.Repositories {
 		// Get repo metadata.
-		repo, _, err := client.GetRepository(ctx, o.Owner, repoName)
+		repo, _, err := gh.GetRepository(ctx, o.Owner, repoName)
 		if err != nil {
 			log.Printf(
 				"skipped repo (%s) because it does not exist or could not be accessed: %+v",
@@ -94,7 +93,7 @@ func Run(o *options.Options) error {
 
 		// Get head commit SHA of default branch.
 		// TODO: Capture branch access errors
-		defaultBranch, _, err := client.GetBranch(
+		defaultBranch, _, err := gh.GetBranch(
 			ctx,
 			o.Owner,
 			repoName,
@@ -115,7 +114,7 @@ func Run(o *options.Options) error {
 
 		// Skip if scorecard file already exists in workflows folder.
 		for _, f := range workflowFiles {
-			scoreFileContent, _, _, err := client.GetContents(
+			scoreFileContent, _, _, err := gh.GetContents(
 				ctx,
 				o.Owner,
 				repoName,
@@ -133,7 +132,7 @@ func Run(o *options.Options) error {
 		}
 
 		// Skip if branch scorecard already exists.
-		scorecardBranch, _, err := client.GetBranch(
+		scorecardBranch, _, err := gh.GetBranch(
 			ctx,
 			o.Owner,
 			repoName,
@@ -155,7 +154,7 @@ func Run(o *options.Options) error {
 			Ref:    github.String("refs/heads/scorecard"),
 			Object: &github.GitObject{SHA: defaultBranchSHA},
 		}
-		_, _, err = client.CreateGitRef(ctx, o.Owner, repoName, ref)
+		_, _, err = gh.CreateGitRef(ctx, o.Owner, repoName, ref)
 		if err != nil {
 			log.Printf(
 				"skipped repo (%s) because new branch could not be created: %+v",
@@ -173,7 +172,7 @@ func Run(o *options.Options) error {
 			Content: workflowContent,
 			Branch:  github.String("scorecard"),
 		}
-		_, _, err = client.CreateFile(
+		_, _, err = gh.CreateFile(
 			ctx,
 			o.Owner,
 			repoName,
@@ -192,7 +191,7 @@ func Run(o *options.Options) error {
 
 		// Create pull request.
 		// TODO: Capture pull request creation errors
-		_, err = client.CreatePullRequest(
+		_, err = gh.CreatePullRequest(
 			ctx,
 			o.Owner,
 			repoName,
