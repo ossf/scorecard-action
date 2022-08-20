@@ -113,7 +113,12 @@ func Run(o *options.Options) error {
 		defaultBranchSHA := defaultBranch.Commit.SHA
 
 		// Skip if scorecard file already exists in workflows folder.
-		for _, f := range workflowFiles {
+		workflowExists := false
+		for i, f := range workflowFiles {
+			log.Printf(
+				"checking for scorecard workflow file (%s)",
+				f,
+			)
 			scoreFileContent, _, _, err := gh.GetContents(
 				ctx,
 				o.Owner,
@@ -121,99 +126,106 @@ func Run(o *options.Options) error {
 				f,
 				&github.RepositoryContentGetOptions{},
 			)
-			if scoreFileContent != nil || err == nil {
+			if scoreFileContent != nil {
 				log.Printf(
-					"skipped repo (%s) since scorecard workflow already exists",
+					"skipping repo (%s) since scorecard workflow already exists: %s",
+					repoName,
+					f,
+				)
+
+				workflowExists = true
+				break
+			}
+			if err != nil && i == len(workflowFiles)-1 {
+				return fmt.Errorf("checking for scorecard workflow file: %w", err)
+			}
+		}
+
+		if !workflowExists {
+			// Skip if branch scorecard already exists.
+			scorecardBranch, _, err := gh.GetBranch(
+				ctx,
+				o.Owner,
+				repoName,
+				"scorecard",
+				true,
+			)
+			if scorecardBranch != nil || err == nil {
+				log.Printf(
+					"skipped repo (%s) since the scorecard branch already exists",
 					repoName,
 				)
 
 				continue
 			}
-		}
 
-		// Skip if branch scorecard already exists.
-		scorecardBranch, _, err := gh.GetBranch(
-			ctx,
-			o.Owner,
-			repoName,
-			"scorecard",
-			true,
-		)
-		if scorecardBranch != nil || err == nil {
+			// Create new branch using a reference that stores the new commit hash.
+			// TODO: Capture ref creation errors
+			ref := &github.Reference{
+				Ref:    github.String("refs/heads/scorecard"),
+				Object: &github.GitObject{SHA: defaultBranchSHA},
+			}
+			_, _, err = gh.CreateGitRef(ctx, o.Owner, repoName, ref)
+			if err != nil {
+				log.Printf(
+					"skipped repo (%s) because new branch could not be created: %+v",
+					repoName,
+					err,
+				)
+
+				continue
+			}
+
+			// Create file in repository.
+			// TODO: Capture file creation errors
+			opts := &github.RepositoryContentFileOptions{
+				Message: github.String("Adding scorecard workflow"),
+				Content: workflowContent,
+				Branch:  github.String("scorecard"),
+			}
+			_, _, err = gh.CreateFile(
+				ctx,
+				o.Owner,
+				repoName,
+				workflowFile,
+				opts,
+			)
+			if err != nil {
+				log.Printf(
+					"skipped repo (%s) because new file could not be created: %+v",
+					repoName,
+					err,
+				)
+
+				continue
+			}
+
+			// Create pull request.
+			// TODO: Capture pull request creation errors
+			_, err = gh.CreatePullRequest(
+				ctx,
+				o.Owner,
+				repoName,
+				*defaultBranch.Name,
+				"scorecard",
+				"Added Scorecard Workflow",
+				"Added the workflow for OpenSSF's Security Scorecard",
+			)
+			if err != nil {
+				log.Printf(
+					"skipped repo (%s) because pull request could not be created: %+v",
+					repoName,
+					err,
+				)
+
+				continue
+			}
+
 			log.Printf(
-				"skipped repo (%s) since the scorecard branch already exists",
+				"Created a pull request to add the scorecard workflow to %s",
 				repoName,
 			)
-
-			continue
 		}
-
-		// Create new branch using a reference that stores the new commit hash.
-		// TODO: Capture ref creation errors
-		ref := &github.Reference{
-			Ref:    github.String("refs/heads/scorecard"),
-			Object: &github.GitObject{SHA: defaultBranchSHA},
-		}
-		_, _, err = gh.CreateGitRef(ctx, o.Owner, repoName, ref)
-		if err != nil {
-			log.Printf(
-				"skipped repo (%s) because new branch could not be created: %+v",
-				repoName,
-				err,
-			)
-
-			continue
-		}
-
-		// Create file in repository.
-		// TODO: Capture file creation errors
-		opts := &github.RepositoryContentFileOptions{
-			Message: github.String("Adding scorecard workflow"),
-			Content: workflowContent,
-			Branch:  github.String("scorecard"),
-		}
-		_, _, err = gh.CreateFile(
-			ctx,
-			o.Owner,
-			repoName,
-			workflowFile,
-			opts,
-		)
-		if err != nil {
-			log.Printf(
-				"skipped repo (%s) because new file could not be created: %+v",
-				repoName,
-				err,
-			)
-
-			continue
-		}
-
-		// Create pull request.
-		// TODO: Capture pull request creation errors
-		_, err = gh.CreatePullRequest(
-			ctx,
-			o.Owner,
-			repoName,
-			*defaultBranch.Name,
-			"scorecard",
-			"Added Scorecard Workflow",
-			"Added the workflow for OpenSSF's Security Scorecard",
-		)
-		if err != nil {
-			log.Printf(
-				"skipped repo (%s) because pull request could not be created: %+v",
-				repoName,
-				err,
-			)
-
-			continue
-		}
-
-		log.Printf(
-			"Created a pull request to add the scorecard workflow to %s",
-			repoName,
-		)
 	}
 
 	return nil
