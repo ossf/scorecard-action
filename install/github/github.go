@@ -17,9 +17,14 @@
 package github
 
 import (
-	_ "github.com/google/go-github/v46/github"
+	"context"
+	"net/http"
+
+	gogh "github.com/google/go-github/v46/github"
 	_ "sigs.k8s.io/release-sdk/github"
 	_ "sigs.k8s.io/release-utils/env"
+
+	"github.com/ossf/scorecard-action/github"
 )
 
 /*
@@ -170,11 +175,25 @@ func NewEnterpriseWithToken(baseURL, uploadURL, token string) (*GitHub, error) {
 		options: DefaultOptions(),
 	}, nil
 }
+*/
 
-type githubClient struct {
-	*github.Client
+type Client struct {
+	*gogh.Client
 }
 
+// New returns a new GitHub client.
+func New(ctx context.Context) *Client {
+	c := github.NewClient(ctx)
+	hc := &http.Client{
+		Transport: c.Transport(),
+	}
+	gh := gogh.NewClient(hc)
+	client := &Client{gh}
+
+	return client
+}
+
+/*
 func (g *githubClient) GetRepositoriesByOrg(
 	ctx context.Context,
 	owner string,

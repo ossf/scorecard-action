@@ -62,6 +62,11 @@ func (c *Client) SetTransport(rt http.RoundTripper) {
 	c.rt = rt
 }
 
+// Transport returns the http.RoundTripper for a GitHub client.
+func (c *Client) Transport() http.RoundTripper {
+	return c.rt
+}
+
 // SetDefaultTransport sets the scorecard roundtripper for a GitHub client.
 func (c *Client) SetDefaultTransport() {
 	logger := sclog.NewLogger(sclog.DefaultLevel)
