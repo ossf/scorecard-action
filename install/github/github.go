@@ -27,6 +27,7 @@ import (
 	"github.com/ossf/scorecard-action/github"
 )
 
+// Client is a wrapper around GitHub-related functionality.
 type Client struct {
 	*gogh.Client
 }
@@ -43,8 +44,10 @@ func New(ctx context.Context) *Client {
 	return client
 }
 
-// Modeled after https://github.com/kubernetes-sigs/release-sdk/blob/e23d2c82bbb41a007cdf019c30930e8fd2649c01/github/github.go
+// Modeled after
+// https://github.com/kubernetes-sigs/release-sdk/blob/e23d2c82bbb41a007cdf019c30930e8fd2649c01/github/github.go
 
+// GetRepositoriesByOrg // TODO(lint): Needs a comment.
 func (c *Client) GetRepositoriesByOrg(
 	ctx context.Context,
 	owner string,
@@ -64,6 +67,7 @@ func (c *Client) GetRepositoriesByOrg(
 	return repos, resp, nil
 }
 
+// GetRepository // TODO(lint): Needs a comment.
 func (c *Client) GetRepository(
 	ctx context.Context,
 	owner,
@@ -77,6 +81,7 @@ func (c *Client) GetRepository(
 	return pr, resp, nil
 }
 
+// GetBranch // TODO(lint): Needs a comment.
 func (c *Client) GetBranch(
 	ctx context.Context,
 	owner,
@@ -99,6 +104,7 @@ func (c *Client) GetBranch(
 	return b, resp, nil
 }
 
+// GetContents // TODO(lint): Needs a comment.
 func (c *Client) GetContents(
 	ctx context.Context,
 	owner,
@@ -121,6 +127,7 @@ func (c *Client) GetContents(
 	return file, dir, resp, nil
 }
 
+// CreateGitRef // TODO(lint): Needs a comment.
 func (c *Client) CreateGitRef(
 	ctx context.Context,
 	owner,
@@ -141,6 +148,7 @@ func (c *Client) CreateGitRef(
 	return gRef, resp, nil
 }
 
+// CreateFile // TODO(lint): Needs a comment.
 func (c *Client) CreateFile(
 	ctx context.Context,
 	owner,
@@ -163,6 +171,7 @@ func (c *Client) CreateFile(
 	return repoContentResp, resp, nil
 }
 
+// CreatePullRequest // TODO(lint): Needs a comment.
 func (c *Client) CreatePullRequest(
 	ctx context.Context,
 	owner,

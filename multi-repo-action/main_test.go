@@ -14,7 +14,7 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
-// nolint
+//nolint
 // TODO(lint): Remove nolint directive and fix lint warnings
 package main
 

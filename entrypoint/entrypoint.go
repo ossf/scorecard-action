@@ -81,7 +81,7 @@ func New() (*cobra.Command, error) {
 	actionCmd.PersistentPostRun = func(cmd *cobra.Command, args []string) {
 		if out != nil {
 			if _, err = out.Seek(0, io.SeekStart); err == nil {
-				// nolint:errcheck
+				//nolint:errcheck
 				_, _ = io.Copy(stdout, out)
 			}
 			_ = out.Close()

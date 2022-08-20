@@ -27,10 +27,11 @@ import (
 	"os"
 	"time"
 
-	"github.com/ossf/scorecard-action/entrypoint" //nolint
-	"github.com/ossf/scorecard-action/options"
 	sigOpts "github.com/sigstore/cosign/cmd/cosign/cli/options"
 	"github.com/sigstore/cosign/cmd/cosign/cli/sign"
+
+	"github.com/ossf/scorecard-action/entrypoint"
+	"github.com/ossf/scorecard-action/options"
 )
 
 // SignScorecardResult signs the results file and uploads the attestation to the Rekor transparency log.
