@@ -21,6 +21,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"path"
 
 	"github.com/google/go-github/v46/github"
 
@@ -29,14 +30,23 @@ import (
 )
 
 const (
-	workflowFile           = ".github/workflows/scorecards.yml"
-	workflowFileDeprecated = ".github/workflows/scorecards-analysis.yml"
+	commitMessage          = ".github: Add scorecard workflow"
+	pullRequestBranch      = "scorecard-action-install"
+	workflowBase           = ".github/workflows"
+	workflowFile           = "scorecards.yml"
+	workflowFileDeprecated = "scorecards-analysis.yml"
 )
 
-var workflowFiles = []string{
-	workflowFile,
-	workflowFileDeprecated,
-}
+var (
+	branchReference        = fmt.Sprintf("refs/heads/%s", pullRequestBranch)
+	pullRequestDescription = "Added the workflow for OpenSSF's Security Scorecard"
+	pullRequestTitle       = commitMessage
+
+	workflowFiles = []string{
+		path.Join(workflowBase, workflowFile),
+		path.Join(workflowBase, workflowFileDeprecated),
+	}
+)
 
 // Run adds the OpenSSF Scorecard workflow to all repositories under the given
 // organization.
@@ -147,7 +157,7 @@ func Run(o *options.Options) error {
 				ctx,
 				o.Owner,
 				repoName,
-				"scorecard",
+				pullRequestBranch,
 				true,
 			)
 			if scorecardBranch != nil || err == nil {
@@ -162,7 +172,7 @@ func Run(o *options.Options) error {
 			// Create new branch using a reference that stores the new commit hash.
 			// TODO: Capture ref creation errors
 			ref := &github.Reference{
-				Ref:    github.String("refs/heads/scorecard"),
+				Ref:    github.String(branchReference),
 				Object: &github.GitObject{SHA: defaultBranchSHA},
 			}
 			_, _, err = gh.CreateGitRef(ctx, o.Owner, repoName, ref)
@@ -179,9 +189,9 @@ func Run(o *options.Options) error {
 			// Create file in repository.
 			// TODO: Capture file creation errors
 			opts := &github.RepositoryContentFileOptions{
-				Message: github.String("Adding scorecard workflow"),
+				Message: github.String(commitMessage),
 				Content: workflowContent,
-				Branch:  github.String("scorecard"),
+				Branch:  github.String(pullRequestBranch),
 			}
 			_, _, err = gh.CreateFile(
 				ctx,
@@ -207,9 +217,9 @@ func Run(o *options.Options) error {
 				o.Owner,
 				repoName,
 				*defaultBranch.Name,
-				"scorecard",
-				"Added Scorecard Workflow",
-				"Added the workflow for OpenSSF's Security Scorecard",
+				pullRequestBranch,
+				pullRequestTitle,
+				pullRequestDescription,
 			)
 			if err != nil {
 				log.Printf(
