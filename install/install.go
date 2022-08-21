@@ -39,10 +39,13 @@ const (
 
 var (
 	branchReference        = fmt.Sprintf("refs/heads/%s", pullRequestBranch)
-	pullRequestDescription = "Added the workflow for OpenSSF's Security Scorecard"
-	pullRequestTitle       = commitMessage
+	pullRequestDescription = `This pull request was generated using the installer tool for scorecard's GitHub Action.
 
-	workflowFiles = []string{
+To report any issues with this tool, see [here](https://github.com/ossf/scorecard-action).
+`
+
+	pullRequestTitle = commitMessage
+	workflowFiles    = []string{
 		path.Join(workflowBase, workflowFile),
 		path.Join(workflowBase, workflowFileDeprecated),
 	}
