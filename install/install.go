@@ -137,7 +137,7 @@ func Run(o *options.Options) error {
 				break
 			}
 			if err != nil && i == len(workflowFiles)-1 {
-				return fmt.Errorf("checking for scorecard workflow file: %w", err)
+				log.Printf("checking for scorecard workflow file: %+v", err)
 			}
 		}
 
