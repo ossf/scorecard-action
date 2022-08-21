@@ -19,10 +19,10 @@ package github
 import (
 	"context"
 	"fmt"
+	"log"
 	"net/http"
 
 	gogh "github.com/google/go-github/v46/github"
-	"github.com/sirupsen/logrus"
 
 	"github.com/ossf/scorecard-action/github"
 )
@@ -194,6 +194,11 @@ func (c *Client) CreatePullRequest(
 		return pr, fmt.Errorf("creating pull request: %w", err)
 	}
 
-	logrus.Infof("Successfully created PR #%d", pr.GetNumber())
+	log.Printf(
+		"successfully created PR #%d: %s",
+		pr.GetNumber(),
+		pr.GetHTMLURL(),
+	)
+
 	return pr, nil
 }
