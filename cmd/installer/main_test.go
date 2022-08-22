@@ -19,7 +19,7 @@
 package main
 
 import (
-	"github.com/google/go-github/v42/github"
+	"github.com/google/go-github/v46/github"
 )
 
 var client *github.Client
