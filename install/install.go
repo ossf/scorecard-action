@@ -23,9 +23,7 @@ import (
 	"os"
 	"path"
 
-	"github.com/google/go-github/v46/github"
-
-	scagh "github.com/ossf/scorecard-action/install/github"
+	"github.com/ossf/scorecard-action/install/github"
 	"github.com/ossf/scorecard-action/install/options"
 )
 
@@ -63,7 +61,7 @@ func Run(o *options.Options) error {
 
 	// Get github user client.
 	ctx := context.Background()
-	gh := scagh.New(ctx)
+	gh := github.New(ctx)
 
 	// If not provided, get all repositories under organization.
 	if len(o.Repositories) == 0 {
@@ -105,7 +103,7 @@ func Run(o *options.Options) error {
 
 func processRepo(
 	ctx context.Context,
-	gh *scagh.Client,
+	gh *github.Client,
 	owner, repoName string,
 	workflowContent []byte,
 ) error {
@@ -150,7 +148,7 @@ func processRepo(
 			owner,
 			repoName,
 			f,
-			&github.RepositoryContentGetOptions{},
+			github.CreateRepositoryContentGetOptions(),
 		)
 		if scoreFileContent != nil {
 			log.Printf(
@@ -187,10 +185,7 @@ func processRepo(
 
 		// Create new branch using a reference that stores the new commit hash.
 		// TODO: Capture ref creation errors
-		ref := &github.Reference{
-			Ref:    github.String(branchReference),
-			Object: &github.GitObject{SHA: defaultBranchSHA},
-		}
+		ref := github.CreateGitRefOptions(branchReference, defaultBranchSHA)
 		_, _, err = gh.CreateGitRef(ctx, owner, repoName, ref)
 		if err != nil {
 			return fmt.Errorf(
@@ -202,11 +197,11 @@ func processRepo(
 
 		// Create file in repository.
 		// TODO: Capture file creation errors
-		opts := &github.RepositoryContentFileOptions{
-			Message: github.String(commitMessage),
-			Content: workflowContent,
-			Branch:  github.String(pullRequestBranch),
-		}
+		opts := github.CreateRepositoryContentFileOptions(
+			workflowContent,
+			commitMessage,
+			pullRequestBranch,
+		)
 		_, _, err = gh.CreateFile(
 			ctx,
 			owner,

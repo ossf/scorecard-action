@@ -203,3 +203,28 @@ func (c *Client) CreatePullRequest(
 
 	return pr, nil
 }
+
+// CreateGitRefOptions // TODO(lint): Needs a comment.
+func CreateGitRefOptions(ref string, sha *string) *gogh.Reference {
+	return &gogh.Reference{
+		Ref:    gogh.String(ref),
+		Object: &gogh.GitObject{SHA: sha},
+	}
+}
+
+// CreateRepositoryContentFileOptions // TODO(lint): Needs a comment.
+func CreateRepositoryContentFileOptions(
+	content []byte,
+	msg, branch string,
+) *gogh.RepositoryContentFileOptions {
+	return &gogh.RepositoryContentFileOptions{
+		Message: gogh.String(msg),
+		Content: content,
+		Branch:  gogh.String(branch),
+	}
+}
+
+// CreateRepositoryContentGetOptions // TODO(lint): Needs a comment.
+func CreateRepositoryContentGetOptions() *gogh.RepositoryContentGetOptions {
+	return &gogh.RepositoryContentGetOptions{}
+}
