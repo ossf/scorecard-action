@@ -1,18 +1,38 @@
-# Enable OSSF Scorecard Action at an Organization Level - Work In Progress and is not Production Ready
+# Scorecard GitHub Action installer
 
-This tool will add the [OpenSSF's Scorecard workflow](https://github.com/ossf/scorecard-action) to all accessible repositories under a given organization. A PR will be created so that owners can decide whether or not they want to include the workflow.
+This tool can add the
+[scorecard GitHub Action](https://github.com/ossf/scorecard-action) to all
+accessible repositories under a given organization. A pull request will be
+created so that owners can decide whether or not they want to include the
+workflow.
 
-## Setup
+## Requirements
 
-Running this tool requires three parameters, which are defined at the top of `org-workflow-add.go`:
-1. ORG_NAME - the name of the organization for which the workflow should be enabled.
-2. PAT - a Personal Access Token with the following scopes:
-    - `repo > public_repo`
-    - `admin:org > read:org`
-3. REPO_LIST (OPTIONAL) - repository names under the organization that the workflow should be added to. If not provided, every repository will be updated.
+Running this tool requires a Personal Access Token (PAT) with the following scopes:
 
-Another PAT should also be defined as an organization secret for `scorecards-analysis.yml` using steps listed in [scorecard-action](https://github.com/ossf/scorecard-action#pat-token-creation).
+- `repo > public_repo`
+- `admin:org > read:org`
 
-## Execution
+Instructions on creating a personal access token can be found
+[here](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token).
 
-Execute this process by running `go run org-workflow-add.go` in the command line. Output will be produced for each successfully updated repository.
+## Usage
+
+```console
+❯ go run cmd/installer/main.go --help
+
+The Scorecard GitHub Action installer simplifies the installation of the
+scorecard GitHub Action by creating pull requests through the command line.
+
+Usage:
+  --owner example_org [--repos <repo1,repo2,repo3>] [flags]
+
+Flags:
+  -h, --help            help for --owner
+      --owner string    org/owner to install the scorecard action for
+      --repos strings   repositories to install the scorecard action on
+```
+
+Another PAT should also be defined as an organization secret for
+`scorecards.yml` using steps listed in
+[scorecard-action](https://github.com/ossf/scorecard-action#pat-token-creation).
