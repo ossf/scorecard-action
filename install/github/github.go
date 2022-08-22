@@ -195,8 +195,9 @@ func (c *Client) CreatePullRequest(
 	}
 
 	log.Printf(
-		"successfully created PR #%d: %s",
+		"successfully created PR #%d for repository %s: %s",
 		pr.GetNumber(),
+		repo,
 		pr.GetHTMLURL(),
 	)
 

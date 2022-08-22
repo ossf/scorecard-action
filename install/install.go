@@ -72,6 +72,7 @@ func Run(o *options.Options) error {
 
 	// If not provided, get all repositories under organization.
 	if len(o.Repositories) == 0 {
+		log.Print("No repositories provided. Fetching all repositories under organization.")
 		repos, _, err := gh.GetRepositoriesByOrg(ctx, o.Owner)
 		if err != nil {
 			return fmt.Errorf("getting repos for owner (%s): %w", o.Owner, err)
@@ -93,6 +94,7 @@ func Run(o *options.Options) error {
 	// TODO: Capture repo access errors
 	for _, repoName := range o.Repositories {
 		// Get repo metadata.
+		log.Printf("getting repo metadata for %s", repoName)
 		repo, _, err := gh.GetRepository(ctx, o.Owner, repoName)
 		if err != nil {
 			log.Printf(
@@ -150,7 +152,7 @@ func Run(o *options.Options) error {
 				break
 			}
 			if err != nil && i == len(workflowFiles)-1 {
-				log.Printf("checking for scorecard workflow file: %+v", err)
+				log.Printf("could not find a scorecard workflow file: %+v", err)
 			}
 		}
 
@@ -165,7 +167,7 @@ func Run(o *options.Options) error {
 			)
 			if scorecardBranch != nil || err == nil {
 				log.Printf(
-					"skipped repo (%s) since the scorecard branch already exists",
+					"skipped repo (%s) since the scorecard action installation branch already exists",
 					repoName,
 				)
 
@@ -233,12 +235,12 @@ func Run(o *options.Options) error {
 
 				continue
 			}
-
-			log.Printf(
-				"Created a pull request to add the scorecard workflow to %s",
-				repoName,
-			)
 		}
+
+		log.Printf(
+			"finished processing repository %s",
+			repoName,
+		)
 	}
 
 	return nil
