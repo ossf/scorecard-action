@@ -55,11 +55,6 @@ To report any issues with this tool, see [here](https://github.com/ossf/scorecar
 // organization.
 // TODO(install): Improve description.
 // TODO(install): Accept a context instead of setting one.
-// TODO(lint): cognitive complexity 31 of func `Run` is high (> 30) (gocognit).
-//
-// TODO(lint): cognitive complexity 31 of func `Run` is high (> 30) (gocognit).
-//
-//nolint:gocognit
 func Run(o *options.Options) error {
 	err := o.Validate()
 	if err != nil {
@@ -93,154 +88,158 @@ func Run(o *options.Options) error {
 	// Process each repository.
 	// TODO: Capture repo access errors
 	for _, repoName := range o.Repositories {
-		// Get repo metadata.
-		log.Printf("getting repo metadata for %s", repoName)
-		repo, _, err := gh.GetRepository(ctx, o.Owner, repoName)
+		log.Printf("Processing repository: %s", repoName)
+		err := processRepo(ctx, gh, o.Owner, repoName, workflowContent)
 		if err != nil {
-			log.Printf(
-				"skipped repo (%s) because it does not exist or could not be accessed: %+v",
-				repoName,
-				err,
-			)
-
-			continue
-		}
-
-		// Get head commit SHA of default branch.
-		// TODO: Capture branch access errors
-		defaultBranch, _, err := gh.GetBranch(
-			ctx,
-			o.Owner,
-			repoName,
-			*repo.DefaultBranch,
-			true,
-		)
-		if err != nil {
-			log.Printf(
-				"skipped repo (%s) because its default branch could not be accessed: %+v",
-				repoName,
-				err,
-			)
-
-			continue
-		}
-
-		defaultBranchSHA := defaultBranch.Commit.SHA
-
-		// Skip if scorecard file already exists in workflows folder.
-		workflowExists := false
-		for i, f := range workflowFiles {
-			log.Printf(
-				"checking for scorecard workflow file (%s)",
-				f,
-			)
-			scoreFileContent, _, _, err := gh.GetContents(
-				ctx,
-				o.Owner,
-				repoName,
-				f,
-				&github.RepositoryContentGetOptions{},
-			)
-			if scoreFileContent != nil {
-				log.Printf(
-					"skipping repo (%s) since scorecard workflow already exists: %s",
-					repoName,
-					f,
-				)
-
-				workflowExists = true
-				break
-			}
-			if err != nil && i == len(workflowFiles)-1 {
-				log.Printf("could not find a scorecard workflow file: %+v", err)
-			}
-		}
-
-		if !workflowExists {
-			// Skip if branch scorecard already exists.
-			scorecardBranch, _, err := gh.GetBranch(
-				ctx,
-				o.Owner,
-				repoName,
-				pullRequestBranch,
-				true,
-			)
-			if scorecardBranch != nil || err == nil {
-				log.Printf(
-					"skipped repo (%s) since the scorecard action installation branch already exists",
-					repoName,
-				)
-
-				continue
-			}
-
-			// Create new branch using a reference that stores the new commit hash.
-			// TODO: Capture ref creation errors
-			ref := &github.Reference{
-				Ref:    github.String(branchReference),
-				Object: &github.GitObject{SHA: defaultBranchSHA},
-			}
-			_, _, err = gh.CreateGitRef(ctx, o.Owner, repoName, ref)
-			if err != nil {
-				log.Printf(
-					"skipped repo (%s) because new branch could not be created: %+v",
-					repoName,
-					err,
-				)
-
-				continue
-			}
-
-			// Create file in repository.
-			// TODO: Capture file creation errors
-			opts := &github.RepositoryContentFileOptions{
-				Message: github.String(commitMessage),
-				Content: workflowContent,
-				Branch:  github.String(pullRequestBranch),
-			}
-			_, _, err = gh.CreateFile(
-				ctx,
-				o.Owner,
-				repoName,
-				workflowFile,
-				opts,
-			)
-			if err != nil {
-				log.Printf(
-					"skipped repo (%s) because new file could not be created: %+v",
-					repoName,
-					err,
-				)
-
-				continue
-			}
-
-			// Create pull request.
-			// TODO: Capture pull request creation errors
-			_, err = gh.CreatePullRequest(
-				ctx,
-				o.Owner,
-				repoName,
-				*defaultBranch.Name,
-				pullRequestBranch,
-				pullRequestTitle,
-				pullRequestDescription,
-			)
-			if err != nil {
-				log.Printf(
-					"skipped repo (%s) because pull request could not be created: %+v",
-					repoName,
-					err,
-				)
-
-				continue
-			}
+			log.Printf("processing repository: %+v", err)
 		}
 
 		log.Printf(
 			"finished processing repository %s",
 			repoName,
 		)
+	}
+
+	return nil
+}
+
+func processRepo(
+	ctx context.Context,
+	gh *scagh.Client,
+	owner, repoName string,
+	workflowContent []byte,
+) error {
+	// Get repo metadata.
+	log.Printf("getting repo metadata for %s", repoName)
+	repo, _, err := gh.GetRepository(ctx, owner, repoName)
+	if err != nil {
+		return fmt.Errorf(
+			"getting repository: %w",
+			err,
+		)
+	}
+
+	// Get head commit SHA of default branch.
+	// TODO: Capture branch access errors
+	defaultBranch, _, err := gh.GetBranch(
+		ctx,
+		owner,
+		repoName,
+		*repo.DefaultBranch,
+		true,
+	)
+	if err != nil {
+		return fmt.Errorf(
+			"getting default branch for %s: %w",
+			repoName,
+			err,
+		)
+	}
+
+	defaultBranchSHA := defaultBranch.Commit.SHA
+
+	// Skip if scorecard file already exists in workflows folder.
+	workflowExists := false
+	for i, f := range workflowFiles {
+		log.Printf(
+			"checking for scorecard workflow file (%s)",
+			f,
+		)
+		scoreFileContent, _, _, err := gh.GetContents(
+			ctx,
+			owner,
+			repoName,
+			f,
+			&github.RepositoryContentGetOptions{},
+		)
+		if scoreFileContent != nil {
+			log.Printf(
+				"skipping repo (%s) since scorecard workflow already exists: %s",
+				repoName,
+				f,
+			)
+
+			workflowExists = true
+			break
+		}
+		if err != nil && i == len(workflowFiles)-1 {
+			log.Printf("could not find a scorecard workflow file: %+v", err)
+		}
+	}
+
+	if !workflowExists {
+		// Skip if branch scorecard already exists.
+		scorecardBranch, _, err := gh.GetBranch(
+			ctx,
+			owner,
+			repoName,
+			pullRequestBranch,
+			true,
+		)
+		if scorecardBranch != nil || err == nil {
+			log.Printf(
+				"skipping repo (%s) since the scorecard action installation branch already exists",
+				repoName,
+			)
+
+			return nil
+		}
+
+		// Create new branch using a reference that stores the new commit hash.
+		// TODO: Capture ref creation errors
+		ref := &github.Reference{
+			Ref:    github.String(branchReference),
+			Object: &github.GitObject{SHA: defaultBranchSHA},
+		}
+		_, _, err = gh.CreateGitRef(ctx, owner, repoName, ref)
+		if err != nil {
+			return fmt.Errorf(
+				"creating scorecard action installation branch for %s: %w",
+				repoName,
+				err,
+			)
+		}
+
+		// Create file in repository.
+		// TODO: Capture file creation errors
+		opts := &github.RepositoryContentFileOptions{
+			Message: github.String(commitMessage),
+			Content: workflowContent,
+			Branch:  github.String(pullRequestBranch),
+		}
+		_, _, err = gh.CreateFile(
+			ctx,
+			owner,
+			repoName,
+			workflowFile,
+			opts,
+		)
+		if err != nil {
+			return fmt.Errorf(
+				"creating scorecard workflow file for %s: %w",
+				repoName,
+				err,
+			)
+		}
+
+		// Create pull request.
+		// TODO: Capture pull request creation errors
+		_, err = gh.CreatePullRequest(
+			ctx,
+			owner,
+			repoName,
+			*defaultBranch.Name,
+			pullRequestBranch,
+			pullRequestTitle,
+			pullRequestDescription,
+		)
+		if err != nil {
+			return fmt.Errorf(
+				"creating pull request for %s: %w",
+				repoName,
+				err,
+			)
+		}
 	}
 
 	return nil
