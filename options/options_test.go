@@ -252,7 +252,8 @@ func TestNew(t *testing.T) {
 				defer os.Unsetenv(EnvInputResultsFile)
 			}
 
-			opts, err := New()
+			opts := New()
+			err := opts.Prepare()
 			scOpts := *opts.ScorecardOpts
 			got := fields{
 				EnableSarif: scOpts.EnableSarif,

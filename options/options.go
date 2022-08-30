@@ -17,6 +17,7 @@ package options
 import (
 	"errors"
 	"fmt"
+	"log"
 	"os"
 	"strconv"
 	"strings"
@@ -83,10 +84,20 @@ type Options struct {
 }
 
 // New creates a new options set for running scorecard via GitHub Actions.
-func New() (*Options, error) {
+func New() *Options {
 	opts := &Options{}
 	if err := env.Parse(opts); err != nil {
-		return opts, fmt.Errorf("parsing entrypoint env vars: %w", err)
+		log.Printf("parsing entrypoint env vars: %+v", err)
+	}
+
+	return opts
+}
+
+// Prepare populates an options set for running scorecard via GitHub Actions.
+func (o *Options) Prepare() error {
+	opts := &Options{}
+	if err := env.Parse(opts); err != nil {
+		return fmt.Errorf("parsing entrypoint env vars: %w", err)
 	}
 	// GITHUB_AUTH_TOKEN
 	// Needs to be set *before* setRepoInfo() is invoked.
@@ -96,11 +107,11 @@ func New() (*Options, error) {
 		os.Setenv(EnvGithubAuthToken, inputToken)
 	}
 	if err := opts.setRepoInfo(); err != nil {
-		return opts, fmt.Errorf("parsing repo info: %w", err)
+		return fmt.Errorf("parsing repo info: %w", err)
 	}
 	opts.setScorecardOpts()
 	opts.setPublishResults()
-	return opts, nil
+	return nil
 }
 
 // Validate validates the scorecard configuration.

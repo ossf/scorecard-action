@@ -18,6 +18,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"log"
 	"os"
 
 	"github.com/spf13/cobra"
@@ -27,21 +28,13 @@ import (
 	scopts "github.com/ossf/scorecard/v4/options"
 )
 
-// New creates a new scorecard command which can be used as an entrypoint for
-// GitHub Actions.
-// TODO(cmd): Simplify to not return errors.
-func New() (*cobra.Command, error) {
-	opts, err := options.New()
-	if err != nil {
-		return nil, fmt.Errorf("creating new options: %w", err)
-	}
-	if err := opts.Validate(); err != nil {
-		return nil, fmt.Errorf("validating options: %w", err)
-	}
-	opts.Print()
+// New creates a new subcommand which can be used as an entrypoint for GitHub
+// Actions.
+func New() *cobra.Command {
+	opts := options.New()
 
 	// Adapt Scorecard CMD.
-	scOpts := opts.ScorecardOpts
+	scOpts := scopts.New()
 	actionCmd := sccmd.New(scOpts)
 	actionCmd.Flags().StringVar(
 		&scOpts.ResultsFile,
@@ -60,6 +53,15 @@ func New() (*cobra.Command, error) {
 	// TODO(scorecard): Move this into scorecard
 	var out, stdout *os.File
 	actionCmd.PreRunE = func(cmd *cobra.Command, args []string) error {
+		if err := opts.Prepare(); err != nil {
+			return fmt.Errorf("preparing options: %w", err)
+		}
+
+		opts.Print()
+		if err := opts.Validate(); err != nil {
+			return fmt.Errorf("validating options: %w", err)
+		}
+
 		// TODO: the results file should be completed and validated by the time we get it.
 		if scOpts.ResultsFile != "" {
 			var err error
@@ -81,7 +83,7 @@ func New() (*cobra.Command, error) {
 
 	actionCmd.PersistentPostRun = func(cmd *cobra.Command, args []string) {
 		if out != nil {
-			if _, err = out.Seek(0, io.SeekStart); err == nil {
+			if _, err := out.Seek(0, io.SeekStart); err == nil {
 				//nolint:errcheck
 				_, _ = io.Copy(stdout, out)
 			}
@@ -105,8 +107,8 @@ func New() (*cobra.Command, error) {
 	}
 
 	if len(hideErrs) > 0 {
-		return nil, fmt.Errorf(
-			"%w: %+v",
+		log.Printf(
+			"%+v: %+v",
 			errHideFlags,
 			hideErrs,
 		)
@@ -115,7 +117,7 @@ func New() (*cobra.Command, error) {
 	// Add sub-commands.
 	actionCmd.AddCommand(printConfigCmd(opts))
 
-	return actionCmd, nil
+	return actionCmd
 }
 
 func printConfigCmd(o *options.Options) *cobra.Command {

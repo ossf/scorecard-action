@@ -33,8 +33,7 @@ func New() *cobra.Command {
 	}
 
 	// Add sub-commands.
-	runCmd, _ := run.New()
-	cmd.AddCommand(runCmd)
+	cmd.AddCommand(run.New())
 	cmd.AddCommand(install.New(installopts.New()))
 
 	return cmd

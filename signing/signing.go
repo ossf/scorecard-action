@@ -69,10 +69,7 @@ func GetJSONScorecardResults() ([]byte, error) {
 	os.Setenv(options.EnvInputResultsFile, "results.json")
 	os.Setenv(options.EnvInputResultsFormat, "json")
 
-	actionJSON, err := run.New()
-	if err != nil {
-		return nil, fmt.Errorf("creating scorecard entrypoint: %w", err)
-	}
+	actionJSON := run.New()
 	if err := actionJSON.Execute(); err != nil {
 		return nil, fmt.Errorf("error during command execution: %w", err)
 	}
