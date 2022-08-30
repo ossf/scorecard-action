@@ -28,6 +28,11 @@ import (
 	scopts "github.com/ossf/scorecard/v4/options"
 )
 
+const (
+	cmdUsage     = `run`
+	cmdDescShort = "Run the scorecard command"
+)
+
 // New creates a new subcommand which can be used as an entrypoint for GitHub
 // Actions.
 func New() *cobra.Command {
@@ -36,6 +41,8 @@ func New() *cobra.Command {
 	// Adapt Scorecard CMD.
 	scOpts := scopts.New()
 	actionCmd := sccmd.New(scOpts)
+	actionCmd.Use = cmdUsage
+	actionCmd.Short = cmdDescShort
 	actionCmd.Flags().StringVar(
 		&scOpts.ResultsFile,
 		"output-file",

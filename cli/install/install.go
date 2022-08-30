@@ -26,8 +26,8 @@ import (
 )
 
 const (
-	cmdUsage     = `--owner example_org [--repos <repo1,repo2,repo3>]`
-	cmdDescShort = "Scorecard GitHub Action installer"
+	cmdUsage     = `install --owner example_org [--repos <repo1,repo2,repo3>]`
+	cmdDescShort = "Install the Scorecard GitHub Action"
 	cmdDescLong  = `
 The Scorecard GitHub Action installer simplifies the installation of the
 scorecard GitHub Action by creating pull requests through the command line.`
