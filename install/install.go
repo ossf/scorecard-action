@@ -43,8 +43,9 @@ To report any issues with this tool, see [here](https://github.com/ossf/scorecar
 `
 
 	pullRequestTitle = commitMessage
+	workflowFilePath = path.Join(workflowBase, workflowFile)
 	workflowFiles    = []string{
-		path.Join(workflowBase, workflowFile),
+		workflowFilePath,
 		path.Join(workflowBase, workflowFileDeprecated),
 	}
 )
@@ -206,7 +207,7 @@ func processRepo(
 			ctx,
 			owner,
 			repoName,
-			workflowFile,
+			workflowFilePath,
 			opts,
 		)
 		if err != nil {
