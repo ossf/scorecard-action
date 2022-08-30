@@ -18,17 +18,13 @@ import (
 	"log"
 	"os"
 
-	"github.com/ossf/scorecard-action/entrypoint"
+	"github.com/ossf/scorecard-action/cli"
 	"github.com/ossf/scorecard-action/options"
 	"github.com/ossf/scorecard-action/signing"
 )
 
 func main() {
-	action, err := entrypoint.New()
-	if err != nil {
-		log.Fatalf("creating scorecard entrypoint: %v", err)
-	}
-
+	action := cli.New()
 	if err := action.Execute(); err != nil {
 		log.Fatalf("error during command execution: %v", err)
 	}

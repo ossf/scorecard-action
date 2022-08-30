@@ -30,7 +30,7 @@ import (
 	sigOpts "github.com/sigstore/cosign/cmd/cosign/cli/options"
 	"github.com/sigstore/cosign/cmd/cosign/cli/sign"
 
-	"github.com/ossf/scorecard-action/entrypoint"
+	"github.com/ossf/scorecard-action/cli/run"
 	"github.com/ossf/scorecard-action/options"
 )
 
@@ -69,7 +69,7 @@ func GetJSONScorecardResults() ([]byte, error) {
 	os.Setenv(options.EnvInputResultsFile, "results.json")
 	os.Setenv(options.EnvInputResultsFormat, "json")
 
-	actionJSON, err := entrypoint.New()
+	actionJSON, err := run.New()
 	if err != nil {
 		return nil, fmt.Errorf("creating scorecard entrypoint: %w", err)
 	}

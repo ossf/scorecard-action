@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package entrypoint
+package run
 
 import (
 	"errors"
@@ -29,6 +29,7 @@ import (
 
 // New creates a new scorecard command which can be used as an entrypoint for
 // GitHub Actions.
+// TODO(cmd): Simplify to not return errors.
 func New() (*cobra.Command, error) {
 	opts, err := options.New()
 	if err != nil {
