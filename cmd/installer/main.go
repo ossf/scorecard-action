@@ -20,7 +20,7 @@ import (
 	"log"
 
 	"github.com/ossf/scorecard-action/cli/install"
-	"github.com/ossf/scorecard-action/install/options"
+	options "github.com/ossf/scorecard-action/options/install"
 )
 
 func main() {

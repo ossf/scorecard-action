@@ -24,7 +24,7 @@ import (
 	"path"
 
 	"github.com/ossf/scorecard-action/install/github"
-	"github.com/ossf/scorecard-action/install/options"
+	"github.com/ossf/scorecard-action/options/install"
 )
 
 const (
@@ -54,7 +54,7 @@ To report any issues with this tool, see [here](https://github.com/ossf/scorecar
 // organization.
 // TODO(install): Improve description.
 // TODO(install): Accept a context instead of setting one.
-func Run(o *options.Options) error {
+func Run(o *install.Options) error {
 	err := o.Validate()
 	if err != nil {
 		return fmt.Errorf("validating installation options: %w", err)
