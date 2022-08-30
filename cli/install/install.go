@@ -34,6 +34,7 @@ scorecard GitHub Action by creating pull requests through the command line.`
 )
 
 // New creates a new instance of the scorecard action installation command.
+// TODO(install): Consider refactoring to not require options to be passed.
 func New(o *options.Options) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   cmdUsage,

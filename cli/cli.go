@@ -17,7 +17,9 @@ package cli
 import (
 	"github.com/spf13/cobra"
 
+	"github.com/ossf/scorecard-action/cli/install"
 	"github.com/ossf/scorecard-action/cli/run"
+	installopts "github.com/ossf/scorecard-action/options/install"
 )
 
 // New creates a new scorecard-action root command.
@@ -33,6 +35,7 @@ func New() *cobra.Command {
 	// Add sub-commands.
 	runCmd, _ := run.New()
 	cmd.AddCommand(runCmd)
+	cmd.AddCommand(install.New(installopts.New()))
 
 	return cmd
 }
