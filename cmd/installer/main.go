@@ -19,13 +19,13 @@ package main
 import (
 	"log"
 
-	"github.com/ossf/scorecard-action/install/cli"
+	"github.com/ossf/scorecard-action/cli/install"
 	"github.com/ossf/scorecard-action/install/options"
 )
 
 func main() {
 	opts := options.New()
-	if err := cli.New(opts).Execute(); err != nil {
+	if err := install.New(opts).Execute(); err != nil {
 		log.Fatalf("error during command execution: %v", err)
 	}
 }
