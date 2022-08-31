@@ -48,4 +48,4 @@ COPY --from=build /src/scorecard-action /
 # Copy a test policy for local testing.
 COPY policies/template.yml  /policy.yml
 
-ENTRYPOINT [ "/scorecard-action" ]
+ENTRYPOINT [ "/scorecard-action", "run" ]
