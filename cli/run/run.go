@@ -37,9 +37,9 @@ const (
 // Actions.
 func New() *cobra.Command {
 	opts := options.New()
+	scOpts := opts.ScorecardOpts
 
-	// Adapt Scorecard CMD.
-	scOpts := scopts.New()
+	// Adapt Scorecard command
 	actionCmd := sccmd.New(scOpts)
 	actionCmd.Use = cmdUsage
 	actionCmd.Short = cmdDescShort
@@ -63,8 +63,6 @@ func New() *cobra.Command {
 		if err := opts.Prepare(); err != nil {
 			return fmt.Errorf("preparing options: %w", err)
 		}
-
-		opts.Print()
 		if err := opts.Validate(); err != nil {
 			return fmt.Errorf("validating options: %w", err)
 		}

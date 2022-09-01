@@ -90,15 +90,17 @@ func New() *Options {
 		log.Printf("parsing entrypoint env vars: %+v", err)
 	}
 
+	opts.ScorecardOpts = scopts.New()
 	return opts
 }
 
 // Prepare populates an options set for running scorecard via GitHub Actions.
 func (o *Options) Prepare() error {
-	opts := &Options{}
-	if err := env.Parse(opts); err != nil {
+	if err := env.Parse(o); err != nil {
 		return fmt.Errorf("parsing entrypoint env vars: %w", err)
 	}
+	o.ScorecardOpts = scopts.New()
+
 	// GITHUB_AUTH_TOKEN
 	// Needs to be set *before* setRepoInfo() is invoked.
 	// setRepoInfo() uses the GITHUB_AUTH_TOKEN env for querying the REST API.
@@ -106,11 +108,11 @@ func (o *Options) Prepare() error {
 		inputToken := os.Getenv(EnvInputRepoToken)
 		os.Setenv(EnvGithubAuthToken, inputToken)
 	}
-	if err := opts.setRepoInfo(); err != nil {
+	if err := o.setRepoInfo(); err != nil {
 		return fmt.Errorf("parsing repo info: %w", err)
 	}
-	opts.setScorecardOpts()
-	opts.setPublishResults()
+	o.setScorecardOpts()
+	o.setPublishResults()
 	return nil
 }
 
@@ -162,7 +164,6 @@ func (o *Options) Print() {
 }
 
 func (o *Options) setScorecardOpts() {
-	o.ScorecardOpts = scopts.New()
 	// Set GITHUB_AUTH_TOKEN
 	inputToken := os.Getenv(EnvInputRepoToken)
 	if inputToken == "" {
