@@ -14,6 +14,8 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
+// Package github implements GitHub authentication for the scorecard GitHub
+// Action.
 package github
 
 import (

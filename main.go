@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// Package main enables running the scorecard tool within GitHub Actions.
 package main
 
 import (

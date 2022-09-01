@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// Package run implements a run subcommand for the scorecard GitHub Action.
 package run
 
 import (

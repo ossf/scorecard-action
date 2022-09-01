@@ -14,6 +14,8 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
+// Package install implements functionality to install the scorecard GitHub
+// Action via pull request.
 package install
 
 import (

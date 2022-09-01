@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// Package github implements GitHub authentication for the scorecard GitHub
+// Action.
 package github
 
 import (

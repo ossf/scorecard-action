@@ -14,6 +14,7 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
+// Package signing implements functionality for signing scorecard results.
 package signing
 
 import (

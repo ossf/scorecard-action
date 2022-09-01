@@ -14,6 +14,7 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
+// Package install implements flags for the install subcommand.
 package install
 
 import (
