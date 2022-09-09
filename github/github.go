@@ -95,7 +95,7 @@ func (c *Client) ParseFromURL(baseRepoURL, repoName string) (RepoInfo, error) {
 		c.ctx,
 		http.MethodGet,
 		repoURL.String(),
-		nil /*body*/)
+		nil /*body*/) //nolint 
 	if err != nil {
 		return ret, fmt.Errorf("error creating request: %w", err)
 	}
