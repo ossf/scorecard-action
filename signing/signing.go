@@ -56,7 +56,7 @@ func New(token string) (*Signing, error) {
 
 	// Check for a workflow secret.
 	if !strings.HasPrefix(token, "ghs_") {
-		return nil, fmt.Errorf("%w: not a defult GITHUB_TOKEN", errorInvalidToken)
+		return nil, fmt.Errorf("%w: not a default GITHUB_TOKEN", errorInvalidToken)
 	}
 	if err := os.Setenv("GITHUB_TOKEN", token); err != nil {
 		return nil, fmt.Errorf("error setting GITHUB_TOKEN env var: %w", err)
