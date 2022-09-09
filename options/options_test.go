@@ -20,7 +20,6 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
-	"github.com/ossf/scorecard/v4/checks"
 	"github.com/ossf/scorecard/v4/options"
 )
 
@@ -137,7 +136,6 @@ func TestNew(t *testing.T) {
 				Commit:      options.DefaultCommit,
 				LogLevel:    options.DefaultLogLevel,
 				Repo:        testRepo,
-				ChecksToRun: []string{checks.CheckBranchProtection},
 				ShowDetails: true,
 			},
 			wantErr: false,
