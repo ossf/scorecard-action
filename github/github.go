@@ -91,11 +91,12 @@ func (c *Client) ParseFromURL(baseRepoURL, repoName string) (RepoInfo, error) {
 	}
 
 	log.Printf("getting repo info from URL: %s", repoURL.String())
+	//nolint:noctx
 	req, err := http.NewRequestWithContext(
 		c.ctx,
 		http.MethodGet,
 		repoURL.String(),
-		nil /*body*/) //nolint 
+		nil /*body*/)
 	if err != nil {
 		return ret, fmt.Errorf("error creating request: %w", err)
 	}
