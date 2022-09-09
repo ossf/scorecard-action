@@ -25,7 +25,6 @@ import (
 	"golang.org/x/net/context"
 
 	"github.com/ossf/scorecard-action/github"
-	"github.com/ossf/scorecard/v4/checks"
 	scopts "github.com/ossf/scorecard/v4/options"
 )
 
@@ -182,11 +181,6 @@ func (o *Options) setScorecardOpts() {
 	if o.ScorecardOpts.Format == formatSarif && o.ScorecardOpts.PolicyFile == "" {
 		// TODO(policy): Should we default or error here?
 		o.ScorecardOpts.PolicyFile = defaultScorecardPolicyFile
-	}
-
-	// --checks=
-	if o.GithubEventName == branchProtectionEvent {
-		o.ScorecardOpts.ChecksToRun = []string{checks.CheckBranchProtection}
 	}
 
 	// --show-details
