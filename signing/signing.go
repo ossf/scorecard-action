@@ -42,11 +42,9 @@ func SignScorecardResult(scorecardResultsFile, accessToken string) error {
 
 	// Set the default GITHUB_TOKEN, because it's not available by default.
 	// We need it for OIDC.
-	fmt.Println("GITHUB_TOKEN:", os.Getenv("GITHUB_TOKEN"))
 	if err := os.Setenv("GITHUB_TOKEN", accessToken); err != nil {
 		return fmt.Errorf("error setting GITHUB_TOKEN env var: %w", err)
 	}
-	panic("end test")
 	// Prepare settings for SignBlobCmd.
 	rootOpts := &sigOpts.RootOptions{Timeout: sigOpts.DefaultTimeout} // Just the timeout.
 
