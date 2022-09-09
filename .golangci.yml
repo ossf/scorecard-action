@@ -56,7 +56,6 @@ linters:
     - misspell
     - nakedret
     - nestif
-    - noctx
     - nolintlint
     - paralleltest
     - predeclared
