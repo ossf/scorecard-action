@@ -35,11 +35,18 @@ import (
 )
 
 // SignScorecardResult signs the results file and uploads the attestation to the Rekor transparency log.
-func SignScorecardResult(scorecardResultsFile string) error {
+func SignScorecardResult(scorecardResultsFile, accessToken string) error {
 	if err := os.Setenv("COSIGN_EXPERIMENTAL", "true"); err != nil {
 		return fmt.Errorf("error setting COSIGN_EXPERIMENTAL env var: %w", err)
 	}
 
+	// Set the default GITHUB_TOKEN, because it's not available by default.
+	// We need it for OIDC.
+	fmt.Println("GITHUB_TOKEN:", os.Getenv("GITHUB_TOKEN"))
+	if err := os.Setenv("GITHUB_TOKEN", accessToken); err != nil {
+		return fmt.Errorf("error setting GITHUB_TOKEN env var: %w", err)
+	}
+	panic("end test")
 	// Prepare settings for SignBlobCmd.
 	rootOpts := &sigOpts.RootOptions{Timeout: sigOpts.DefaultTimeout} // Just the timeout.
 
@@ -113,7 +120,7 @@ func ProcessSignature(jsonPayload []byte, repoName, repoRef, accessToken string)
 	if err != nil {
 		return fmt.Errorf("parsing Scorecard API endpoint: %w", err)
 	}
-	req, err := http.NewRequest("POST", parsedURL.String(), bytes.NewBuffer(payloadBytes)) //nolint
+	req, err := http.NewRequest("POST", parsedURL.String(), bytes.NewBuffer(payloadBytes))
 	if err != nil {
 		return fmt.Errorf("creating HTTP request: %w", err)
 	}
