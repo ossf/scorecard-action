@@ -24,6 +24,7 @@ import (
 
 	"github.com/ossf/scorecard-action/options"
 	sccmd "github.com/ossf/scorecard/v4/cmd"
+	sce "github.com/ossf/scorecard/v4/errors"
 	scopts "github.com/ossf/scorecard/v4/options"
 )
 
@@ -76,6 +77,15 @@ func New() (*cobra.Command, error) {
 			actionCmd.SetOut(out)
 		}
 		return nil
+	}
+
+	scorecardRunE := actionCmd.RunE
+	actionCmd.RunE = func(cmd *cobra.Command, args []string) error {
+		err := scorecardRunE(cmd, args)
+		if errors.Is(err, sce.ErrorCheckRuntime) {
+			err = nil
+		}
+		return err
 	}
 
 	actionCmd.PersistentPostRun = func(cmd *cobra.Command, args []string) {
