@@ -20,11 +20,13 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
 	"net/url"
 	"os"
+	"strings"
 	"time"
 
 	sigOpts "github.com/sigstore/cosign/cmd/cosign/cli/options"
@@ -34,20 +36,45 @@ import (
 	"github.com/ossf/scorecard-action/options"
 )
 
-// SignScorecardResult signs the results file and uploads the attestation to the Rekor transparency log.
-func SignScorecardResult(scorecardResultsFile, accessToken string) error {
-	if err := os.Setenv("COSIGN_EXPERIMENTAL", "true"); err != nil {
-		return fmt.Errorf("error setting COSIGN_EXPERIMENTAL env var: %w", err)
+var (
+	errorEmptyToken   = errors.New("error token empty")
+	errorInvalidToken = errors.New("invalid token")
+)
+
+// Signing is a signing structure.
+type Signing struct {
+	token string
+}
+
+// New creates a new Signing instance.
+func New(token string) (*Signing, error) {
+	// Set the default GITHUB_TOKEN, because it's not available by default
+	// in a GitHub Action. We need it for OIDC.
+	if token == "" {
+		return nil, fmt.Errorf("%w", errorEmptyToken)
 	}
 
-	// Set the default GITHUB_TOKEN, because it's not available by default.
-	// We need it for OIDC.
-	if err := os.Setenv("GITHUB_TOKEN", accessToken); err != nil {
-		return fmt.Errorf("error setting GITHUB_TOKEN env var: %w", err)
+	// Check for a workflow secret.
+	if !strings.HasPrefix(token, "ghs_") {
+		return nil, fmt.Errorf("%w: not a defult GITHUB_TOKEN", errorInvalidToken)
 	}
+	if err := os.Setenv("GITHUB_TOKEN", token); err != nil {
+		return nil, fmt.Errorf("error setting GITHUB_TOKEN env var: %w", err)
+	}
+
+	if err := os.Setenv("COSIGN_EXPERIMENTAL", "true"); err != nil {
+		return nil, fmt.Errorf("error setting COSIGN_EXPERIMENTAL env var: %w", err)
+	}
+
+	return &Signing{
+		token: token,
+	}, nil
+}
+
+// SignScorecardResult signs the results file and uploads the attestation to the Rekor transparency log.
+func (s *Signing) SignScorecardResult(scorecardResultsFile string) error {
 	// Prepare settings for SignBlobCmd.
 	rootOpts := &sigOpts.RootOptions{Timeout: sigOpts.DefaultTimeout} // Just the timeout.
-
 	keyOpts := sigOpts.KeyOpts{
 		FulcioURL:    sigOpts.DefaultFulcioURL,     // Signing certificate provider.
 		RekorURL:     sigOpts.DefaultRekorURL,      // Transparency log.
@@ -92,7 +119,7 @@ func GetJSONScorecardResults() ([]byte, error) {
 }
 
 // ProcessSignature calls scorecard-api to process & upload signed scorecard results.
-func ProcessSignature(jsonPayload []byte, repoName, repoRef, accessToken string) error {
+func (s *Signing) ProcessSignature(jsonPayload []byte, repoName, repoRef string) error {
 	// Prepare HTTP request body for scorecard-webapp-api call.
 	// TODO: Use the `ScorecardResult` struct from `scorecard-webapp`.
 	resultsPayload := struct {
@@ -102,7 +129,7 @@ func ProcessSignature(jsonPayload []byte, repoName, repoRef, accessToken string)
 	}{
 		Result:      string(jsonPayload),
 		Branch:      repoRef,
-		AccessToken: accessToken,
+		AccessToken: s.token,
 	}
 
 	payloadBytes, err := json.Marshal(resultsPayload)

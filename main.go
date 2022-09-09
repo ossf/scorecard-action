@@ -41,17 +41,20 @@ func main() {
 		}
 
 		// Sign json results.
+		// Always use the default GitHub token, never a PAT.
 		accessToken := os.Getenv(options.EnvInputInternalRepoToken)
-		if err = signing.SignScorecardResult("results.json", accessToken); err != nil {
+		s, err := signing.New(accessToken)
+		if err != nil {
+			log.Fatalf("error SigningNew: %v", err)
+		}
+		if err = s.SignScorecardResult("results.json"); err != nil {
 			log.Fatalf("error signing scorecard json results: %v", err)
 		}
 
 		// Processes json results.
-		// Always the default GitHub token, never a PAT.
-		// TODO: verify permissions on token as read-only.
 		repoName := os.Getenv(options.EnvGithubRepository)
 		repoRef := os.Getenv(options.EnvGithubRef)
-		if err := signing.ProcessSignature(jsonPayload, repoName, repoRef, accessToken); err != nil {
+		if err := s.ProcessSignature(jsonPayload, repoName, repoRef); err != nil {
 			log.Fatalf("error processing signature: %v", err)
 		}
 	}

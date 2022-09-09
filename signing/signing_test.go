@@ -17,6 +17,7 @@
 package signing
 
 import (
+	"fmt"
 	"os"
 	"testing"
 
@@ -88,7 +89,11 @@ func Test_ProcessSignature(t *testing.T) {
 		t.Errorf("Error reading testdata:, %v", err)
 	}
 
-	if err := ProcessSignature(jsonPayload, repoName, repoRef, accessToken); err != nil {
+	s, err := New(accessToken)
+	if err != nil {
+		panic(fmt.Sprintf("error SigningNew: %v", err))
+	}
+	if err := s.ProcessSignature(jsonPayload, repoName, repoRef); err != nil {
 		t.Errorf("ProcessSignature() error:, %v", err)
 		return
 	}
