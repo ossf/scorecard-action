@@ -3,7 +3,7 @@ module github.com/ossf/scorecard-action
 go 1.18
 
 require (
-	github.com/caarlos0/env/v6 v6.10.0
+	github.com/caarlos0/env/v6 v6.10.1
 	github.com/google/go-cmp v0.5.9
 	github.com/google/go-github/v46 v46.0.0
 	github.com/ossf/scorecard/v4 v4.5.0
