@@ -33,7 +33,9 @@ func main() {
 		log.Fatalf("error during command execution: %v", err)
 	}
 
-	if os.Getenv(options.EnvInputPublishResults) == "true" {
+	if os.Getenv(options.EnvInputPublishResults) == "true" &&
+		// `pull_request` do not have the necessary `token-id: write` permissions.
+		os.Getenv("GITHUB_EVENT_NAME") != "pull_request" {
 		// Get json results by re-running scorecard.
 		jsonPayload, err := signing.GetJSONScorecardResults()
 		if err != nil {
