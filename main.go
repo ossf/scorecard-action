@@ -17,6 +17,7 @@ package main
 import (
 	"log"
 	"os"
+	"strings"
 
 	"github.com/ossf/scorecard-action/entrypoint"
 	"github.com/ossf/scorecard-action/options"
@@ -33,7 +34,8 @@ func main() {
 		log.Fatalf("error during command execution: %v", err)
 	}
 
-	if os.Getenv(options.EnvInputPublishResults) == "true" {
+	if os.Getenv(options.EnvInputPublishResults) == "true" &&
+		!strings.HasPrefix(os.Getenv("GITHUB_EVENT_NAME"), "pull_request") {
 		// Get json results by re-running scorecard.
 		jsonPayload, err := signing.GetJSONScorecardResults()
 		if err != nil {
