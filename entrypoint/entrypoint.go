@@ -79,6 +79,8 @@ func New() (*cobra.Command, error) {
 		return nil
 	}
 
+	// wrap scorecard's existing RunE, but ignore runtime errors that occur during checks
+	// users were having action failures due to secondary rate limits causing checks to fail
 	scorecardRunE := actionCmd.RunE
 	actionCmd.RunE = func(cmd *cobra.Command, args []string) error {
 		err := scorecardRunE(cmd, args)
