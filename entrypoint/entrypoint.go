@@ -24,6 +24,7 @@ import (
 
 	"github.com/ossf/scorecard-action/options"
 	sccmd "github.com/ossf/scorecard/v4/cmd"
+	sce "github.com/ossf/scorecard/v4/errors"
 	scopts "github.com/ossf/scorecard/v4/options"
 )
 
@@ -74,6 +75,16 @@ func New() (*cobra.Command, error) {
 			stdout = os.Stdout
 			os.Stdout = out
 			actionCmd.SetOut(out)
+		}
+		return nil
+	}
+
+	// wrap scorecard's existing RunE, but ignore runtime errors that occur during checks
+	// users were having action failures due to secondary rate limits causing checks to fail
+	scorecardRunE := actionCmd.RunE
+	actionCmd.RunE = func(cmd *cobra.Command, args []string) error {
+		if err := scorecardRunE(cmd, args); err != nil && !errors.Is(err, sce.ErrorCheckRuntime) {
+			return err
 		}
 		return nil
 	}
