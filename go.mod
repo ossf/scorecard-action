@@ -6,7 +6,7 @@ require (
 	github.com/caarlos0/env/v6 v6.10.1
 	github.com/google/go-cmp v0.5.9
 	github.com/google/go-github/v46 v46.0.0
-	github.com/ossf/scorecard/v4 v4.6.1-0.20220919161004-9f67c4ead116
+	github.com/ossf/scorecard/v4 v4.7.0
 	github.com/sigstore/cosign v1.12.0
 	github.com/spf13/cobra v1.5.0
 	golang.org/x/net v0.0.0-20220826154423-83b083e8dc8b
