@@ -72,7 +72,7 @@ jobs:
             ${{ runner.os }}-go-
       - uses: actions/setup-go@268d8c0ca0432bb2cf416faae41297df9d262d7f #v2.1.5
         with:
-          go-version: '1.17.x'
+          go-version: '1.19.x'
       - name: Run Go verify
         run: |
             go mod tidy && go mod verify
