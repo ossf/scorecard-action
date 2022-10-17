@@ -6,7 +6,7 @@ require (
 	github.com/caarlos0/env/v6 v6.10.1
 	github.com/google/go-cmp v0.5.9
 	github.com/google/go-github/v46 v46.0.0
-	github.com/ossf/scorecard/v4 v4.7.0
+	github.com/ossf/scorecard/v4 v4.8.0
 	github.com/sigstore/cosign v1.13.0
 	github.com/spf13/cobra v1.6.0
 	golang.org/x/net v0.0.0-20220909164309-bea034e7d591
@@ -249,7 +249,7 @@ require (
 	golang.org/x/sync v0.0.0-20220722155255-886fb9371eb4 // indirect
 	golang.org/x/sys v0.0.0-20220919091848-fb04ddd9f9c8 // indirect
 	golang.org/x/term v0.0.0-20220526004731-065cf7ba2467 // indirect
-	golang.org/x/text v0.3.8-0.20211004125949-5bd84dd9b33b // indirect
+	golang.org/x/text v0.3.8 // indirect
 	golang.org/x/time v0.0.0-20220722155302-e5dcc9cfc0b9 // indirect
 	golang.org/x/tools v0.1.12 // indirect
 	golang.org/x/xerrors v0.0.0-20220609144429-65e65417b02f // indirect
