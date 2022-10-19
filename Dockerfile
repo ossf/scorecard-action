@@ -35,17 +35,6 @@ ARG TARGETOS
 ARG TARGETARCH
 RUN CGO_ENABLED=0 make build
 
-# TODO: use distroless:
-# FROM gcr.io/distroless/base:nonroot@sha256:02f667185ccf78dbaaf79376b6904aea6d832638e1314387c2c2932f217ac5cb
-FROM debian:11.5-slim@sha256:b46fc4e6813f6cbd9f3f6322c72ab974cc0e75a72ca02730a8861e98999875c7
-
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends \
-    # For debugging.
-    jq ca-certificates curl
+FROM gcr.io/distroless/base:nonroot@sha256:02f667185ccf78dbaaf79376b6904aea6d832638e1314387c2c2932f217ac5cb
 COPY --from=build /src/scorecard-action /
-
-# Copy a test policy for local testing.
-COPY policies/template.yml  /policy.yml
-
 ENTRYPOINT [ "/scorecard-action" ]
