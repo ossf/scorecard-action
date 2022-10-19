@@ -30,7 +30,7 @@ COPY go.* ./
 RUN go mod download
 COPY . ./
 
-FROM base AS build
+FROM builder AS build
 ARG TARGETOS
 ARG TARGETARCH
 RUN CGO_ENABLED=0 make build
