@@ -216,7 +216,7 @@ jobs:
         with:
           results_file: results.sarif
           results_format: sarif
-          # (Optional) PAT token. Uncomment the `repo_token` line below if:
+          # (Optional) "write" PAT token. Uncomment the `repo_token` line below if:
           # - you want to enable the Branch-Protection check on a *public* repository, or
           # - you are installing Scorecards on a *private* repository
           # To create the PAT, follow the steps in https://github.com/ossf/scorecard-action#authentication-with-pat.
