@@ -47,16 +47,16 @@ Running the Scorecard action on a fork repository is not supported.
 
 Private repositories need a Personal Access Token (PAT).
 
-Public repositories need a PAT to enable the [Branch-Protection](https://github.com/ossf/scorecard/blob/main/docs/checks.md#branch-protection) check. Without a PAT, Scorecards will run all checks except the Branch-Protection check. Due to a limitation of the GitHub permission model, the PAT needs [write permisison to the repository](https://docs.github.com/en/developers/apps/building-oauth-apps/scopes-for-oauth-apps#available-scopes) through the `repo` scope. Beware that the PAT will be stored as a [GitHub encrypted secret](https://docs.github.com/en/actions/security-guides/encrypted-secrets) and be accessible by all the workflows and maintainers of a repository.
+Public repositories need a PAT to enable the [Branch-Protection](https://github.com/ossf/scorecard/blob/main/docs/checks.md#branch-protection) check. Without a PAT, Scorecards will run all checks except the Branch-Protection check. Due to a limitation of the GitHub permission model, the PAT needs [write permisison to the repository](https://docs.github.com/en/developers/apps/building-oauth-apps/scopes-for-oauth-apps#available-scopes) through the `repo` scope. **Warning:** the PAT will be stored as a [GitHub encrypted secret](https://docs.github.com/en/actions/security-guides/encrypted-secrets) and be accessible by all the workflows and maintainers of a repository.
 
 GitHub Enterprise repositories are not supported.
 
 ## Installation
 The Scorecards Action is installed by setting up a workflow on the GitHub UI.
 
-**Private repositories**: Scorecards requires authentication using a Personal Access Token (PAT). So if you install Scorecards on a private repository, you will need to follow the optional Authentication step. If you don't, Scorecards will fail to run. Beware that the PAT will be stored as a [GitHub encrypted secret](https://docs.github.com/en/actions/security-guides/encrypted-secrets) and be accessible by all the workflows and maintainers of a repository.
+**Private repositories**: Scorecards requires authentication using a Personal Access Token (PAT). If you install Scorecard on a private repository, you must follow the optional Authentication step for Scorecard to run. If you don't, Scorecards will fail to run. **Warning:** the PAT will be stored as a [GitHub encrypted secret](https://docs.github.com/en/actions/security-guides/encrypted-secrets) and be accessible by all the workflows and maintainers of a repository.
 
-**Public repositories**: One Scorecards check ([Branch-Protection](https://github.com/ossf/scorecard/blob/main/docs/checks.md#branch-protection)) requires authentication using a Personal Access Token (PAT). If you want all Scorecards checks to run on a public repository, you will need to follow the optional Authentication step. If you don't, all checks will run except Branch-Protection. Beware that the PAT will be stored as a [GitHub encrypted secret](https://docs.github.com/en/actions/security-guides/encrypted-secrets) and be accessible by all the workflows and maintainers of a repository.
+**Public repositories**: One Scorecards check ([Branch-Protection](https://github.com/ossf/scorecard/blob/main/docs/checks.md#branch-protection)) requires authentication using a Personal Access Token (PAT). If you want all Scorecards checks to run on a public repository, you will need to follow the optional Authentication step. If you don't, all checks will run except Branch-Protection. **Warning:** the PAT will be stored as a [GitHub encrypted secret](https://docs.github.com/en/actions/security-guides/encrypted-secrets) and be accessible by all the workflows and maintainers of a repository.
 
 **Optional Authentication**: Create a Personal Access Token (PAT) for authentication and save the token value as a repository secret. (Note: If you have already installed Scorecards on your repository from the command line, you can reuse your existing PAT for the repository secret. If you no longer have access to the PAT, though, simply create a new one.)
 
@@ -76,7 +76,7 @@ The Scorecards Action is installed by setting up a workflow on the GitHub UI.
 
 2. Copy the token value. 
 
-3. [Create a new repository secret](https://docs.github.com/en/actions/security-guides/encrypted-secrets#creating-encrypted-secrets-for-a-repository) with the following settings (Beware that [GitHub encrypted secrets](https://docs.github.com/en/actions/security-guides/encrypted-secrets) are accessible by all the workflows and maintainers of a repository.):
+3. [Create a new repository secret](https://docs.github.com/en/actions/security-guides/encrypted-secrets#creating-encrypted-secrets-for-a-repository) with the following settings (**Warning:** [GitHub encrypted secrets](https://docs.github.com/en/actions/security-guides/encrypted-secrets) are accessible by all the workflows and maintainers of a repository.):
     - Name: `SCORECARD_TOKEN`
     - Value: the value of the token created in step 1 above.
 
