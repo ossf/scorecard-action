@@ -21,9 +21,11 @@ If you are using custom steps in the job, it may fail.
 We understand that this is restrictive, but currently it's necessary to ensure the integrity of the results that we publish, since GitHub workflow steps run in the same environment as the job they belong to. 
 If possible, we will work on making this feature more flexible so we can drop this requirement in the future.  
 ________
+[Personal Access Token (PAT) Requirements and Risks](#personal-access-token-pat-requirements-and-risks)
+
 [Installation](#installation) 
-- [Authentication](#authentication-with-pat)
-- [Workflow Setup](#workflow-setup)
+- [Workflow Setup](#workflow-setup-required)
+- [Authentication](#authentication-with-pat-optional)
 
 [View Results](#view-results)
 - [REST API](#rest-api)
@@ -62,9 +64,8 @@ permission model, the PAT needs
 [write permission to the repository](https://docs.github.com/en/developers/apps/building-oauth-apps/scopes-for-oauth-apps#available-scopes)
 through the `repo` scope. **The PAT will be stored as a
 [GitHub encrypted secret](https://docs.github.com/en/actions/security-guides/encrypted-secrets)
-and be accessible by all the workflows and maintainers of a repository. [can we
-add one more sentence explaining in plain language what could go wrong
-here?]**
+and be accessible by all the workflows and maintainers of a repository.
+This means another maintainer on your project could potentially use the token to impersonate you. If there is an exploitable bug in a workflow with write permissions, an external contributor could potentially exploit it to extract the PAT.
 
 We strongly recommend that you **do not use a PAT** unless you feel that the
 risks introduced are outweighed by the functionality they support. 
@@ -97,7 +98,7 @@ Then click "Add More Scanning Tools."
 ![image](/images/install04.png)
 
 ### Authentication with PAT (optional)
-Create a Personal Access Token (PAT) for authentication and save the token value as a repository secret. Review [Personal Access Token (PAT) Requirements and Risks](#Personal-Access-Token-(PAT)-Requirements-and-Risks before using a PAT.  
+Create a Personal Access Token (PAT) for authentication and save the token value as a repository secret. Review [Personal Access Token (PAT) Requirements and Risks](#personal-access-token-pat-requirements-and-risks) before using a PAT.  
 
 1. [Create a Personal Access Token](https://github.com/settings/tokens/new?scopes=public_repo,read:org,read:repo_hook,read:discussion) with the following read permissions:
     - Note: `Token for OSSF Scorecard Action - myorg/myrepo` (Note: replace `myorg/myrepo` with the names of your organization and repository so you can keep track of your tokens.)
