@@ -57,18 +57,18 @@ Certain features require a Personal Access Token (PAT).
     [Branch-Protection](https://github.com/ossf/scorecard/blob/main/docs/checks.md#branch-protection)
     check. Without a PAT, Scorecards will run all checks except the
     Branch-Protection check
--  Private repositories need a PAT to use any Scorecard Action functions.
+-  Private repositories need a PAT to use any Scorecard Action functions
 
 Using a PAT introduces risks, however. Due to a limitation of the GitHub
 permission model, the PAT needs
 [write permission to the repository](https://docs.github.com/en/developers/apps/building-oauth-apps/scopes-for-oauth-apps#available-scopes)
 through the `repo` scope. **The PAT will be stored as a
 [GitHub encrypted secret](https://docs.github.com/en/actions/security-guides/encrypted-secrets)
-and be accessible by all the workflows and maintainers of a repository.
+and be accessible by all the workflows and maintainers of a repository.**
 This means another maintainer on your project could potentially use the token to impersonate you. If there is an exploitable bug in a workflow with write permissions, an external contributor could potentially exploit it to extract the PAT.
 
 We strongly recommend that you **do not use a PAT** unless you feel that the
-risks introduced are outweighed by the functionality they support. 
+risks introduced are outweighed by the functionalities they support. 
 
 ## Installation
 
