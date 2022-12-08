@@ -131,9 +131,7 @@ Starting with scorecard-action:v2, users can use a REST API to query their lates
 Starting with scorecard-action:v2, users can add a Scorecard Badge to their README to display the latest status of their Scorecard results. This requires setting [`publish_results: true`](https://github.com/ossf/scorecard/blob/d13ba3f3355b958d5d62edc47282a2e7ed9fa7c1/.github/workflows/scorecard-analysis.yml#L39) for the action and enabling [`id-token: write`](https://github.com/ossf/scorecard/blob/d13ba3f3355b958d5d62edc47282a2e7ed9fa7c1/.github/workflows/scorecard-analysis.yml#L22) permission for the job (needed to access GitHub OIDC token). The badge is updated on every run of scorecard-action and points to the latest result. To add a badge to your README, copy and paste the below lines:
 
 ```
-[![OpenSSF Scorecard]
-(https://api.securityscorecards.dev/projects/github.com/{org}/{repo}/badge)]
-(https://api.securityscorecards.dev/projects/github.com/{org}/{repo})
+[![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/{org}/{repo}/badge)](https://api.securityscorecards.dev/projects/github.com/{org}/{repo})
 ```
 
 Once this badge is added, clicking on the badge will take users to the latest run result of Scorecard.
