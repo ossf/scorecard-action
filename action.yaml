@@ -53,5 +53,5 @@ branding:
 
 runs:
   using: "docker"
-  image: laurentsimon/scorecard-action:fix-emptyprs
+  image: docker://laurentsimon/scorecard-action:fix-emptyprs
   #image: "docker://gcr.io/openssf/scorecard-action:v2.0.6"
