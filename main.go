@@ -26,7 +26,7 @@ import (
 func main() {
 	triggerEventName := os.Getenv("GITHUB_EVENT_NAME")
 	if triggerEventName == "pull_request_target" {
-		log.Fatalf("pull_request_target trigger is not supported")
+		log.Fatalf("pull_request_target trigger is not supported for security reasons - see https://securitylab.github.com/research/github-actions-preventing-pwn-requests/")
 	}
 
 	action, err := entrypoint.New()
