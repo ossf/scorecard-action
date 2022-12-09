@@ -29,6 +29,7 @@ func main() {
 		log.Fatalf("pull_request_target trigger is not supported for security reasons" +
 			"see https://securitylab.github.com/research/github-actions-preventing-pwn-requests/")
 	}
+
 	action, err := entrypoint.New()
 	if err != nil {
 		log.Fatalf("creating scorecard entrypoint: %v", err)
