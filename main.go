@@ -24,6 +24,12 @@ import (
 )
 
 func main() {
+	triggerEventName := os.Getenv("GITHUB_EVENT_NAME")
+	if triggerEventName == "pull_request_target" {
+		log.Fatalf("pull_request_target trigger is not supported for security reasons" +
+			"see https://securitylab.github.com/research/github-actions-preventing-pwn-requests/")
+	}
+
 	action, err := entrypoint.New()
 	if err != nil {
 		log.Fatalf("creating scorecard entrypoint: %v", err)
@@ -35,7 +41,7 @@ func main() {
 
 	if os.Getenv(options.EnvInputPublishResults) == "true" &&
 		// `pull_request` do not have the necessary `token-id: write` permissions.
-		os.Getenv("GITHUB_EVENT_NAME") != "pull_request" {
+		triggerEventName != "pull_request" {
 		// Get json results by re-running scorecard.
 		jsonPayload, err := signing.GetJSONScorecardResults()
 		if err != nil {
