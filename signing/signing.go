@@ -23,6 +23,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"net/url"
 	"os"
@@ -74,6 +75,7 @@ func New(token string) (*Signing, error) {
 // SignScorecardResult signs the results file and uploads the attestation to the Rekor transparency log.
 func (s *Signing) SignScorecardResult(scorecardResultsFile string) error {
 	// Prepare settings for SignBlobCmd.
+	numberOfRetries := 3
 	rootOpts := &sigOpts.RootOptions{Timeout: sigOpts.DefaultTimeout} // Just the timeout.
 	keyOpts := sigOpts.KeyOpts{
 		FulcioURL:    sigOpts.DefaultFulcioURL,     // Signing certificate provider.
@@ -86,8 +88,16 @@ func (s *Signing) SignScorecardResult(scorecardResultsFile string) error {
 	// This command will use the provided OIDCIssuer to authenticate into Fulcio, which will generate the
 	// signing certificate on the scorecard result. This attestation is then uploaded to the Rekor transparency log.
 	// The output bytes (signature) and certificate are discarded since verification can be done with just the payload.
-	if _, err := sign.SignBlobCmd(rootOpts, keyOpts, regOpts, scorecardResultsFile, true, "", ""); err != nil {
-		return fmt.Errorf("error signing payload: %w", err)
+	for i := 0; i < numberOfRetries; i++ { // Retry in case of network errors.
+		if _, err := sign.SignBlobCmd(rootOpts, keyOpts, regOpts, scorecardResultsFile, true, "", ""); err != nil {
+			log.Printf("error signing scorecard results: %v\n", err)
+			if i == numberOfRetries-1 {
+				return fmt.Errorf("error signing scorecard results: %w", err)
+			}
+		} else {
+			break
+		}
+		time.Sleep(5 * time.Second) // Wait 5 seconds before retrying.
 	}
 
 	return nil
