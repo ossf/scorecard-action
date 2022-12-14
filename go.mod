@@ -6,7 +6,7 @@ require (
 	github.com/caarlos0/env/v6 v6.10.1
 	github.com/google/go-cmp v0.5.9
 	github.com/google/go-github/v46 v46.0.0
-	github.com/ossf/scorecard/v4 v4.8.0
+	github.com/ossf/scorecard/v4 v4.10.0
 	github.com/sigstore/cosign v1.13.1
 	github.com/spf13/cobra v1.6.1
 	golang.org/x/net v0.4.0
@@ -29,6 +29,8 @@ require (
 	github.com/Azure/go-autorest/autorest/date v0.3.0 // indirect
 	github.com/Azure/go-autorest/logger v0.2.1 // indirect
 	github.com/Azure/go-autorest/tracing v0.6.0 // indirect
+	github.com/BurntSushi/toml v1.2.0 // indirect
+	github.com/CycloneDX/cyclonedx-go v0.7.0 // indirect
 	github.com/Masterminds/semver/v3 v3.2.0 // indirect
 	github.com/Microsoft/go-winio v0.6.0 // indirect
 	github.com/ThalesIgnite/crypto11 v1.2.5 // indirect
@@ -126,6 +128,7 @@ require (
 	github.com/google/go-github/v45 v45.2.0 // indirect
 	github.com/google/go-querystring v1.1.0 // indirect
 	github.com/google/gofuzz v1.2.0 // indirect
+	github.com/google/osv-scanner v0.0.0-20221212045131-8aef1778b823 // indirect
 	github.com/google/trillian v1.5.0 // indirect
 	github.com/google/uuid v1.3.0 // indirect
 	github.com/google/wire v0.5.0 // indirect
@@ -143,6 +146,7 @@ require (
 	github.com/imdario/mergo v0.3.12 // indirect
 	github.com/in-toto/in-toto-golang v0.3.4-0.20220709202702-fa494aaa0add // indirect
 	github.com/inconshreveable/mousetrap v1.0.1 // indirect
+	github.com/jedib0t/go-pretty/v6 v6.4.0 // indirect
 	github.com/jedisct1/go-minisign v0.0.0-20211028175153-1c139d1cc84b // indirect
 	github.com/jhump/protoreflect v1.13.0 // indirect
 	github.com/jmespath/go-jmespath v0.4.0 // indirect
@@ -171,6 +175,7 @@ require (
 	github.com/opencontainers/go-digest v1.0.0 // indirect
 	github.com/opencontainers/image-spec v1.1.0-rc2 // indirect
 	github.com/opentracing/opentracing-go v1.2.0 // indirect
+	github.com/package-url/packageurl-go v0.1.0 // indirect
 	github.com/pelletier/go-toml v1.9.5 // indirect
 	github.com/pelletier/go-toml/v2 v2.0.5 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
@@ -195,6 +200,8 @@ require (
 	github.com/sirupsen/logrus v1.9.0 // indirect
 	github.com/skratchdot/open-golang v0.0.0-20200116055534-eef842397966 // indirect
 	github.com/soheilhy/cmux v0.1.5 // indirect
+	github.com/spdx/gordf v0.0.0-20201111095634-7098f93598fb // indirect
+	github.com/spdx/tools-golang v0.3.0 // indirect
 	github.com/spf13/afero v1.8.2 // indirect
 	github.com/spf13/cast v1.5.0 // indirect
 	github.com/spf13/jwalterweatherman v1.1.0 // indirect
@@ -243,7 +250,7 @@ require (
 	go.uber.org/zap v1.23.0 // indirect
 	gocloud.dev v0.27.0 // indirect
 	golang.org/x/crypto v0.1.0 // indirect
-	golang.org/x/exp v0.0.0-20220909182711-5c715a9e8561 // indirect
+	golang.org/x/exp v0.0.0-20221031165847-c99f073a8326 // indirect
 	golang.org/x/mod v0.7.0 // indirect
 	golang.org/x/oauth2 v0.1.0 // indirect
 	golang.org/x/sync v0.1.0 // indirect
