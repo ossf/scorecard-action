@@ -8,8 +8,8 @@ GitHub Action.
 pull request to discuss.)
 
 - [Tracking](#tracking)
-- [Preparing the release](#preparing-the-action)
-  - [Validate the Action](#validate-the-release)
+- [Preparing the release](#preparing-the-release)
+  - [Validate the Action](#validate-the-action)
   - [Update the scorecard version](#update-the-scorecard-version)
 - [Drafting release notes](#drafting-release-notes)
 - [Release](#release)
