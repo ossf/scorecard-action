@@ -9,6 +9,7 @@ pull request to discuss.)
 
 - [Tracking](#tracking)
 - [Preparing the release](#preparing-the-release)
+  - [Validate the Action](#validate-the-action)
   - [Update the scorecard version](#update-the-scorecard-version)
 - [Drafting release notes](#drafting-release-notes)
 - [Release](#release)
@@ -34,6 +35,11 @@ as descriptive as possible.
 
 This section covers changes that need to be issued as a pull request and should
 be merged before releasing the scorecard GitHub Action.
+
+### Validate the Action
+
+Manually run the workflow [scorecards.yml](https://github.com/ossf/scorecard-action/actions/workflows/scorecards.yml)
+and verify that the run succeeds.
 
 ### Update the scorecard-action version
 
