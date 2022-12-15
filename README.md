@@ -67,7 +67,7 @@ through the `repo` scope. **The PAT will be stored as a
 and be accessible by all the workflows and maintainers of a repository.**
 This means another maintainer on your project could potentially use the token to impersonate you. If there is an exploitable bug in a workflow with write permissions, an external contributor could potentially exploit it to extract the PAT.
 
-We strongly recommend that you **do not use a PAT** unless you feel that the
+We recommend that you **do not use a PAT** unless you feel that the
 risks introduced are outweighed by the functionalities they support. 
 
 ## Installation
