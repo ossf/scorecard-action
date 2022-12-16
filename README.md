@@ -12,10 +12,11 @@ Starting from scorecard-action:v2, `GITHUB_TOKEN` permissions or job permissions
 `id-token: write` for `publish_results: true`. This is needed to access GitHub's
 OIDC token which verifies the authenticity of the result when publishing it.
 
-scorecard-action:v2 has a new requirement for the job running the ossf/scorecard-action step. The step running this job must belong to this approved list of GitHub actions: 
+scorecard-action:v2 has a new requirement for the job running the ossf/scorecard-action step. The steps running in this job must belong to this approved list of GitHub actions: 
 - "actions/checkout" 
 - "actions/upload-artifact"
 - "github/codeql-action/upload-sarif"
+- "ossf/scorecard-action"
 
 If you are using custom steps in the job, it may fail.
 We understand that this is restrictive, but currently it's necessary to ensure the integrity of the results that we publish, since GitHub workflow steps run in the same environment as the job they belong to. 
