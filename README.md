@@ -40,6 +40,8 @@ ________
 - [Publishing Results](#publishing-results)
 - [Uploading Artifacts](#uploading-artifacts)
 - [Workflow Example](#workflow-example)
+[Verifying the Authenticity and Integrity of Scorecard Results](#verifying-the-authenticity-and-integrity-of-scorecard-results)
+
 ________
 
 The following GitHub triggers are supported: `push`, `schedule` (default branch only).
@@ -254,3 +256,23 @@ jobs:
         with:
           sarif_file: results.sarif
 ```
+## Verifying the Authenticity and Integrity of Scorecard Results
+
+Here is a brief steps involved in how scorecard validates the authenticity and integrity of the results it produces. 
+
+```mermaid
+sequenceDiagram
+Scorecard action ->> Scorecard action: Run scorecard for repository
+Scorecard action ->> Scorecard action: Generate result.json
+Note over cosign, Scorecard action: Scorecard  embeds the cosign library
+cosign ->> rekor.sigstore.dev: Sign and store hash of result.json 
+Scorecard action->>api.securityscorecards.dev: Post result.json
+Note over api.securityscorecards.dev: Validates the result
+api.securityscorecards.dev->>Scorecard action: Return status  
+```
+1. The scorecard action is a tool that runs a scorecard analysis on a repository.
+1. After running the scorecard analysis on the repository, the action generates a file called result.json that contains the analysis results.
+1. The cosign library, which is embedded in the scorecard action, is then used to sign and store hash of result.json file in the `rekor.sigstore.dev` service.
+1. Finally, the result.json file is posted to the `api.securityscorecards.dev` service.
+1. The `api.securityscorecards.dev` service validates the authenticity of the results with `rekor.sigstore.dev` before storing the results.
+1. This process allows the repository owner to verify the authenticity and integrity of the scorecard results and make them available for others to access and use.
