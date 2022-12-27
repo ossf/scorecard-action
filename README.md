@@ -273,6 +273,6 @@ api.securityscorecards.dev->>Scorecard action: Return status
 1. The Scorecard Action runs a Scorecard analysis on a repository.
 1. The action generates a file called result.json that contains the analysis results.
 1. The cosign library, which is embedded in the Scorecard action, signs and stores a hash of result.json file in the `rekor.sigstore.dev` service.
-1. Finally, the result.json file is posted to the `api.securityscorecards.dev` service.
+1. The result.json file is posted to the `api.securityscorecards.dev` service.
 1. The `api.securityscorecards.dev` service validates the authenticity of the results with `rekor.sigstore.dev` before storing the results.
 1. This process allows the repository owner to verify the authenticity and integrity of the scorecard results and make them available for others to access and use.
