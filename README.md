@@ -259,7 +259,7 @@ jobs:
 ## Verifying the Authenticity and Integrity of Scorecard Results
 The scorecard system uses several components from [sigstore](https://github.com/sigstore) to ensure tamper-resistant results. These components include cosign, fulcio, and rekor.
 
-Cosign helps to sign the scorecard action results with a cryptographic signature and stores the hash in a tamper-proof store called rekor, which uses technology based on Merkel trees (a specific type of data structure used in blockchain systems).
+Cosign signs the Scorecard action results with a cryptographic signature and stores the hash in a tamper-proof store called rekor, which uses technology based on Merkel trees (a specific type of data structure used in blockchain systems).
 
 Fulcio is a free certificate authority that issues short-lived code signing certificates for OpenID Connect identities, such as email addresses. Cosign uses fulcio for ephemeral keys and certificates.
 
