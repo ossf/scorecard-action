@@ -268,7 +268,7 @@ Rekor is a system that aims to provide an unchanging ledger of metadata generate
 You can learn more about Merkel trees at this link: https://en.wikipedia.org/wiki/Merkle_tree
 
 
-This diagram illustrates how Scorecard validates the authenticity and integrity of the results it produces.This process allows the repository owner to verify the authenticity and integrity of the scorecard results and make them available for others to access and use.
+This diagram illustrates how Scorecard validates the authenticity and integrity of the results it produces. This process allows the repository owner to verify the authenticity and integrity of Scorecard results and make them available for others to access and use.
 
 ```mermaid
 sequenceDiagram
