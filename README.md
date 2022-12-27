@@ -263,7 +263,7 @@ Cosign signs the Scorecard action results with a cryptographic signature and sto
 
 Fulcio is a free certificate authority that issues short-lived code signing certificates for OpenID Connect identities, such as email addresses. Cosign uses fulcio for ephemeral keys and certificates.
 
-Rekor is a system that aims to provide an unchanging ledger of metadata generated within a software project's supply chain. It allows software maintainers and build systems to record signed metadata, which is then recorded in an immutable record using Merkel trees. Other parties can use this metadata to determine if they can trust the lifecycle of an object. Cosign stores the signed hash of the result in rekor to further enhance the tamper resistance of the scorecard system.
+Rekor is a system that aims to provide an unchanging ledger of metadata generated within a software project's supply chain. It allows software maintainers and build systems to record signed metadata, which is then recorded in an immutable record using Merkel trees. Other parties can use this metadata to determine if they can trust the lifecycle of an object. Cosign stores the signed hash of the result in rekor to further enhance the tamper resistance of the Scorecard system.
 
 You can learn more about Merkel trees at this link: https://en.wikipedia.org/wiki/Merkle_tree
 
