@@ -258,7 +258,7 @@ jobs:
 ```
 ## Verifying the Authenticity and Integrity of Scorecard Results
 
-Here is a brief steps involved in how scorecard validates the authenticity and integrity of the results it produces. 
+This diagram illustrates how Scorecard validates the authenticity and integrity of the results it produces. 
 
 ```mermaid
 sequenceDiagram
