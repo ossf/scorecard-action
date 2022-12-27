@@ -257,8 +257,18 @@ jobs:
           sarif_file: results.sarif
 ```
 ## Verifying the Authenticity and Integrity of Scorecard Results
+The scorecard system uses several components from [sigstore](https://github.com/sigstore) to ensure tamper-resistant results. These components include cosign, fulcio, and rekor.
 
-This diagram illustrates how Scorecard validates the authenticity and integrity of the results it produces. 
+Cosign helps to sign the scorecard action results with a cryptographic signature and stores the hash in a tamper-proof store called rekor, which uses technology based on Merkel trees (a specific type of data structure used in blockchain systems).
+
+Fulcio is a free certificate authority that issues short-lived code signing certificates for OpenID Connect identities, such as email addresses. Cosign uses fulcio for ephemeral keys and certificates.
+
+Rekor is a system that aims to provide an unchanging ledger of metadata generated within a software project's supply chain. It allows software maintainers and build systems to record signed metadata, which is then recorded in an immutable record using Merkel trees. Other parties can use this metadata to determine if they can trust the lifecycle of an object. Cosign stores the signed hash of the result in rekor to further enhance the tamper resistance of the scorecard system.
+
+You can learn more about Merkel trees at this link: https://en.wikipedia.org/wiki/Merkle_tree
+
+
+This diagram illustrates how Scorecard validates the authenticity and integrity of the results it produces.This process allows the repository owner to verify the authenticity and integrity of the scorecard results and make them available for others to access and use.
 
 ```mermaid
 sequenceDiagram
@@ -275,4 +285,3 @@ api.securityscorecards.dev->>Scorecard action: Return status
 1. The cosign library, which is embedded in the Scorecard action, signs and stores a hash of result.json file in the `rekor.sigstore.dev` service.
 1. The result.json file is posted to the `api.securityscorecards.dev` service.
 1. The `api.securityscorecards.dev` service validates the authenticity of the results with `rekor.sigstore.dev` before storing the results.
-1. This process allows the repository owner to verify the authenticity and integrity of the scorecard results and make them available for others to access and use.
