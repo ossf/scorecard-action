@@ -9,7 +9,7 @@ require (
 	github.com/ossf/scorecard/v4 v4.10.2
 	github.com/sigstore/cosign v1.13.1
 	github.com/spf13/cobra v1.6.1
-	golang.org/x/net v0.5.0
+	golang.org/x/net v0.7.0
 )
 
 require (
@@ -254,9 +254,9 @@ require (
 	golang.org/x/mod v0.7.0 // indirect
 	golang.org/x/oauth2 v0.3.0 // indirect
 	golang.org/x/sync v0.1.0 // indirect
-	golang.org/x/sys v0.4.0 // indirect
-	golang.org/x/term v0.4.0 // indirect
-	golang.org/x/text v0.6.0 // indirect
+	golang.org/x/sys v0.5.0 // indirect
+	golang.org/x/term v0.5.0 // indirect
+	golang.org/x/text v0.7.0 // indirect
 	golang.org/x/time v0.1.0 // indirect
 	golang.org/x/tools v0.3.0 // indirect
 	golang.org/x/xerrors v0.0.0-20220907171357-04be3eba64a2 // indirect
