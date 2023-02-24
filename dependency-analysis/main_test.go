@@ -1,3 +1,18 @@
+// Copyright 2023 OpenSSF Authors
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//	http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+//
+// SPDX-License-Identifier: Apache-2.0
 package main
 
 import (
@@ -7,8 +22,8 @@ import (
 	"testing"
 )
 
-func Test_filter(t *testing.T) {
-	type args[T any] struct {
+func Test_filter(t *testing.T) { //nolint:paralleltest
+	type args[T any] struct { //nolint:govet
 		slice []T
 		f     func(T) bool
 	}
@@ -28,7 +43,7 @@ func Test_filter(t *testing.T) {
 		},
 	}
 
-	for _, tt := range tests {
+	for _, tt := range tests { //nolint:paralleltest
 		t.Run(tt.name, func(t *testing.T) {
 			if got := filter(tt.args.slice, tt.args.f); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("filter() = %v, want %v", got, tt.want)
@@ -37,8 +52,8 @@ func Test_filter(t *testing.T) {
 	}
 }
 
-func TestGetScorecardChecks(t *testing.T) {
-	tests := []struct {
+func TestGetScorecardChecks(t *testing.T) { //nolint:paralleltest
+	tests := []struct { //nolint:govet
 		name        string
 		want        []string
 		fileContent string
@@ -46,7 +61,7 @@ func TestGetScorecardChecks(t *testing.T) {
 	}{
 		{
 			name:    "default",
-			want:    []string{"Dangerous-Workflow", "Binary-Artifacts", "Branch-Protection", "Code-Review", "Dependency-Update-Tool"},
+			want:    []string{"Dangerous-Workflow", "Binary-Artifacts", "Branch-Protection", "Code-Review", "Dependency-Update-Tool"}, //nolint:lll
 			wantErr: false,
 		},
 		{
@@ -59,7 +74,7 @@ func TestGetScorecardChecks(t *testing.T) {
 			wantErr: false,
 		},
 	}
-	for _, tt := range tests {
+	for _, tt := range tests { //nolint:paralleltest
 		t.Run(tt.name, func(t *testing.T) {
 			if tt.fileContent != "" {
 				dir, err := os.MkdirTemp("", "scorecard-checks")
@@ -69,7 +84,7 @@ func TestGetScorecardChecks(t *testing.T) {
 				}
 				defer os.RemoveAll(dir)
 
-				if err := os.WriteFile(path.Join(dir, "scorecard.txt"), []byte(tt.fileContent), 0644); err != nil {
+				if err := os.WriteFile(path.Join(dir, "scorecard.txt"), []byte(tt.fileContent), 0o644); err != nil { //nolint:gosec
 					t.Errorf("GetScorecardChecks() error = %v, wantErr %v", err, tt.wantErr)
 					return
 				}
@@ -87,7 +102,7 @@ func TestGetScorecardChecks(t *testing.T) {
 	}
 }
 
-func TestGetScore(t *testing.T) {
+func TestGetScore(t *testing.T) { //nolint:paralleltest
 	type args struct {
 		repo string
 	}
@@ -115,7 +130,7 @@ func TestGetScore(t *testing.T) {
 		},
 	}
 
-	for _, tt := range tests {
+	for _, tt := range tests { //nolint:paralleltest
 		t.Run(tt.name, func(t *testing.T) {
 			got, err := GetScore(tt.args.repo)
 			if (err != nil) != tt.wantErr {
@@ -129,7 +144,7 @@ func TestGetScore(t *testing.T) {
 	}
 }
 
-func TestValidate(t *testing.T) {
+func TestValidate(t *testing.T) { //nolint:paralleltest
 	type args struct {
 		token     string
 		owner     string
@@ -158,16 +173,6 @@ func TestValidate(t *testing.T) {
 			args: args{
 				owner:     "ossf",
 				repo:      "scorecard",
-				commitSHA: "commitSHA",
-				pr:        "1",
-			},
-			wantErr: true,
-		},
-		{
-			name: "invalid owner",
-			args: args{
-				repo:      "scorecard",
-				token:     "token",
 				commitSHA: "commitSHA",
 				pr:        "1",
 			},
@@ -205,9 +210,9 @@ func TestValidate(t *testing.T) {
 		},
 	}
 
-	for _, tt := range tests {
+	for _, tt := range tests { //nolint:paralleltest
 		t.Run(tt.name, func(t *testing.T) {
-			if err := Validate(tt.args.token, tt.args.owner, tt.args.repo, tt.args.commitSHA, tt.args.pr); (err != nil) != tt.wantErr {
+			if err := Validate(tt.args.token, tt.args.repo, tt.args.commitSHA, tt.args.pr); (err != nil) != tt.wantErr {
 				t.Errorf("Validate() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})

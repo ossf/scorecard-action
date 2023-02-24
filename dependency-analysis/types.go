@@ -1,6 +1,7 @@
 package main
 
-type ScorecardResult struct {
+// ScorecardResult is the result of running scorecard.
+type ScorecardResult struct { //nolint:govet
 	Date string `json:"date"`
 	Repo struct {
 		Name   string `json:"name"`
@@ -14,16 +15,19 @@ type ScorecardResult struct {
 	Checks          []Check `json:"checks"`
 	Vulnerabilities []Vulnerability
 }
-type Check struct {
+
+// Check is a single check result.
+type Check struct { //nolint:govet
 	Name          string   `json:"name"`
 	Score         int      `json:"score,omitempty"`
 	Reason        string   `json:"reason"`
 	Details       []string `json:"details"`
 	Documentation struct {
 		Short string `json:"short"`
-		Url   string `json:"url"`
 	} `json:"documentation"`
 }
+
+// DependencyDiff is the result of running dependency-analysis.
 type DependencyDiff struct {
 	ChangeType          string          `json:"change_type"`
 	Manifest            string          `json:"manifest"`
@@ -35,10 +39,11 @@ type DependencyDiff struct {
 	SourceRepositoryURL string          `json:"source_repository_url"`
 	Vulnerabilities     []Vulnerability `json:"vulnerabilities"`
 }
+
+// Vulnerability is a single vulnerability.
 type Vulnerability struct {
 	Severity        string `json:"severity"`
-	AdvisoryGhsaId  string `json:"advisory_ghsa_id"`
+	AdvisoryGHSAId  string `json:"advisory_ghsa_id"`
 	AdvisorySummary string `json:"advisory_summary"`
-	AdvisoryUrl     string `json:"advisory_url"`
+	AdvisoryURL     string `json:"advisory_url"`
 }
-
