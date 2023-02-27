@@ -1,4 +1,4 @@
-# OpenSSF Dependency Analysis
+# OpenSSF Scorecard Dependency Analysis
 
 This repository contains the source code for the OpenSSF Dependency Analysis project. The aim of the project is to check the security posture of a project's dependencies using the [GitHub Dependency Graph API](https://docs.github.com/en/rest/dependency-graph/dependency-review?apiVersion=2022-11-28#get-a-diff-of-the-dependencies-between-commits) and the [Security Scorecards API](https://api.securityscorecards.dev).
 
@@ -9,7 +9,7 @@ The action will run on the latest commit on the default branch of the repository
 An example of the comment can be found [here](https://github.com/ossf-tests/vulpy/pull/2#issuecomment-1442310469).
 
 ## Prerequisites
-The actions require enabling the [GitHub Dependency](https://docs.github.com/en/code-security/supply-chain-security/understanding-your-software-supply-chain/about-dependency-review) for the repository.
+The actions require enabling the [GitHub Dependency Review](https://docs.github.com/en/code-security/supply-chain-security/understanding-your-software-supply-chain/about-dependency-review) for the repository.
 
 ### Configuration
 The action can be configured using the following inputs:
@@ -54,5 +54,5 @@ jobs:
           persist-credentials: false
 
       - name: Run dependency analysis
-        uses: github.com/ossf/scorecard-action/dependency-analysis@main # Replace with the latest release version.
+        uses: ossf/scorecard-action/dependency-analysis@main # Replace with the latest release version.
 ```

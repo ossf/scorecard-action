@@ -39,19 +39,23 @@ func main() {
 	token := os.Getenv("GITHUB_TOKEN")
 	pr := os.Getenv("GITHUB_PR_NUMBER")
 	ghUser := os.Getenv("GITHUB_ACTOR")
+	fileName := os.Getenv("SCORECARD_CHECKS")
 	if err := Validate(token, repo, commitSHA, pr); err != nil {
 		log.Fatal(err)
 	}
-
-	ownerRepo := strings.Split(repo, "/")
-	owner := ownerRepo[0]
-	repo = ownerRepo[1]
-	checks, err := GetScorecardChecks()
+	// convert pr to int
+	prInt, err := strconv.Atoi(pr)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	defaultBranch, err := getDefaultBranch(owner, repo, token)
+	ownerRepo := strings.Split(repo, "/")
+	if len(ownerRepo) != 2 {
+		log.Fatal("invalid repo")
+	}
+	owner := ownerRepo[0]
+	repo = ownerRepo[1]
+	checks, err := GetScorecardChecks(fileName)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -59,40 +63,33 @@ func main() {
 	ts := oauth2.StaticTokenSource(&oauth2.Token{AccessToken: token})
 	tc := oauth2.NewClient(context.Background(), ts)
 	client := github.NewClient(tc)
-	data, err := GetDependencyDiff(owner, repo, token, defaultBranch, commitSHA)
+	defaultBranch, err := getDefaultBranch(owner, repo, client)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	diff, err := GetDependencyDiff(owner, repo, token, defaultBranch, commitSHA)
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	m := make(map[string]DependencyDiff)
-	for _, dep := range *data { //nolint:gocritic
+	for _, dep := range diff { //nolint:gocritic
 		m[dep.SourceRepositoryURL] = dep
 	}
 
 	for k, i := range m { //nolint:gocritic
 		url := strings.TrimPrefix(k, "https://")
-		scorecard, err := GetScore(url)
-		if err != nil && len(i.Vulnerabilities) > 0 {
-			sb := strings.Builder{}
-			sb.WriteString(fmt.Sprintf("<details><summary>Vulnerabilties %s</summary>\n </br>", i.SourceRepositoryURL))
-			sb.WriteString("<table>\n")
-			sb.WriteString("<tr>\n")
-			sb.WriteString("<th>Severity</th>\n")
-			sb.WriteString("<th>AdvisoryGHSAId</th>\n")
-			sb.WriteString("<th>AdvisorySummary</th>\n")
-			sb.WriteString("<th>AdvisoryUrl</th>\n")
-			sb.WriteString("</tr>\n")
-			for _, v := range i.Vulnerabilities {
-				sb.WriteString("<tr>\n")
-				sb.WriteString(fmt.Sprintf("<td>%s</td>\n", v.Severity))
-				sb.WriteString(fmt.Sprintf("<td>%s</td>\n", v.AdvisoryGHSAId))
-				sb.WriteString(fmt.Sprintf("<td>%s</td>\n", v.AdvisorySummary))
-				sb.WriteString(fmt.Sprintf("<td>%s</td>\n", v.AdvisoryURL))
+		scorecard, err := GetScorecardResult(url)
+		if err != nil {
+			if len(i.Vulnerabilities) > 0 {
+				vulnerabilities = GetVulnsHTML(i, vulnerabilities)
+				continue
 			}
-			sb.WriteString("</table>\n")
-			sb.WriteString("</details>\n")
-			vulnerabilities += sb.String()
 			continue
+		}
+		if len(i.Vulnerabilities) > 0 {
+			vulnerabilities = GetVulnsHTML(i, vulnerabilities)
 		}
 		scorecard.Checks = filter(scorecard.Checks, func(check Check) bool {
 			for _, c := range checks {
@@ -104,11 +101,6 @@ func main() {
 		})
 		scorecard.Vulnerabilities = i.Vulnerabilities
 		result += GitHubIssueComment(&scorecard)
-	}
-	// convert pr to int
-	prInt, err := strconv.Atoi(pr)
-	if err != nil {
-		log.Fatal(err)
 	}
 	// create or update comment
 	if vulnerabilities == "" && result == "" {
@@ -124,15 +116,33 @@ func main() {
 	}
 }
 
-// getDefaultBranch gets the default branch of the repository.
-func getDefaultBranch(owner, repo, token string) (string, error) {
-	ctx := context.Background()
-	ts := oauth2.StaticTokenSource(
-		&oauth2.Token{AccessToken: token},
-	)
-	tc := oauth2.NewClient(ctx, ts)
-	client := github.NewClient(tc)
+// GetVulnsHTML returns the vulnerabilities in HTML format.
+func GetVulnsHTML(i DependencyDiff, vulnerabilities string) string { //nolint:gocritic
+	sb := strings.Builder{}
+	sb.WriteString(fmt.Sprintf("<details><summary>Vulnerabilties %s</summary>\n </br>", i.SourceRepositoryURL))
+	sb.WriteString("<table>\n")
+	sb.WriteString("<tr>\n")
+	sb.WriteString("<th>Severity</th>\n")
+	sb.WriteString("<th>AdvisoryGHSAId</th>\n")
+	sb.WriteString("<th>AdvisorySummary</th>\n")
+	sb.WriteString("<th>AdvisoryUrl</th>\n")
+	sb.WriteString("</tr>\n")
+	for _, v := range i.Vulnerabilities {
+		sb.WriteString("<tr>\n")
+		sb.WriteString(fmt.Sprintf("<td>%s</td>\n", v.Severity))
+		sb.WriteString(fmt.Sprintf("<td>%s</td>\n", v.AdvisoryGHSAId))
+		sb.WriteString(fmt.Sprintf("<td>%s</td>\n", v.AdvisorySummary))
+		sb.WriteString(fmt.Sprintf("<td>%s</td>\n", v.AdvisoryURL))
+	}
+	sb.WriteString("</table>\n")
+	sb.WriteString("</details>\n")
+	vulnerabilities += sb.String()
+	return vulnerabilities
+}
 
+// getDefaultBranch gets the default branch of the repository.
+func getDefaultBranch(owner, repo string, client *github.Client) (string, error) {
+	ctx := context.Background()
 	repository, _, err := client.Repositories.Get(ctx, owner, repo)
 	if err != nil {
 		return "", fmt.Errorf("failed to get repository: %w", err)
@@ -229,44 +239,43 @@ func GitHubIssueComment(checks *ScorecardResult) string {
 
 // GetDependencyDiff returns the dependency diff between two commits.
 // It returns an error if the dependency graph is not enabled.
-func GetDependencyDiff(owner, repo, token, base, head string) (*[]DependencyDiff, error) {
+func GetDependencyDiff(owner, repo, token, base, head string) ([]DependencyDiff, error) {
+	var data []DependencyDiff
 	message := "failed to get dependency diff, please enable dependency graph https://docs.github.com/en/code-security/supply-chain-security/understanding-your-software-supply-chain/configuring-the-dependency-graph" //nolint:lll
 	if owner == "" {
-		return nil, fmt.Errorf("owner is required") //nolint:goerr113
+		return data, fmt.Errorf("owner is required") //nolint:goerr113
 	}
 	if repo == "" {
-		return nil, fmt.Errorf("repo is required") //nolint:goerr113
+		return data, fmt.Errorf("repo is required") //nolint:goerr113
 	}
 	if token == "" {
-		return nil, fmt.Errorf("token is required") //nolint:goerr113
+		return data, fmt.Errorf("token is required") //nolint:goerr113
 	}
 	resp, err := GetGitHubDependencyDiff(owner, repo, token, base, head)
 	defer resp.Body.Close() //nolint:staticcheck
 
 	if resp.StatusCode != http.StatusOK {
 		// if the dependency graph is not enabled, we can't get the dependency diff
-		return nil,
+		return data,
 			fmt.Errorf(" %s: %v", message, resp.Status) //nolint:goerr113
 	}
 	if err != nil {
-		return nil, fmt.Errorf("failed to get dependency diff: %w", err)
+		return data, fmt.Errorf("failed to get dependency diff: %w", err)
 	}
 
-	var data []DependencyDiff
 	err = json.NewDecoder(resp.Body).Decode(&data)
 	if err != nil {
-		return nil, fmt.Errorf("failed to decode dependency diff: %w", err)
+		return data, fmt.Errorf("failed to decode dependency diff: %w", err)
 	}
 	// filter out the dependencies that are not added
 	var filteredData []DependencyDiff
 	for _, dep := range data { //nolint:gocritic
 		// also if the source repo doesn't start with GitHub.com, we can ignore it
-		if dep.ChangeType == "added" && dep.SourceRepositoryURL != "" &&
-			strings.HasPrefix(dep.SourceRepositoryURL, "https://github.com") {
+		if dep.ChangeType == "added" && strings.HasPrefix(dep.SourceRepositoryURL, "https://github.com") {
 			filteredData = append(filteredData, dep)
 		}
 	}
-	return &filteredData, nil
+	return filteredData, nil
 }
 
 // GetGitHubDependencyDiff returns the dependency diff between two commits.
@@ -301,8 +310,7 @@ func filter[T any](slice []T, f func(T) bool) []T {
 
 // GetScorecardChecks returns the list of checks to run.
 // This uses the SCORECARD_CHECKS environment variable to get the path to the checks list.
-func GetScorecardChecks() ([]string, error) {
-	fileName := os.Getenv("SCORECARD_CHECKS")
+func GetScorecardChecks(fileName string) ([]string, error) {
 	if fileName == "" {
 		// default to critical and high severity checks
 		return []string{
@@ -324,8 +332,8 @@ func GetScorecardChecks() ([]string, error) {
 	return checksFromFile, nil
 }
 
-// GetScore returns the scorecard result for a given repository.
-func GetScore(repo string) (ScorecardResult, error) {
+// GetScorecardResult returns the scorecard result for a given repository.
+func GetScorecardResult(repo string) (ScorecardResult, error) {
 	req, err := http.NewRequest("GET", fmt.Sprintf("https://api.securityscorecards.dev/projects/%s", repo), nil)
 	if err != nil {
 		return ScorecardResult{}, fmt.Errorf("failed to create request: %w", err)

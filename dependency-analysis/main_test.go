@@ -76,21 +76,24 @@ func TestGetScorecardChecks(t *testing.T) { //nolint:paralleltest
 	}
 	for _, tt := range tests { //nolint:paralleltest
 		t.Run(tt.name, func(t *testing.T) {
+			dir, err := os.MkdirTemp("", "scorecard-checks")
+			defer os.RemoveAll(dir)
+			if err != nil {
+				t.Errorf("GetScorecardChecks() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
 			if tt.fileContent != "" {
-				dir, err := os.MkdirTemp("", "scorecard-checks")
-				if err != nil {
-					t.Errorf("GetScorecardChecks() error = %v, wantErr %v", err, tt.wantErr)
-					return
-				}
-				defer os.RemoveAll(dir)
-
 				if err := os.WriteFile(path.Join(dir, "scorecard.txt"), []byte(tt.fileContent), 0o644); err != nil { //nolint:gosec
 					t.Errorf("GetScorecardChecks() error = %v, wantErr %v", err, tt.wantErr)
 					return
 				}
 				t.Setenv("SCORECARD_CHECKS", path.Join(dir, "scorecard.txt"))
 			}
-			got, err := GetScorecardChecks()
+			fileName := ""
+			if tt.fileContent != "" {
+				fileName = path.Join(dir, "scorecard.txt")
+			}
+			got, err := GetScorecardChecks(fileName)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("GetScorecardChecks() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -132,13 +135,13 @@ func TestGetScore(t *testing.T) { //nolint:paralleltest
 
 	for _, tt := range tests { //nolint:paralleltest
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := GetScore(tt.args.repo)
+			got, err := GetScorecardResult(tt.args.repo)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("GetScore() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("GetScorecardResult() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if got.Score < tt.score {
-				t.Errorf("GetScore() got = %v, want %v", got, tt.score)
+				t.Errorf("GetScorecardResult() got = %v, want %v", got, tt.score)
 			}
 		})
 	}
