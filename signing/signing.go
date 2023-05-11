@@ -72,10 +72,11 @@ func (s *Signing) SignScorecardResult(scorecardResultsFile string) error {
 	// Prepare settings for SignBlobCmd.
 	rootOpts := &sigOpts.RootOptions{Timeout: sigOpts.DefaultTimeout} // Just the timeout.
 	keyOpts := sigOpts.KeyOpts{
-		FulcioURL:    sigOpts.DefaultFulcioURL,     // Signing certificate provider.
-		RekorURL:     sigOpts.DefaultRekorURL,      // Transparency log.
-		OIDCIssuer:   sigOpts.DefaultOIDCIssuerURL, // OIDC provider to get ID token to auth for Fulcio.
-		OIDCClientID: "sigstore",
+		FulcioURL:        sigOpts.DefaultFulcioURL,     // Signing certificate provider.
+		RekorURL:         sigOpts.DefaultRekorURL,      // Transparency log.
+		OIDCIssuer:       sigOpts.DefaultOIDCIssuerURL, // OIDC provider to get ID token to auth for Fulcio.
+		OIDCClientID:     "sigstore",
+		SkipConfirmation: true, // skip cosign's privacy confirmation prompt as we run non-interactively
 	}
 
 	// This command will use the provided OIDCIssuer to authenticate into Fulcio, which will generate the
