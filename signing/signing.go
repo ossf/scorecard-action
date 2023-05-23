@@ -31,6 +31,7 @@ import (
 
 	sigOpts "github.com/sigstore/cosign/v2/cmd/cosign/cli/options"
 	"github.com/sigstore/cosign/v2/cmd/cosign/cli/sign"
+	"github.com/sigstore/cosign/v2/pkg/cosign"
 
 	"github.com/ossf/scorecard-action/entrypoint"
 	"github.com/ossf/scorecard-action/options"
@@ -69,6 +70,14 @@ func New(token string) (*Signing, error) {
 
 // SignScorecardResult signs the results file and uploads the attestation to the Rekor transparency log.
 func (s *Signing) SignScorecardResult(scorecardResultsFile string) error {
+	f, err := os.CreateTemp("", "bundle")
+	if err != nil {
+		return fmt.Errorf("creating temporary bundle file: %w", err)
+	}
+	bundlePath := f.Name()
+	f.Close()
+	defer os.Remove(bundlePath) // clean up
+
 	// Prepare settings for SignBlobCmd.
 	rootOpts := &sigOpts.RootOptions{Timeout: sigOpts.DefaultTimeout} // Just the timeout.
 	keyOpts := sigOpts.KeyOpts{
@@ -77,6 +86,7 @@ func (s *Signing) SignScorecardResult(scorecardResultsFile string) error {
 		OIDCIssuer:       sigOpts.DefaultOIDCIssuerURL, // OIDC provider to get ID token to auth for Fulcio.
 		OIDCClientID:     "sigstore",
 		SkipConfirmation: true, // skip cosign's privacy confirmation prompt as we run non-interactively
+		BundlePath:       bundlePath,
 	}
 
 	// This command will use the provided OIDCIssuer to authenticate into Fulcio, which will generate the
@@ -84,6 +94,17 @@ func (s *Signing) SignScorecardResult(scorecardResultsFile string) error {
 	// The output bytes (signature) and certificate are discarded since verification can be done with just the payload.
 	if _, err := sign.SignBlobCmd(rootOpts, keyOpts, scorecardResultsFile, true, "", "", true); err != nil {
 		return fmt.Errorf("error signing payload: %w", err)
+	}
+
+	contents, err := os.ReadFile(bundlePath)
+	if err != nil {
+		return fmt.Errorf("reading cosign bundle file: %w", err)
+	}
+
+	var payload cosign.LocalSignedPayload
+	err = json.Unmarshal(contents, &payload)
+	if err != nil {
+		return fmt.Errorf("invalid cosign bundle file: %w", err)
 	}
 
 	return nil
