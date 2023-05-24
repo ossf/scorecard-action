@@ -14,6 +14,7 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
+// Package signing provides functionality to sign and upload results to the Scorecard API.
 package signing
 
 import (
@@ -44,7 +45,8 @@ var (
 
 // Signing is a signing structure.
 type Signing struct {
-	token string
+	token          string
+	rekorTlogIndex int64
 }
 
 // New creates a new Signing instance.
@@ -96,16 +98,11 @@ func (s *Signing) SignScorecardResult(scorecardResultsFile string) error {
 		return fmt.Errorf("error signing payload: %w", err)
 	}
 
-	contents, err := os.ReadFile(bundlePath)
+	rekorTlogIndex, err := extractTlogIndex(bundlePath)
 	if err != nil {
-		return fmt.Errorf("reading cosign bundle file: %w", err)
+		return err
 	}
-
-	var payload cosign.LocalSignedPayload
-	err = json.Unmarshal(contents, &payload)
-	if err != nil {
-		return fmt.Errorf("invalid cosign bundle file: %w", err)
-	}
+	s.rekorTlogIndex = rekorTlogIndex
 
 	return nil
 }
@@ -143,10 +140,12 @@ func (s *Signing) ProcessSignature(jsonPayload []byte, repoName, repoRef string)
 		Result      string `json:"result"`
 		Branch      string `json:"branch"`
 		AccessToken string `json:"accessToken"`
+		TlogIndex   int64  `json:"tlogIndex"`
 	}{
 		Result:      string(jsonPayload),
 		Branch:      repoRef,
 		AccessToken: s.token,
+		TlogIndex:   s.rekorTlogIndex,
 	}
 
 	payloadBytes, err := json.Marshal(resultsPayload)
@@ -189,4 +188,17 @@ func (s *Signing) ProcessSignature(jsonPayload []byte, repoName, repoRef string)
 	}
 
 	return nil
+}
+
+func extractTlogIndex(bundlePath string) (int64, error) {
+	contents, err := os.ReadFile(bundlePath)
+	if err != nil {
+		return 0, fmt.Errorf("reading cosign bundle file: %w", err)
+	}
+	var payload cosign.LocalSignedPayload
+	err = json.Unmarshal(contents, &payload)
+	if err != nil || payload.Bundle == nil {
+		return 0, fmt.Errorf("invalid cosign bundle file: %w", err)
+	}
+	return payload.Bundle.Payload.LogIndex, nil
 }
