@@ -82,17 +82,17 @@ risks introduced are outweighed by the functionalities they support.
 
 ![image](/images/install02.png)
 
-Then click "Add tool".
-
-![image](/images/installb2.png)
-
-3) Choose the "OSSF Scorecard" from the list of workflows, and then click “Configure”.
+3) Then click "Add tool".
 
 ![image](/images/install03.png)
 
-4) Commit the changes.
+4) Choose the "OSSF Scorecard" from the list of workflows, and then click “Configure”.
 
 ![image](/images/install04.png)
+
+5) Commit the changes.
+
+![image](/images/install05.png)
 
 ### Authentication with PAT (optional)
 Create a Personal Access Token (PAT) for authentication and save the token value as a repository secret. Review [Personal Access Token (PAT) Requirements and Risks](#personal-access-token-pat-requirements-and-risks) before using a PAT.
