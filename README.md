@@ -187,7 +187,7 @@ Note: if you disable this option, the results of the Scorecards Action run will 
 ### Workflow Example
 
 ```yml
-name: Scorecards supply-chain security
+name: Scorecard analysis workflow
 on:
   # Only the default branch is supported.
   branch_protection_rule:
@@ -202,24 +202,22 @@ permissions: read-all
 
 jobs:
   analysis:
-    name: Scorecards analysis
+    name: Scorecard analysis
     runs-on: ubuntu-latest
     permissions:
-      # Needed to upload the results to code-scanning dashboard.
+      # Needed if using Code scanning alerts
       security-events: write
-      # Used to receive a badge. (Upcoming feature)
+      # Needed for GitHub OIDC token if publish_results is true
       id-token: write
-      actions: read
-      contents: read
 
     steps:
       - name: "Checkout code"
-        uses: actions/checkout@a12a3943b4bdde767164f792f33f40b04645d846 # tag=v3.0.0
+        uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab # v3.5.2
         with:
           persist-credentials: false
 
       - name: "Run analysis"
-        uses: ossf/scorecard-action@3e15ea8318eee9b333819ec77a36aca8d39df13e # tag=v1.1.1
+        uses: ossf/scorecard-action@80e868c13c90f172d68d1f4501dee99e2479f7af # v2.1.3
         with:
           results_file: results.sarif
           results_format: sarif
@@ -238,15 +236,15 @@ jobs:
       # Upload the results as artifacts (optional). Commenting out will disable uploads of run results in SARIF
       # format to the repository Actions tab.
       - name: "Upload artifact"
-        uses: actions/upload-artifact@6673cd052c4cd6fcf4b4e6e60ea986c889389535 # tag=v3.0.0
+        uses: actions/upload-artifact@0b7f8abb1508181956e8e162db84b466c27e18ce # v3.1.2
         with:
           name: SARIF file
           path: results.sarif
           retention-days: 5
 
-      # Upload the results to GitHub's code scanning dashboard.
-      - name: "Upload to code-scanning"
-        uses: github/codeql-action/upload-sarif@5f532563584d71fdef14ee64d17bafb34f751ce5 # tag=v1.0.26
+      # required for Code scanning alerts
+      - name: "Upload SARIF results to code scanning"
+        uses: github/codeql-action/upload-sarif@83f0fe6c4988d98a455712a27f0255212bba9bd4 # v2.3.6
         with:
           sarif_file: results.sarif
 ```
