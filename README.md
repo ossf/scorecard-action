@@ -110,7 +110,7 @@ Create a Personal Access Token (PAT) for authentication and save the token value
 
 ### Workflow Restrictions
 
-If [publishing results](#publishing-results), Scorecard Action sends results to our API. Our API may reject results from certain workflows, which ultimately causes the job to fail. 
+If [publishing results](#publishing-results), Scorecard Action sends results to our API. Our API fetches the workflow used to send the scores and [enforces certain rules](https://github.com/ossf/scorecard-webapp/blob/9c2f66d5f6ff56ca4a4ac2fba6ec8dcc5379d31c/app/server/post_results.go#L184-L187), which may reject the results and cause the Scorecard Action run to fail. 
 We understand that this is restrictive, but currently it's necessary to ensure the integrity of our API dataset, since GitHub workflow steps run in the same environment as the job they belong to.
 If possible, we will work on making this feature more flexible so we can drop this requirement in the future.
 
