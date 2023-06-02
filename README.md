@@ -30,6 +30,7 @@ ________
 [Manual Action Setup](#manual-action-setup)
 - [Inputs](#inputs)
 - [Publishing Results](#publishing-results)
+- [Workflow Restrictions](#workflow-restrictions)
 - [Uploading Artifacts](#uploading-artifacts)
 - [Workflow Example](#workflow-example)
 ________
@@ -108,29 +109,6 @@ Create a Personal Access Token (PAT) for authentication and save the token value
 
 4. (Optional) If you install Scorecard on a repository owned by an organization that uses [SAML SSO](https://docs.github.com/en/enterprise-cloud@latest/authentication/authenticating-with-saml-single-sign-on/about-authentication-with-saml-single-sign-on), be sure to [enable SSO](https://docs.github.com/en/enterprise-cloud@latest/authentication/authenticating-with-saml-single-sign-on/authorizing-a-personal-access-token-for-use-with-saml-single-sign-on) for your PAT token.
 
-### Workflow Restrictions
-
-If [publishing results](#publishing-results), Scorecard Action sends results to our API. Our API fetches the workflow used to send the scores and [enforces certain rules](https://github.com/ossf/scorecard-webapp/blob/9c2f66d5f6ff56ca4a4ac2fba6ec8dcc5379d31c/app/server/post_results.go#L184-L187), which may reject the results and cause the Scorecard Action run to fail. 
-We understand that this is restrictive, but currently it's necessary to ensure the integrity of our API dataset, since GitHub workflow steps run in the same environment as the job they belong to.
-If possible, we will work on making this feature more flexible so we can drop this requirement in the future.
-
-#### Global workflow restrictions
-
-* The workflow can't contain top level env vars or defaults.
-* No workflow level write permissions.
-* Only the job with `ossf/scorecard-action` can use `id-token: write` permissions.
-
-#### Restrictions on the job containing `ossf/scorecard-action`
-* No job level env vars or defaults.
-* No containers or services
-* The job should run on one of the [Ubuntu hosted runners](https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#choosing-github-hosted-runners)
-* The steps running in this job must belong to this approved list of GitHub actions.
-  * "actions/checkout"
-  * "actions/upload-artifact"
-  * "github/codeql-action/upload-sarif"
-  * "ossf/scorecard-action"
-  * "step-security/harden-runner"
-
 ## View Results
 
 The workflow is preconfigured to run on every repository contribution. After making a code change, you can view the results for the change either through the Scorecard Badge, Code Scanning Alerts or GitHub Workflow Runs.
@@ -193,6 +171,29 @@ available](https://github.com/ossf/scorecard#public-data).
 Setting `publish_results: true` replaces the results of the team's weekly scans with your own scan results,
 helping us scale by cutting down on repeated workflows and GitHub API requests.
 This option is also needed to enable badges on the repository.
+
+### Workflow Restrictions
+
+If [publishing results](#publishing-results), our API [enforces certain rules](https://github.com/ossf/scorecard-webapp/blob/9c2f66d5f6ff56ca4a4ac2fba6ec8dcc5379d31c/app/server/post_results.go#L184-L187) on the producing workflow, which may reject the results and cause the Scorecard Action run to fail. 
+We understand that this is restrictive, but currently it's necessary to ensure the integrity of our API dataset, since GitHub workflow steps run in the same environment as the job they belong to.
+If possible, we will work on making this feature more flexible so we can drop this requirement in the future.
+
+#### Global workflow restrictions
+
+* The workflow can't contain top level env vars or defaults.
+* No workflow level write permissions.
+* Only the job with `ossf/scorecard-action` can use `id-token: write` permissions.
+
+#### Restrictions on the job containing `ossf/scorecard-action`
+* No job level env vars or defaults.
+* No containers or services
+* The job should run on one of the [Ubuntu hosted runners](https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#choosing-github-hosted-runners)
+* The steps running in this job must belong to this approved list of GitHub actions.
+  * "actions/checkout"
+  * "actions/upload-artifact"
+  * "github/codeql-action/upload-sarif"
+  * "ossf/scorecard-action"
+  * "step-security/harden-runner"
 
 ### Uploading Artifacts
 The Scorecards Action uses the [artifact uploader action](https://github.com/actions/upload-artifact) to upload results in SARIF format to the Actions tab. These results are available to anybody for five days after the run to help with debugging. To disable the upload, comment out the `Upload Artifact` value in the Workflow Example.
