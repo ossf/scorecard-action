@@ -10,17 +10,9 @@ The Scorecards GitHub Action is free for all public repositories. Private reposi
 
 Starting from scorecard-action:v2, `GITHUB_TOKEN` permissions or job permissions needs to include
 `id-token: write` for `publish_results: true`. This is needed to access GitHub's
-OIDC token which verifies the authenticity of the result when publishing it.
+OIDC token which verifies the authenticity of the result when publishing it. See details [here](#publishing-results)
 
-scorecard-action:v2 has a new requirement for the job running the ossf/scorecard-action step. The steps running in this job must belong to this approved list of GitHub actions:
-- "actions/checkout"
-- "actions/upload-artifact"
-- "github/codeql-action/upload-sarif"
-- "ossf/scorecard-action"
-
-If you are using custom steps in the job, it may fail.
-We understand that this is restrictive, but currently it's necessary to ensure the integrity of the results that we publish, since GitHub workflow steps run in the same environment as the job they belong to.
-If possible, we will work on making this feature more flexible so we can drop this requirement in the future.
+If publishing results, scorecard-action:v2 also imposes new requirements on both the workflow and the job running the `ossf/scorecard-action` step. For full details see [here](#workflow-restrictions). 
 ________
 [Personal Access Token (PAT) Requirements and Risks](#personal-access-token-pat-requirements-and-risks)
 
@@ -116,6 +108,29 @@ Create a Personal Access Token (PAT) for authentication and save the token value
 
 4. (Optional) If you install Scorecard on a repository owned by an organization that uses [SAML SSO](https://docs.github.com/en/enterprise-cloud@latest/authentication/authenticating-with-saml-single-sign-on/about-authentication-with-saml-single-sign-on), be sure to [enable SSO](https://docs.github.com/en/enterprise-cloud@latest/authentication/authenticating-with-saml-single-sign-on/authorizing-a-personal-access-token-for-use-with-saml-single-sign-on) for your PAT token.
 
+### Workflow Restrictions
+
+If [publishing results](#publishing-results), Scorecard Action sends results to our API. Our API may reject results from certain workflows, which ultimately causes the job to fail. 
+We understand that this is restrictive, but currently it's necessary to ensure the integrity of our API dataset, since GitHub workflow steps run in the same environment as the job they belong to.
+If possible, we will work on making this feature more flexible so we can drop this requirement in the future.
+
+#### Global workflow restrictions
+
+* The workflow can't contain top level env vars or defaults.
+* No workflow level write permissions.
+* Only the job with `ossf/scorecard-action` can use `id-token: write` permissions.
+
+#### Restrictions on the job containing `ossf/scorecard-action`
+* No job level env vars or defaults.
+* No containers or services
+* The job should run on one of the [Ubuntu hosted runners](https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#choosing-github-hosted-runners)
+* The steps running in this job must belong to this approved list of GitHub actions.
+  * "actions/checkout"
+  * "actions/upload-artifact"
+  * "github/codeql-action/upload-sarif"
+  * "ossf/scorecard-action"
+  * "step-security/harden-runner"
+
 ## View Results
 
 The workflow is preconfigured to run on every repository contribution. After making a code change, you can view the results for the change either through the Scorecard Badge, Code Scanning Alerts or GitHub Workflow Runs.
@@ -169,7 +184,7 @@ First, [create a new file](https://docs.github.com/en/repositories/working-with-
 | `result_file` | yes | The file that contains the results. |
 | `result_format` | yes | The format in which to store the results [json \| sarif]. For GitHub's scanning dashboard, select `sarif`. |
 | `repo_token` | no | PAT token with write repository access. Follow [these steps](#authentication-with-pat) to create it. |
-| `publish_results` | recommended | This will allow you to display a badge on your repository to show off your hard work (release scheduled for Q2'22). See details [here](#publishing-results).|
+| `publish_results` | recommended | This will allow you to display a badge on your repository to show off your hard work. See details [here](#publishing-results).|
 
 ### Publishing Results
 The Scorecard team runs a weekly scan of public GitHub repositories in order to track
@@ -177,7 +192,7 @@ the overall security health of the open source ecosystem. The results of the sca
 available](https://github.com/ossf/scorecard#public-data).
 Setting `publish_results: true` replaces the results of the team's weekly scans with your own scan results,
 helping us scale by cutting down on repeated workflows and GitHub API requests.
-This option is also needed to enable badges on the repository (release scheduled for Q2'22).
+This option is also needed to enable badges on the repository.
 
 ### Uploading Artifacts
 The Scorecards Action uses the [artifact uploader action](https://github.com/actions/upload-artifact) to upload results in SARIF format to the Actions tab. These results are available to anybody for five days after the run to help with debugging. To disable the upload, comment out the `Upload Artifact` value in the Workflow Example.
