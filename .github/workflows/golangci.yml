@@ -5,7 +5,8 @@ on:
   pull_request:
     branches: [ main ]
 
-permissions: read-all
+permissions:
+  contents: read
 
 jobs:
   lint:
@@ -15,10 +16,11 @@ jobs:
       matrix:
         os: [ ubuntu-latest ]
     steps:
-      - uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab #v2.4.0
-      - uses: actions/setup-go@fac708d6674e30b6ba41289acaab6d4b75aa0753 #v2.1.5
+      - uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab # v3.5.2
+      - uses: actions/setup-go@fac708d6674e30b6ba41289acaab6d4b75aa0753 # v4.0.1
         with:
-          go-version: '1.18'
-      - uses: golangci/golangci-lint-action@08e2f20817b15149a52b5b3ebe7de50aff2ba8c5
+          go-version-file: go.mod
+          cache: false # golangci/golangci-lint-action maintains its own cache
+      - uses: golangci/golangci-lint-action@5f1fec7010f6ae3b84ea4f7b2129beb8639b564f # v3.5.0
         with:
           only-new-issues: true
