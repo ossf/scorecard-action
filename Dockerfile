@@ -36,7 +36,7 @@ ARG TARGETARCH
 RUN CGO_ENABLED=0 make build
 
 # Need root for GitHub Actions support
-FROM gcr.io/distroless/base@sha256:df13a91fd415eb192a75e2ef7eacf3bb5877bb05ce93064b91b83feef5431f37
+FROM gcr.io/distroless/base@sha256:73deaaf6a207c1a33850257ba74e0f196bc418636cada9943a03d7abea980d6d
 COPY --from=build /src/scorecard-action /
 COPY policies/template.yml /policy.yml
 ENTRYPOINT [ "/scorecard-action" ]
