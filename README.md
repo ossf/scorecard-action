@@ -10,17 +10,9 @@ The Scorecards GitHub Action is free for all public repositories. Private reposi
 
 Starting from scorecard-action:v2, `GITHUB_TOKEN` permissions or job permissions needs to include
 `id-token: write` for `publish_results: true`. This is needed to access GitHub's
-OIDC token which verifies the authenticity of the result when publishing it.
+OIDC token which verifies the authenticity of the result when publishing it. See details [here](#publishing-results)
 
-scorecard-action:v2 has a new requirement for the job running the ossf/scorecard-action step. The steps running in this job must belong to this approved list of GitHub actions:
-- "actions/checkout"
-- "actions/upload-artifact"
-- "github/codeql-action/upload-sarif"
-- "ossf/scorecard-action"
-
-If you are using custom steps in the job, it may fail.
-We understand that this is restrictive, but currently it's necessary to ensure the integrity of the results that we publish, since GitHub workflow steps run in the same environment as the job they belong to.
-If possible, we will work on making this feature more flexible so we can drop this requirement in the future.
+If publishing results, scorecard-action:v2 also imposes new requirements on both the workflow and the job running the `ossf/scorecard-action` step. For full details see [here](#workflow-restrictions). 
 ________
 [Personal Access Token (PAT) Requirements and Risks](#personal-access-token-pat-requirements-and-risks)
 
@@ -38,6 +30,7 @@ ________
 [Manual Action Setup](#manual-action-setup)
 - [Inputs](#inputs)
 - [Publishing Results](#publishing-results)
+- [Workflow Restrictions](#workflow-restrictions)
 - [Uploading Artifacts](#uploading-artifacts)
 - [Workflow Example](#workflow-example)
 ________
@@ -169,7 +162,7 @@ First, [create a new file](https://docs.github.com/en/repositories/working-with-
 | `result_file` | yes | The file that contains the results. |
 | `result_format` | yes | The format in which to store the results [json \| sarif]. For GitHub's scanning dashboard, select `sarif`. |
 | `repo_token` | no | PAT token with write repository access. Follow [these steps](#authentication-with-pat) to create it. |
-| `publish_results` | recommended | This will allow you to display a badge on your repository to show off your hard work (release scheduled for Q2'22). See details [here](#publishing-results).|
+| `publish_results` | recommended | This will allow you to display a badge on your repository to show off your hard work. See details [here](#publishing-results).|
 
 ### Publishing Results
 The Scorecard team runs a weekly scan of public GitHub repositories in order to track
@@ -177,7 +170,30 @@ the overall security health of the open source ecosystem. The results of the sca
 available](https://github.com/ossf/scorecard#public-data).
 Setting `publish_results: true` replaces the results of the team's weekly scans with your own scan results,
 helping us scale by cutting down on repeated workflows and GitHub API requests.
-This option is also needed to enable badges on the repository (release scheduled for Q2'22).
+This option is also needed to enable badges on the repository.
+
+### Workflow Restrictions
+
+If [publishing results](#publishing-results), our API [enforces certain rules](https://github.com/ossf/scorecard-webapp/blob/9c2f66d5f6ff56ca4a4ac2fba6ec8dcc5379d31c/app/server/post_results.go#L184-L187) on the producing workflow, which may reject the results and cause the Scorecard Action run to fail. 
+We understand that this is restrictive, but currently it's necessary to ensure the integrity of our API dataset, since GitHub workflow steps run in the same environment as the job they belong to.
+If possible, we will work on making this feature more flexible so we can drop this requirement in the future.
+
+#### Global workflow restrictions
+
+* The workflow can't contain top level env vars or defaults.
+* No workflow level write permissions.
+* Only the job with `ossf/scorecard-action` can use `id-token: write` permissions.
+
+#### Restrictions on the job containing `ossf/scorecard-action`
+* No job level env vars or defaults.
+* No containers or services
+* The job should run on one of the [Ubuntu hosted runners](https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#choosing-github-hosted-runners)
+* The steps running in this job must belong to this approved list of GitHub actions.
+  * "actions/checkout"
+  * "actions/upload-artifact"
+  * "github/codeql-action/upload-sarif"
+  * "ossf/scorecard-action"
+  * "step-security/harden-runner"
 
 ### Uploading Artifacts
 The Scorecards Action uses the [artifact uploader action](https://github.com/actions/upload-artifact) to upload results in SARIF format to the Actions tab. These results are available to anybody for five days after the run to help with debugging. To disable the upload, comment out the `Upload Artifact` value in the Workflow Example.
@@ -187,7 +203,7 @@ Note: if you disable this option, the results of the Scorecards Action run will 
 ### Workflow Example
 
 ```yml
-name: Scorecards supply-chain security
+name: Scorecard analysis workflow
 on:
   # Only the default branch is supported.
   branch_protection_rule:
@@ -202,24 +218,22 @@ permissions: read-all
 
 jobs:
   analysis:
-    name: Scorecards analysis
+    name: Scorecard analysis
     runs-on: ubuntu-latest
     permissions:
-      # Needed to upload the results to code-scanning dashboard.
+      # Needed if using Code scanning alerts
       security-events: write
-      # Used to receive a badge. (Upcoming feature)
+      # Needed for GitHub OIDC token if publish_results is true
       id-token: write
-      actions: read
-      contents: read
 
     steps:
       - name: "Checkout code"
-        uses: actions/checkout@a12a3943b4bdde767164f792f33f40b04645d846 # tag=v3.0.0
+        uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab # v3.5.2
         with:
           persist-credentials: false
 
       - name: "Run analysis"
-        uses: ossf/scorecard-action@3e15ea8318eee9b333819ec77a36aca8d39df13e # tag=v1.1.1
+        uses: ossf/scorecard-action@80e868c13c90f172d68d1f4501dee99e2479f7af # v2.1.3
         with:
           results_file: results.sarif
           results_format: sarif
@@ -238,15 +252,15 @@ jobs:
       # Upload the results as artifacts (optional). Commenting out will disable uploads of run results in SARIF
       # format to the repository Actions tab.
       - name: "Upload artifact"
-        uses: actions/upload-artifact@6673cd052c4cd6fcf4b4e6e60ea986c889389535 # tag=v3.0.0
+        uses: actions/upload-artifact@0b7f8abb1508181956e8e162db84b466c27e18ce # v3.1.2
         with:
           name: SARIF file
           path: results.sarif
           retention-days: 5
 
-      # Upload the results to GitHub's code scanning dashboard.
-      - name: "Upload to code-scanning"
-        uses: github/codeql-action/upload-sarif@5f532563584d71fdef14ee64d17bafb34f751ce5 # tag=v1.0.26
+      # required for Code scanning alerts
+      - name: "Upload SARIF results to code scanning"
+        uses: github/codeql-action/upload-sarif@83f0fe6c4988d98a455712a27f0255212bba9bd4 # v2.3.6
         with:
           sarif_file: results.sarif
 ```
