@@ -18,14 +18,11 @@ issues:
   # Default: 3
   max-same-issues: 0
   new-from-rev: ""
-  # Fix found issues (if it's supported by the linter).
-  fix: true
 linters:
   disable-all: true
   enable:
     - asciicheck
     - bodyclose
-    - depguard
     - dogsled
     - errcheck
     - errorlint
@@ -62,7 +59,6 @@ linters:
     - rowserrcheck
     - sqlclosecheck
     - staticcheck
-    - structcheck
     - stylecheck
     - thelper
     - tparallel
