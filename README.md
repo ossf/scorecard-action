@@ -70,7 +70,7 @@ GitHub Enterprise repositories are not supported.
 Scorecard can run successfully with the workflow's default `GITHUB_TOKEN`.
 However, the `Branch-Protection` and (experimental) `Webhooks` checks require additional data that isn't accessible with that token.
 
-We therefore suggest (see note below) you create a fine-grained Personal Access Token (PAT) that Scorecard may use for authentication.
+We therefore suggest you create a fine-grained Personal Access Token (PAT) that Scorecard may use for authentication.
 
 1. [Create a fine-grained Personal Access Token](https://github.com/settings/personal-access-tokens/new) with the following settings:
     - Token name: `OpenSSF Scorecard Action - $USER_NAME/$REPO_NAME>`
@@ -85,9 +85,7 @@ We therefore suggest (see note below) you create a fine-grained Personal Access 
 
     **Disclaimer:** `Administration: read-only` lets the token fetch a lot of information about the project's settings
     (for a full list, see the queries marked `(read)` in [GitHub's documentation](https://docs.github.com/en/rest/overview/permissions-required-for-fine-grained-personal-access-tokens?apiVersion=2022-11-28#administration)).
-    Most of these settings are harmless, but there is one that deserves attention:
-    ***the token can fetch all of the repository's [GitHub deploy keys](https://docs.github.com/en/authentication/connecting-to-github-with-ssh/managing-deploy-keys)***.
-    Therefore, if your project relies on deploy keys, please consider whether the benefit is worth the risk.
+    While these settings are usually private, they aren't dangerous and would not endanger the project if they were ever leaked.
 
     "Classic" tokens with `repo` scope also work.
     However, these carry significantly higher risks compared to fine-grained PATs
