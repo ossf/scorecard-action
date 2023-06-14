@@ -16,7 +16,7 @@ If publishing results, scorecard-action:v2 also imposes new requirements on both
 ________
 [Installation](#installation)
 - [Workflow Setup](#workflow-setup-required)
-- [Authentication](#authentication-with-pat-optional)
+- [Authentication](#authentication-with-fine-grained-pat-optional)
 
 [View Results](#view-results)
 - [REST API](#rest-api)
@@ -31,6 +31,8 @@ ________
 - [Workflow Restrictions](#workflow-restrictions)
 - [Uploading Artifacts](#uploading-artifacts)
 - [Workflow Example](#workflow-example)
+
+["Classic" PAT Requirements and Risks](#classic-personal-access-token-pat-requirements-and-risks)
 ________
 
 The following GitHub triggers are supported: `push`, `schedule` (default branch only).
@@ -64,19 +66,35 @@ GitHub Enterprise repositories are not supported.
 
 ![image](/images/install05.png)
 
-### Authentication with Fine-grained Personal Access Token (optional)
-Create a fine-grained Personal Access Token (PAT) for authentication and save the token value as a repository secret.
+### Authentication with Fine-grained PAT (optional)
+Scorecard can run successfully with the workflow's default `GITHUB_TOKEN`.
+However, the `Branch-Protection` and (experimental) `Webhooks` checks require additional data that isn't accessible with that token.
+
+We therefore suggest (see note below) you create a fine-grained Personal Access Token (PAT) that Scorecard may use for authentication.
 
 1. [Create a fine-grained Personal Access Token](https://github.com/settings/personal-access-tokens/new) with the following settings:
-    - Token name: `OpenSSF Scorecard Action - $USER_NAME/$REPO_NAME>` (Note: replace `$USER_NAME/$REPO_NAME` with the names of your organization and repository so you can keep track of your tokens.)
+    - Token name: `OpenSSF Scorecard Action - $USER_NAME/$REPO_NAME>`
+      (Note: replace `$USER_NAME/$REPO_NAME` with the names of your organization and repository so you can keep track of your tokens.)
     - Expiration: Set `Custom` and then set the date to exactly a year in the future (the maximum allowed)
-    - Repository Access: `Only select repositories` and select the desired repository. Alternatively, set `All repositories` if you wish to use the same token for all your repositories.
+    - Repository Access: `Only select repositories` and select the desired repository. 
+      Alternatively, set `All repositories` if you wish to use the same token for all your repositories.
     - Repository Permissions:
         * `Administration: Read-only`: Required to read [Branch-Protection](https://github.com/ossf/scorecard/blob/main/docs/checks.md#branch-protection) settings.
         * `Metadata: Read-only` will be automatically set when you set `Administration`
-        * `Webhooks: Read-only`: (Optional) needed for the experimental [Webhook](https://github.com/ossf/scorecard/blob/main/docs/checks.md#webhooks) check.
-        
-![image](/images/tokenscopes.png)
+        * `Webhooks: Read-only`: (Optional) required for the experimental [Webhook](https://github.com/ossf/scorecard/blob/main/docs/checks.md#webhooks) check.
+
+    **Disclaimer:** `Administration: read-only` lets the token fetch a lot of information about the project's settings
+    (for a full list, see the queries marked `(read)` in [GitHub's documentation](https://docs.github.com/en/rest/overview/permissions-required-for-fine-grained-personal-access-tokens?apiVersion=2022-11-28#administration)).
+    Most of these settings are harmless, but there is one that deserves attention:
+    ***the token can fetch all of the repository's [GitHub deploy keys](https://docs.github.com/en/authentication/connecting-to-github-with-ssh/managing-deploy-keys)***.
+    Therefore, if your project relies on deploy keys, please consider whether the benefit is worth the risk.
+
+    "Classic" tokens with `repo` scope also work.
+    However, these carry significantly higher risks compared to fine-grained PATs
+    (see ["Classic" Personal Access Token (PAT) Requirements and Risks](#classic-personal-access-token-pat-requirements-and-risks))
+    and are therefore strongly discouraged.
+
+    ![image](/images/tokenscopes.png)
 
 2. Copy the token value.
 
@@ -216,7 +234,7 @@ jobs:
           results_format: sarif
           # (Optional) fine-grained personal access token. Uncomment the `repo_token` line below if:
           # - you want to enable the Branch-Protection check on a *public* repository, or
-          # To create the PAT, follow the steps in https://github.com/ossf/scorecard-action#authentication-with-pat.
+          # To create the PAT, follow the steps in https://github.com/ossf/scorecard-action#authentication-with-fine-grained-pat-optional.
           # repo_token: ${{ secrets.SCORECARD_TOKEN }}
 
           # Publish the results for public repositories to enable scorecard badges. For more details, see
@@ -240,3 +258,19 @@ jobs:
         with:
           sarif_file: results.sarif
 ```
+
+## "Classic" Personal Access Token (PAT) Requirements and Risks
+Certain features require a Personal Access Token (PAT).
+We recommend you use a fine-grained token as described in [Authentication](#authentication-with-fine-grained-pat-optional).
+A "classic" PAT also works, but we strongly discourage its use.
+
+Due to a limitation of the "classic" tokens' permission model,
+the PAT needs [write permission to the repository](https://docs.github.com/en/developers/apps/building-oauth-apps/scopes-for-oauth-apps#available-scopes) through the `repo` scope.
+**The PAT will be stored as a [GitHub encrypted secret](https://docs.github.com/en/actions/security-guides/encrypted-secrets)
+and be accessible by all of the repository's workflows and maintainers.**
+This means another maintainer on your project could potentially use the token to impersonate you.
+If there is an exploitable bug in a workflow with write permissions,
+an external contributor could potentially exploit it to extract the PAT.
+
+The only benefit of a "classic" PAT is that it can be set to never expire.
+However, we believe this does not outweigh the significantly higher risk of "classic" PATs compared to fine-grained PATs.
