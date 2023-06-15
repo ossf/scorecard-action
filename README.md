@@ -83,9 +83,9 @@ We therefore suggest you create a fine-grained Personal Access Token (PAT) that 
         * `Metadata: Read-only` will be automatically set when you set `Administration`
         * `Webhooks: Read-only`: (Optional) required for the experimental [Webhook](https://github.com/ossf/scorecard/blob/main/docs/checks.md#webhooks) check.
 
-    **Disclaimer:** `Administration: read-only` lets the token fetch a lot of information about the project's settings
+    **Disclaimer:** Scorecard uses these permissions solely to learn about the project's branch protection rules and webhooks.
+    However, the token can read many of the project's settings
     (for a full list, see the queries marked `(read)` in [GitHub's documentation](https://docs.github.com/en/rest/overview/permissions-required-for-fine-grained-personal-access-tokens?apiVersion=2022-11-28#administration)).
-    While these settings are usually private, they aren't dangerous and would not endanger the project if they were ever leaked.
 
     "Classic" tokens with `repo` scope also work.
     However, these carry significantly higher risks compared to fine-grained PATs
