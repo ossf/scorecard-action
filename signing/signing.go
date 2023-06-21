@@ -23,6 +23,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"net/url"
 	"os"
@@ -39,6 +40,13 @@ import (
 var (
 	errorEmptyToken   = errors.New("error token empty")
 	errorInvalidToken = errors.New("invalid token")
+
+	// backoff schedule for interactions with cosign + rekor.
+	backoffSchedule = []time.Duration{
+		1 * time.Second,
+		3 * time.Second,
+		10 * time.Second,
+	}
 )
 
 // Signing is a signing structure.
@@ -79,10 +87,22 @@ func (s *Signing) SignScorecardResult(scorecardResultsFile string) error {
 		SkipConfirmation: true, // skip cosign's privacy confirmation prompt as we run non-interactively
 	}
 
-	// This command will use the provided OIDCIssuer to authenticate into Fulcio, which will generate the
-	// signing certificate on the scorecard result. This attestation is then uploaded to the Rekor transparency log.
-	// The output bytes (signature) and certificate are discarded since verification can be done with just the payload.
-	if _, err := sign.SignBlobCmd(rootOpts, keyOpts, scorecardResultsFile, true, "", "", true); err != nil {
+	var err error
+	for _, backoff := range backoffSchedule {
+		// This command will use the provided OIDCIssuer to authenticate into Fulcio, which will generate the
+		// signing certificate on the scorecard result. This attestation is then uploaded to the Rekor transparency log.
+		// The output bytes (signature) and certificate are discarded since verification can be done with just the payload.
+		_, err = sign.SignBlobCmd(rootOpts, keyOpts, scorecardResultsFile, true, "", "", true)
+		if err == nil {
+			break
+		}
+		log.Printf("error signing scorecard results: %v\n", err)
+		log.Printf("retrying in %v...\n", backoff)
+		time.Sleep(backoff)
+	}
+
+	// retries failed
+	if err != nil {
 		return fmt.Errorf("error signing payload: %w", err)
 	}
 
