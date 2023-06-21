@@ -18,6 +18,9 @@ package signing
 
 import (
 	"fmt"
+	"net/http"
+	"net/http/httptest"
+	"net/url"
 	"os"
 	"testing"
 
@@ -96,5 +99,43 @@ func Test_ProcessSignature(t *testing.T) {
 	if err := s.ProcessSignature(jsonPayload, repoName, repoRef); err != nil {
 		t.Errorf("ProcessSignature() error:, %v", err)
 		return
+	}
+}
+
+func Test_postResults(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name    string
+		status  int
+		wantErr bool
+	}{
+		{
+			name:    "post succeeds",
+			status:  http.StatusCreated,
+			wantErr: false,
+		},
+		{
+			name:    "post failed",
+			status:  http.StatusBadRequest,
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				w.WriteHeader(tt.status)
+			}))
+			t.Cleanup(server.Close)
+			endpoint, err := url.Parse(server.URL)
+			if err != nil {
+				t.Fatalf("unexpected error: url.Parse: %v", err)
+			}
+			err = postResults(endpoint, []byte{})
+			if (err != nil) != tt.wantErr {
+				t.Fatalf("postResults() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
 	}
 }
