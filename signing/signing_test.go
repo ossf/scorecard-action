@@ -17,12 +17,11 @@
 package signing
 
 import (
-	"fmt"
 	"net/http"
 	"net/http/httptest"
-	"net/url"
 	"os"
 	"testing"
+	"time"
 
 	"github.com/ossf/scorecard-action/options"
 )
@@ -78,64 +77,63 @@ import (
 // 	}
 // }
 
-// Test using scorecard results that have already been signed & uploaded.
-func Test_ProcessSignature(t *testing.T) {
-	t.Parallel()
-
-	jsonPayload, err := os.ReadFile("testdata/results.json")
-	repoName := "ossf-tests/scorecard-action"
-	repoRef := "refs/heads/main"
-	accessToken := os.Getenv("GITHUB_AUTH_TOKEN")
-	os.Setenv(options.EnvInputInternalPublishBaseURL, "https://api.securityscorecards.dev")
-
-	if err != nil {
-		t.Errorf("Error reading testdata:, %v", err)
-	}
-
-	s, err := New(accessToken)
-	if err != nil {
-		panic(fmt.Sprintf("error SigningNew: %v", err))
-	}
-	if err := s.ProcessSignature(jsonPayload, repoName, repoRef); err != nil {
-		t.Errorf("ProcessSignature() error:, %v", err)
-		return
-	}
-}
-
-func Test_postResults(t *testing.T) {
-	t.Parallel()
+//nolint:paralleltest // we are using t.Setenv
+func TestProcessSignature(t *testing.T) {
 	tests := []struct {
-		name    string
-		status  int
-		wantErr bool
+		name        string
+		payloadPath string
+		status      int
+		wantErr     bool
 	}{
 		{
-			name:    "post succeeds",
-			status:  http.StatusCreated,
-			wantErr: false,
+			name:        "post succeeded",
+			status:      http.StatusCreated,
+			payloadPath: "testdata/results.json",
+			wantErr:     false,
 		},
 		{
-			name:    "post failed",
-			status:  http.StatusBadRequest,
-			wantErr: true,
+			name:        "post failed",
+			status:      http.StatusBadRequest,
+			payloadPath: "testdata/results.json",
+			wantErr:     true,
 		},
 	}
+	// use smaller backoffs for the test so they run faster
+	setBackoffs(t, []time.Duration{0, time.Millisecond, 2 * time.Millisecond})
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
+			jsonPayload, err := os.ReadFile(tt.payloadPath)
+			if err != nil {
+				t.Fatalf("Unexpected error reading testdata: %v", err)
+			}
+			repoName := "ossf-tests/scorecard-action"
+			repoRef := "refs/heads/main"
+			//nolint:gosec // dummy credentials
+			accessToken := "ghs_foo"
 			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 				w.WriteHeader(tt.status)
 			}))
+			t.Setenv(options.EnvInputInternalPublishBaseURL, server.URL)
 			t.Cleanup(server.Close)
-			endpoint, err := url.Parse(server.URL)
+
+			s, err := New(accessToken)
 			if err != nil {
-				t.Fatalf("unexpected error: url.Parse: %v", err)
+				t.Fatalf("Unexpected error New: %v", err)
 			}
-			err = postResults(endpoint, []byte{})
+			err = s.ProcessSignature(jsonPayload, repoName, repoRef)
 			if (err != nil) != tt.wantErr {
-				t.Fatalf("postResults() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("ProcessSignature() error: %v, wantErr: %v", err, tt.wantErr)
 			}
 		})
 	}
+}
+
+// temporarily sets the backoffs for a given test.
+func setBackoffs(t *testing.T, newBackoffs []time.Duration) {
+	t.Helper()
+	old := backoffSchedule
+	backoffSchedule = newBackoffs
+	t.Cleanup(func() {
+		backoffSchedule = old
+	})
 }
