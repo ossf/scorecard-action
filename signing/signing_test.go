@@ -128,6 +128,71 @@ func TestProcessSignature(t *testing.T) {
 	}
 }
 
+//nolint:paralleltest // we are using t.Setenv
+func TestProcessSignature_retries(t *testing.T) {
+	tests := []struct {
+		name          string
+		nFailures     int
+		wantNRequests int
+		wantErr       bool
+	}{
+		{
+			name:          "succeeds immediately",
+			nFailures:     0,
+			wantNRequests: 1,
+			wantErr:       false,
+		},
+		{
+			name:          "one retry",
+			nFailures:     1,
+			wantNRequests: 2,
+			wantErr:       false,
+		},
+		{
+			// limit corresponds to backoffs set in test body
+			name:          "retry limit exceeded",
+			nFailures:     4,
+			wantNRequests: 3,
+			wantErr:       true,
+		},
+	}
+	// use smaller backoffs for the test so they run faster
+	setBackoffs(t, []time.Duration{0, time.Millisecond, 2 * time.Millisecond})
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var jsonPayload []byte
+			repoName := "ossf-tests/scorecard-action"
+			repoRef := "refs/heads/main"
+			//nolint:gosec // dummy credentials
+			accessToken := "ghs_foo"
+			var nRequests int
+			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				nRequests++
+				status := http.StatusCreated
+				if tt.nFailures > 0 {
+					status = http.StatusBadRequest
+					tt.nFailures--
+				}
+				w.WriteHeader(status)
+			}))
+			t.Setenv(options.EnvInputInternalPublishBaseURL, server.URL)
+			t.Cleanup(server.Close)
+
+			s, err := New(accessToken)
+			if err != nil {
+				t.Fatalf("Unexpected error New: %v", err)
+			}
+			err = s.ProcessSignature(jsonPayload, repoName, repoRef)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("ProcessSignature() error: %v, wantErr: %v", err, tt.wantErr)
+			}
+			if nRequests != tt.wantNRequests {
+				t.Errorf("ProcessSignature() made %d requests, wanted %d", nRequests, tt.wantNRequests)
+			}
+		})
+	}
+}
+
 // temporarily sets the backoffs for a given test.
 func setBackoffs(t *testing.T, newBackoffs []time.Duration) {
 	t.Helper()
