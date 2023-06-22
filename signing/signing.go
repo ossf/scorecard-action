@@ -14,6 +14,7 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
+// Package signing provides functionality to sign and upload results to the Scorecard API.
 package signing
 
 import (
@@ -23,6 +24,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"net/url"
 	"os"
@@ -39,6 +41,13 @@ import (
 var (
 	errorEmptyToken   = errors.New("error token empty")
 	errorInvalidToken = errors.New("invalid token")
+
+	// backoff schedule for interactions with cosign/rekor and our web API.
+	backoffSchedule = []time.Duration{
+		1 * time.Second,
+		3 * time.Second,
+		10 * time.Second,
+	}
 )
 
 // Signing is a signing structure.
@@ -79,10 +88,22 @@ func (s *Signing) SignScorecardResult(scorecardResultsFile string) error {
 		SkipConfirmation: true, // skip cosign's privacy confirmation prompt as we run non-interactively
 	}
 
-	// This command will use the provided OIDCIssuer to authenticate into Fulcio, which will generate the
-	// signing certificate on the scorecard result. This attestation is then uploaded to the Rekor transparency log.
-	// The output bytes (signature) and certificate are discarded since verification can be done with just the payload.
-	if _, err := sign.SignBlobCmd(rootOpts, keyOpts, scorecardResultsFile, true, "", "", true); err != nil {
+	var err error
+	for _, backoff := range backoffSchedule {
+		// This command will use the provided OIDCIssuer to authenticate into Fulcio, which will generate the
+		// signing certificate on the scorecard result. This attestation is then uploaded to the Rekor transparency log.
+		// The output bytes (signature) and certificate are discarded since verification can be done with just the payload.
+		_, err = sign.SignBlobCmd(rootOpts, keyOpts, scorecardResultsFile, true, "", "", true)
+		if err == nil {
+			break
+		}
+		log.Printf("error signing scorecard results: %v\n", err)
+		log.Printf("retrying in %v...\n", backoff)
+		time.Sleep(backoff)
+	}
+
+	// retries failed
+	if err != nil {
 		return fmt.Errorf("error signing payload: %w", err)
 	}
 
@@ -133,15 +154,34 @@ func (s *Signing) ProcessSignature(jsonPayload []byte, repoName, repoRef string)
 		return fmt.Errorf("marshalling json results: %w", err)
 	}
 
-	// Call scorecard-webapp-api to process and upload signature.
-	// Setup HTTP request and context.
 	apiURL := os.Getenv(options.EnvInputInternalPublishBaseURL)
 	rawURL := fmt.Sprintf("%s/projects/github.com/%s", apiURL, repoName)
-	parsedURL, err := url.Parse(rawURL)
+	postURL, err := url.Parse(rawURL)
 	if err != nil {
 		return fmt.Errorf("parsing Scorecard API endpoint: %w", err)
 	}
-	req, err := http.NewRequest("POST", parsedURL.String(), bytes.NewBuffer(payloadBytes))
+
+	for _, backoff := range backoffSchedule {
+		// Call scorecard-webapp-api to process and upload signature.
+		err = postResults(postURL, payloadBytes)
+		if err == nil {
+			break
+		}
+		log.Printf("error sending scorecard results to webapp: %v\n", err)
+		log.Printf("retrying in %v...\n", backoff)
+		time.Sleep(backoff)
+	}
+
+	// retries failed
+	if err != nil {
+		return fmt.Errorf("error sending scorecard results to webapp: %w", err)
+	}
+
+	return nil
+}
+
+func postResults(endpoint *url.URL, payload []byte) error {
+	req, err := http.NewRequest("POST", endpoint.String(), bytes.NewBuffer(payload))
 	if err != nil {
 		return fmt.Errorf("creating HTTP request: %w", err)
 	}
