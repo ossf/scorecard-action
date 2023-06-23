@@ -17,31 +17,16 @@ jobs:
     permissions:
       id-token: write # Needed to pick up on signing with a GitHub workflow identity.
     steps:
-      - uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 #v2.4.0
-        # https://github.com/mvdan/github-actions-golang#how-do-i-set-up-caching-between-builds
-      - uses: actions/cache@88522ab9f39a2ea568f7027eddc7d8d8bc9d59c8 #v2.1.7
+      - uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3.5.3
+      - uses: actions/setup-go@fac708d6674e30b6ba41289acaab6d4b75aa0753 # v4.0.1
         with:
-          # In order:
-          # * Module download cache
-          # * Build cache (Linux)
-          # * Build cache (Mac)
-          # * Build cache (Windows)
-          path: |
-            ~/go/pkg/mod
-            ~/.cache/go-build
-            ~/Library/Caches/go-build
-            %LocalAppData%\go-build
-          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
-          restore-keys: |
-            ${{ runner.os }}-go-
-      - uses: actions/setup-go@fac708d6674e30b6ba41289acaab6d4b75aa0753 #v2.1.5
-        with:
-          go-version: '1.18'
+          go-version-file: go.mod
+          cache: true
       - name: Run Go tests
         # cannot run tests with race because we are mutating state (setting ENV variables)
         run: GITHUB_AUTH_TOKEN=${{ secrets.GITHUB_TOKEN }} go test -covermode=atomic  -coverprofile=unit-coverage.out ./...
       - name: Upload codecoverage
-        uses: codecov/codecov-action@eaaf4bedf32dbdc6b720b63067d99c4d77d6047d # 2.1.0
+        uses: codecov/codecov-action@eaaf4bedf32dbdc6b720b63067d99c4d77d6047d # v3.1.4
         with:
          files: ./unit-coverage.out
          verbose: true
@@ -53,28 +38,12 @@ jobs:
       matrix:
         os: [ ubuntu-latest ]
     steps:
-      - uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 #v2.4.0
-        # https://github.com/mvdan/github-actions-golang#how-do-i-set-up-caching-between-builds
-      - uses: actions/cache@88522ab9f39a2ea568f7027eddc7d8d8bc9d59c8 #v2.1.7
+      - uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3.5.3
+      - uses: actions/setup-go@fac708d6674e30b6ba41289acaab6d4b75aa0753 # v4.0.1
         with:
-          # In order:
-          # * Module download cache
-          # * Build cache (Linux)
-          # * Build cache (Mac)
-          # * Build cache (Windows)
-          path: |
-            ~/go/pkg/mod
-            ~/.cache/go-build
-            ~/Library/Caches/go-build
-            %LocalAppData%\go-build
-          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
-          restore-keys: |
-            ${{ runner.os }}-go-
-      - uses: actions/setup-go@fac708d6674e30b6ba41289acaab6d4b75aa0753 #v2.1.5
-        with:
-          go-version: '1.19.x'
+          go-version-file: go.mod
+          cache: true
       - name: Run Go verify
         run: |
             go mod tidy && go mod verify
             git diff --exit-code
-
