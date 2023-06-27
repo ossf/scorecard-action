@@ -7,7 +7,7 @@ require (
 	github.com/google/go-cmp v0.5.9
 	github.com/google/go-github/v46 v46.0.0
 	github.com/ossf/scorecard/v4 v4.11.0
-	github.com/sigstore/cosign/v2 v2.1.0
+	github.com/sigstore/cosign/v2 v2.1.1
 	github.com/spf13/cobra v1.7.0
 	golang.org/x/net v0.11.0
 )
@@ -183,7 +183,7 @@ require (
 	github.com/shurcooL/graphql v0.0.0-20220606043923-3cf50f8a0a29 // indirect
 	github.com/sigstore/fulcio v1.3.1 // indirect
 	github.com/sigstore/rekor v1.2.2-0.20230530122220-67cc9e58bd23 // indirect
-	github.com/sigstore/sigstore v1.7.0 // indirect
+	github.com/sigstore/sigstore v1.7.1 // indirect
 	github.com/sigstore/timestamp-authority v1.1.1 // indirect
 	github.com/sirupsen/logrus v1.9.3 // indirect
 	github.com/skeema/knownhosts v1.1.1 // indirect
