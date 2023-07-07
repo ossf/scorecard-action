@@ -128,6 +128,45 @@ func TestProcessSignature(t *testing.T) {
 	}
 }
 
+func Test_extractTlogIndex(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name       string
+		bundlePath string
+		want       int64
+		wantErr    bool
+	}{
+		{
+			name:       "valid bundle",
+			bundlePath: "testdata/cosign.bundle",
+			want:       23548006,
+		},
+		{
+			name:       "invalid bundle",
+			bundlePath: "testdata/invalid-cosign.bundle",
+			wantErr:    true,
+		},
+		{
+			name:       "missing bundle",
+			bundlePath: "testdata/does-not-exist.bundle",
+			wantErr:    true,
+		},
+	}
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			got, err := extractTlogIndex(tt.bundlePath)
+			if (err != nil) != tt.wantErr {
+				t.Fatalf("unexpected err: %v, wantErr: %t", err, tt.wantErr)
+			}
+			if got != tt.want {
+				t.Errorf("wrong tlog index: got %d, wanted %d", got, tt.want)
+			}
+		})
+	}
+}
+
 //nolint:paralleltest // we are using t.Setenv
 func TestProcessSignature_retries(t *testing.T) {
 	tests := []struct {

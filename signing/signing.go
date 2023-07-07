@@ -33,6 +33,7 @@ import (
 
 	sigOpts "github.com/sigstore/cosign/v2/cmd/cosign/cli/options"
 	"github.com/sigstore/cosign/v2/cmd/cosign/cli/sign"
+	"github.com/sigstore/cosign/v2/pkg/cosign"
 
 	"github.com/ossf/scorecard-action/entrypoint"
 	"github.com/ossf/scorecard-action/options"
@@ -52,7 +53,8 @@ var (
 
 // Signing is a signing structure.
 type Signing struct {
-	token string
+	token          string
+	rekorTlogIndex int64
 }
 
 // New creates a new Signing instance.
@@ -78,6 +80,14 @@ func New(token string) (*Signing, error) {
 
 // SignScorecardResult signs the results file and uploads the attestation to the Rekor transparency log.
 func (s *Signing) SignScorecardResult(scorecardResultsFile string) error {
+	f, err := os.CreateTemp("", "bundle")
+	if err != nil {
+		return fmt.Errorf("creating temporary bundle file: %w", err)
+	}
+	bundlePath := f.Name()
+	f.Close()
+	defer os.Remove(bundlePath) // clean up
+
 	// Prepare settings for SignBlobCmd.
 	rootOpts := &sigOpts.RootOptions{Timeout: sigOpts.DefaultTimeout} // Just the timeout.
 	keyOpts := sigOpts.KeyOpts{
@@ -86,9 +96,9 @@ func (s *Signing) SignScorecardResult(scorecardResultsFile string) error {
 		OIDCIssuer:       sigOpts.DefaultOIDCIssuerURL, // OIDC provider to get ID token to auth for Fulcio.
 		OIDCClientID:     "sigstore",
 		SkipConfirmation: true, // skip cosign's privacy confirmation prompt as we run non-interactively
+		BundlePath:       bundlePath,
 	}
 
-	var err error
 	for _, backoff := range backoffSchedule {
 		// This command will use the provided OIDCIssuer to authenticate into Fulcio, which will generate the
 		// signing certificate on the scorecard result. This attestation is then uploaded to the Rekor transparency log.
@@ -106,6 +116,12 @@ func (s *Signing) SignScorecardResult(scorecardResultsFile string) error {
 	if err != nil {
 		return fmt.Errorf("error signing payload: %w", err)
 	}
+
+	rekorTlogIndex, err := extractTlogIndex(bundlePath)
+	if err != nil {
+		return err
+	}
+	s.rekorTlogIndex = rekorTlogIndex
 
 	return nil
 }
@@ -143,10 +159,12 @@ func (s *Signing) ProcessSignature(jsonPayload []byte, repoName, repoRef string)
 		Result      string `json:"result"`
 		Branch      string `json:"branch"`
 		AccessToken string `json:"accessToken"`
+		TlogIndex   int64  `json:"tlogIndex"`
 	}{
 		Result:      string(jsonPayload),
 		Branch:      repoRef,
 		AccessToken: s.token,
+		TlogIndex:   s.rekorTlogIndex,
 	}
 
 	payloadBytes, err := json.Marshal(resultsPayload)
@@ -208,4 +226,17 @@ func postResults(endpoint *url.URL, payload []byte) error {
 	}
 
 	return nil
+}
+
+func extractTlogIndex(bundlePath string) (int64, error) {
+	contents, err := os.ReadFile(bundlePath)
+	if err != nil {
+		return 0, fmt.Errorf("reading cosign bundle file: %w", err)
+	}
+	var payload cosign.LocalSignedPayload
+	err = json.Unmarshal(contents, &payload)
+	if err != nil || payload.Bundle == nil {
+		return 0, fmt.Errorf("invalid cosign bundle file: %w", err)
+	}
+	return payload.Bundle.Payload.LogIndex, nil
 }
