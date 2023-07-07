@@ -14,6 +14,7 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
+// Package github interacts with GitHub repos and orgs.
 package github
 
 import (
