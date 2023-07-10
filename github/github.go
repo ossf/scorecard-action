@@ -101,6 +101,13 @@ func (c *Client) ParseFromURL(baseRepoURL, repoName string) (RepoInfo, error) {
 		return ret, fmt.Errorf("error creating request: %w", err)
 	}
 
+	// authenticate the request if there is a token
+	// this will lower the change of hitting the rate limit
+	auth, present := os.LookupEnv("GITHUB_AUTH_TOKEN")
+	if present {
+		req.SetBasicAuth("x", auth)
+	}
+
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return ret, fmt.Errorf("error creating request: %w", err)
