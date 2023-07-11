@@ -191,7 +191,7 @@ If possible, we will work on making this feature more flexible so we can drop th
 ### Uploading Artifacts
 The Scorecards Action uses the [artifact uploader action](https://github.com/actions/upload-artifact) to upload results in SARIF format to the Actions tab. These results are available to anybody for five days after the run to help with debugging. To disable the upload, comment out the `Upload Artifact` value in the Workflow Example.
 
-Note: if you disable this option, the results of the Scorecards Action run will be available only to maintainers (on the Security tab scanning dashboard).
+Note: if you disable this option, the results of the Scorecards Action run will be only available to people with write access or more. You can find the results on the Security tab scanning dashboard).
 
 ### Workflow Example
 
