@@ -14,7 +14,7 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
-// Package install contains functionality to install the OpenSSF Scorecard workflow
+// Package install contains functionality to install the OpenSSF Scorecard workflow.
 package install
 
 import (
