@@ -14,6 +14,7 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
+// Package cli contains the root CLI command.
 package cli
 
 import (

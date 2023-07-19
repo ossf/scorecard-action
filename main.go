@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// Command scorecard-action is the entrypoint for the Scorecard GitHub Action.
 package main
 
 import (

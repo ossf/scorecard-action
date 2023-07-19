@@ -14,6 +14,7 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
+// Package options provides installation options for the scorecard action.
 package options
 
 import (
