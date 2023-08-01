@@ -85,11 +85,7 @@ func (c *Client) ParseFromURL(baseRepoURL, repoName string) (RepoInfo, error) {
 	if err != nil {
 		return ret, fmt.Errorf("parsing base repo URL: %w", err)
 	}
-
-	repoURL, err := baseURL.Parse(fmt.Sprintf("repos/%s", repoName))
-	if err != nil {
-		return ret, fmt.Errorf("parsing repo endpoint: %w", err)
-	}
+	repoURL := baseURL.JoinPath(fmt.Sprintf("repos/%s", repoName))
 
 	log.Printf("getting repo info from URL: %s", repoURL.String())
 	//nolint:noctx
