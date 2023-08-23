@@ -272,3 +272,8 @@ an external contributor could potentially exploit it to extract the PAT.
 
 The only benefit of a "classic" PAT is that it can be set to never expire.
 However, we believe this does not outweigh the significantly higher risk of "classic" PATs compared to fine-grained PATs.
+
+## Reporting vulnerabilities
+
+If you find a vulnerability, please report it to us!
+See [SECURITY.md](./SECURITY.md) for more information.
