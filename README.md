@@ -33,6 +33,8 @@ ________
 - [Workflow Example](#workflow-example)
 
 ["Classic" PAT Requirements and Risks](#classic-personal-access-token-pat-requirements-and-risks)
+
+[Reporting vulnerabilities](#reporting-vulnerabilities)
 ________
 
 The following GitHub triggers are supported: `push`, `schedule` (default branch only).
