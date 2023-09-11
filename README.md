@@ -104,7 +104,7 @@ We therefore suggest you create a fine-grained Personal Access Token (PAT) that 
 
     Note that fine-grained tokens expire after one year. You'll receive an email from GitHub when your token is about to expire, at which point you must regenerate it. Make sure to update the token string in your repository's secrets.
 
-4. When you call the `ossf/scorecard-action` in your workflow, pass the token as `repo-token: ${{ secrets.SCORECARD_TOKEN }}`.
+4. When you call the `ossf/scorecard-action` in your workflow, pass the token as `repo_token: ${{ secrets.SCORECARD_TOKEN }}`.
 
 ## View Results
 
