@@ -16,7 +16,7 @@ updates:
   - package-ecosystem: "docker"
     directory: /
     schedule:
-      interval: "daily"
+      interval: "weekly"
     commit-message:
       prefix: ":seedling:"
     groups:
