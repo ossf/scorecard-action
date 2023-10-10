@@ -3,20 +3,26 @@ updates:
   # Maintain dependencies for GitHub Actions
   - package-ecosystem: "github-actions"
     directory: "/"
-    open-pull-requests-limit: 20
     schedule:
       interval: "weekly"
     commit-message:
       prefix: ":seedling:"
-      
+    groups:
+      github-actions:
+        patterns:
+          - "*"
+
   # Maintain dependencies for Docker
   - package-ecosystem: "docker"
     directory: /
-    open-pull-requests-limit: 20
     schedule:
-      interval: "daily"
+      interval: "weekly"
     commit-message:
       prefix: ":seedling:"
+    groups:
+      docker-images:
+        patterns:
+          - "*"
 
   # Maintain dependencies for go
   - package-ecosystem: "gomod"
