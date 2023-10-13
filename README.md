@@ -72,7 +72,7 @@ However, Scorecard Action requires additional permissions if you use GitHub's cl
 You can read more about how to configure Scorecard Action for these cases [here](/docs/authentication/fine-grained-auth-token.md).
 
 GitHub's new [Repository Rules](https://docs.github.com/repositories/configuring-branches-and-merges-in-your-repository/managing-rulesets/about-rulesets) are accessible to Scorecard Action with the workflow's default `GITHUB_TOKEN`. 
-We recommend new repositories use Repository Rules so they work with the default GitHub token. 
+We recommend new repositories use Repository Rules so they can be read with the default GitHub token. 
 Repositories that already use classic Branch Protection and wish to see their results without an admin token should consider migrating to Repository Rules.
 
 ## View Results
