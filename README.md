@@ -32,8 +32,6 @@ ________
 - [Uploading Artifacts](#uploading-artifacts)
 - [Workflow Example](#workflow-example)
 
-["Classic" PAT Requirements and Risks](#classic-personal-access-token-pat-requirements-and-risks)
-
 [Reporting vulnerabilities](#reporting-vulnerabilities)
 ________
 
@@ -69,42 +67,13 @@ GitHub Enterprise repositories are not supported.
 ![image](/images/install05.png)
 
 ### Authentication with Fine-grained PAT (optional)
-Scorecard can run successfully with the workflow's default `GITHUB_TOKEN`.
-However, the `Branch-Protection` and (experimental) `Webhooks` checks require additional data that isn't accessible with that token.
+Scorecard can run successfully with the workflow's default `GITHUB_TOKEN`, which is our recommended approach.
+However, Scorecard Action requires additional permissions if you use GitHub's classic [Branch Protection](https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-protected-branches/about-protected-branches) settings and want to see it reflected in your results.
+You can read more about how to configure Scorecard Action for these cases [here](/docs/authentication/fine-grained-auth-token.md).
 
-We therefore suggest you create a fine-grained Personal Access Token (PAT) that Scorecard may use for authentication.
-
-1. [Create a fine-grained Personal Access Token](https://github.com/settings/personal-access-tokens/new) with the following settings:
-    - Token name: `OpenSSF Scorecard Action - $USER_NAME/$REPO_NAME>`
-      (Note: replace `$USER_NAME/$REPO_NAME` with the names of your organization and repository so you can keep track of your tokens.)
-    - Expiration: Set `Custom` and then set the date to exactly a year in the future (the maximum allowed)
-    - Repository Access: `Only select repositories` and select the desired repository. 
-      Alternatively, set `All repositories` if you wish to use the same token for all your repositories.
-    - Repository Permissions:
-        * `Administration: Read-only`: Required to read [Branch-Protection](https://github.com/ossf/scorecard/blob/main/docs/checks.md#branch-protection) settings.
-        * `Metadata: Read-only` will be automatically set when you set `Administration`
-        * `Webhooks: Read-only`: (Optional) required for the experimental [Webhook](https://github.com/ossf/scorecard/blob/main/docs/checks.md#webhooks) check.
-
-    **Disclaimer:** Scorecard uses these permissions solely to learn about the project's branch protection rules and webhooks.
-    However, the token can read many of the project's settings
-    (for a full list, see the queries marked `(read)` in [GitHub's documentation](https://docs.github.com/en/rest/overview/permissions-required-for-fine-grained-personal-access-tokens?apiVersion=2022-11-28#administration)).
-
-    "Classic" tokens with `repo` scope also work.
-    However, these carry significantly higher risks compared to fine-grained PATs
-    (see ["Classic" Personal Access Token (PAT) Requirements and Risks](#classic-personal-access-token-pat-requirements-and-risks))
-    and are therefore strongly discouraged.
-
-    ![image](/images/tokenscopes.png)
-
-2. Copy the token value.
-
-3. [Create a new repository secret](https://docs.github.com/en/actions/security-guides/encrypted-secrets#creating-encrypted-secrets-for-a-repository) with the following settings (**Warning:** [GitHub encrypted secrets](https://docs.github.com/en/actions/security-guides/encrypted-secrets) are accessible by all the workflows and maintainers of a repository.):
-    - Name: `SCORECARD_TOKEN`
-    - Value: the value of the token created in step 1 above.
-
-    Note that fine-grained tokens expire after one year. You'll receive an email from GitHub when your token is about to expire, at which point you must regenerate it. Make sure to update the token string in your repository's secrets.
-
-4. When you call the `ossf/scorecard-action` in your workflow, pass the token as `repo_token: ${{ secrets.SCORECARD_TOKEN }}`.
+GitHub's new [Repository Rules](https://docs.github.com/repositories/configuring-branches-and-merges-in-your-repository/managing-rulesets/about-rulesets) are accessible to Scorecard Action with the workflow's default `GITHUB_TOKEN`. 
+We recommend new repositories use Repository Rules so they work with the default GitHub token. 
+Repositories that already use classic Branch Protection and wish to see their results without an admin token should consider migrating to Repository Rules.
 
 ## View Results
 
@@ -156,7 +125,7 @@ First, [create a new file](https://docs.github.com/en/repositories/working-with-
 | ----- | -------- | ----------- |
 | `result_file` | yes | The file that contains the results. |
 | `result_format` | yes | The format in which to store the results [json \| sarif]. For GitHub's scanning dashboard, select `sarif`. |
-| `repo_token` | no | PAT token with write repository access. Follow [these steps](#authentication-with-pat) to create it. |
+| `repo_token` | no | PAT token with repository read access. Follow [these steps](/docs/authentication/fine-grained-auth-token.md) to create it. |
 | `publish_results` | recommended | This will allow you to display a badge on your repository to show off your hard work. See details [here](#publishing-results).|
 
 ### Publishing Results
@@ -258,22 +227,6 @@ jobs:
         with:
           sarif_file: results.sarif
 ```
-
-## "Classic" Personal Access Token (PAT) Requirements and Risks
-Certain features require a Personal Access Token (PAT).
-We recommend you use a fine-grained token as described in [Authentication](#authentication-with-fine-grained-pat-optional).
-A "classic" PAT also works, but we strongly discourage its use.
-
-Due to a limitation of the "classic" tokens' permission model,
-the PAT needs [write permission to the repository](https://docs.github.com/en/developers/apps/building-oauth-apps/scopes-for-oauth-apps#available-scopes) through the `repo` scope.
-**The PAT will be stored as a [GitHub encrypted secret](https://docs.github.com/en/actions/security-guides/encrypted-secrets)
-and be accessible by all of the repository's workflows and maintainers.**
-This means another maintainer on your project could potentially use the token to impersonate you.
-If there is an exploitable bug in a workflow with write permissions,
-an external contributor could potentially exploit it to extract the PAT.
-
-The only benefit of a "classic" PAT is that it can be set to never expire.
-However, we believe this does not outweigh the significantly higher risk of "classic" PATs compared to fine-grained PATs.
 
 ## Reporting vulnerabilities
 
