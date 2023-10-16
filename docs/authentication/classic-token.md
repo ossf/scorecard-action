@@ -1,6 +1,6 @@
 # "Classic" Personal Access Token (PAT) Requirements and Risks
 Certain features require a Personal Access Token (PAT).
-We recommend you use a fine-grained token as described in [Authentication](/docs/authentication/fine-grained-auth-token.md).
+We recommend you use a fine-grained token as described in [Authentication with Fine-grained PAT](/docs/authentication/fine-grained-auth-token.md).
 A "classic" PAT also works, but we strongly discourage its use.
 
 Due to a limitation of the "classic" tokens' permission model,
