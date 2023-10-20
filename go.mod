@@ -6,7 +6,7 @@ require (
 	github.com/caarlos0/env/v6 v6.10.1
 	github.com/google/go-cmp v0.6.0
 	github.com/google/go-github/v46 v46.0.0
-	github.com/ossf/scorecard/v4 v4.13.0
+	github.com/ossf/scorecard/v4 v4.13.1
 	github.com/sigstore/cosign/v2 v2.2.0
 	github.com/spf13/cobra v1.7.0
 	golang.org/x/net v0.17.0
@@ -74,7 +74,7 @@ require (
 	github.com/awslabs/amazon-ecr-credential-helper/ecr-login v0.0.0-20220228164355-396b2034c795 // indirect
 	github.com/blang/semver v3.5.1+incompatible // indirect
 	github.com/bombsimon/logrusr/v2 v2.0.1 // indirect
-	github.com/bradleyfalzon/ghinstallation/v2 v2.7.0 // indirect
+	github.com/bradleyfalzon/ghinstallation/v2 v2.8.0 // indirect
 	github.com/buildkite/agent/v3 v3.52.1 // indirect
 	github.com/buildkite/interpolate v0.0.0-20200526001904-07f35b4ae251 // indirect
 	github.com/cespare/xxhash/v2 v2.2.0 // indirect
@@ -137,7 +137,7 @@ require (
 	github.com/google/gnostic v0.6.9 // indirect
 	github.com/google/go-containerregistry v0.16.1 // indirect
 	github.com/google/go-github/v53 v53.2.0 // indirect
-	github.com/google/go-github/v55 v55.0.0 // indirect
+	github.com/google/go-github/v56 v56.0.0 // indirect
 	github.com/google/go-querystring v1.1.0 // indirect
 	github.com/google/gofuzz v1.2.0 // indirect
 	github.com/google/osv-scanner v1.4.1 // indirect
@@ -234,7 +234,7 @@ require (
 	github.com/tjfoc/gmsm v1.3.2 // indirect
 	github.com/transparency-dev/merkle v0.0.2 // indirect
 	github.com/vbatts/tar-split v0.11.5 // indirect
-	github.com/xanzy/go-gitlab v0.93.0 // indirect
+	github.com/xanzy/go-gitlab v0.93.1 // indirect
 	github.com/xanzy/ssh-agent v0.3.3 // indirect
 	github.com/zeebo/errs v1.3.0 // indirect
 	go.mongodb.org/mongo-driver v1.11.3 // indirect
