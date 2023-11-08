@@ -8,7 +8,7 @@ require (
 	github.com/google/go-github/v46 v46.0.0
 	github.com/ossf/scorecard/v4 v4.13.1
 	github.com/sigstore/cosign/v2 v2.2.0
-	github.com/spf13/cobra v1.7.0
+	github.com/spf13/cobra v1.8.0
 	golang.org/x/net v0.17.0
 )
 
