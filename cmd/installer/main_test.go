@@ -75,7 +75,7 @@ func createRandomTestRepository(owner string, autoinit bool) (*github.Repository
 		_, resp, err := client.Repositories.Get(context.Background(), owner, repoName)
 		if err != nil {
 			if resp.StatusCode == http.StatusNotFound {
-				// found a non-existent repo, perfect
+				// found a nonexistent repo, perfect
 				break
 			}
 
