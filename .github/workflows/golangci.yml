@@ -21,6 +21,6 @@ jobs:
         with:
           go-version-file: go.mod
           cache: false # golangci/golangci-lint-action maintains its own cache
-      - uses: golangci/golangci-lint-action@3a919529898de77ec3da873e3063ca4b10e7f5cc # v3.7.0
+      - uses: golangci/golangci-lint-action@3cfe3a4abbb849e10058ce4af15d205b6da42804 # v4.0.0
         with:
           only-new-issues: true
