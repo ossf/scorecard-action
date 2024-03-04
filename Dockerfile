@@ -22,7 +22,7 @@
 #           -e GITHUB_REPOSITORY="ossf/scorecard" \
 #           laurentsimon/scorecard-action:latest
 
-FROM golang:1.22.0@sha256:ef61a20960397f4d44b0e729298bf02327ca94f1519239ddc6d91689615b1367 AS builder
+FROM golang:1.22.0@sha256:7b297d9abee021bab9046e492506b3c2da8a3722cbf301653186545ecc1e00bb AS builder
 WORKDIR /src
 ENV CGO_ENABLED=0
 COPY go.* ./
