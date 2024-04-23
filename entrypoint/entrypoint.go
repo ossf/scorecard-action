@@ -24,9 +24,9 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/ossf/scorecard-action/options"
-	sccmd "github.com/ossf/scorecard/v4/cmd"
-	sce "github.com/ossf/scorecard/v4/errors"
-	scopts "github.com/ossf/scorecard/v4/options"
+	sccmd "github.com/ossf/scorecard/v5/cmd"
+	sce "github.com/ossf/scorecard/v5/errors"
+	scopts "github.com/ossf/scorecard/v5/options"
 )
 
 // New creates a new scorecard command which can be used as an entrypoint for

@@ -20,7 +20,7 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
-	"github.com/ossf/scorecard/v4/options"
+	"github.com/ossf/scorecard/v5/options"
 )
 
 const (

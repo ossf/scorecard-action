@@ -25,7 +25,7 @@ import (
 	"golang.org/x/net/context"
 
 	"github.com/ossf/scorecard-action/github"
-	scopts "github.com/ossf/scorecard/v4/options"
+	scopts "github.com/ossf/scorecard/v5/options"
 )
 
 const (

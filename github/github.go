@@ -26,8 +26,8 @@ import (
 	"net/url"
 	"os"
 
-	"github.com/ossf/scorecard/v4/clients/githubrepo/roundtripper"
-	sclog "github.com/ossf/scorecard/v4/log"
+	"github.com/ossf/scorecard/v5/clients/githubrepo/roundtripper"
+	sclog "github.com/ossf/scorecard/v5/log"
 )
 
 // RepoInfo is a struct for repository information.

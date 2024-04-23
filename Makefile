@@ -1,5 +1,5 @@
 # NOTE: Keep this in sync with go.mod for ossf/scorecard.
-LDFLAGS=-X sigs.k8s.io/release-utils/version.gitVersion=v4.13.1 -X sigs.k8s.io/release-utils/version.gitCommit=49c0eed3a423f00c872b5c3c9f1bbca9e8aae799 -w -extldflags \"-static\"
+LDFLAGS=-X sigs.k8s.io/release-utils/version.gitVersion=v5.0.0-rc1 -X sigs.k8s.io/release-utils/version.gitCommit=0b9dfb656f1796c7c693ad74f5193657b6a81e0b -w -extldflags \"-static\"
 
 build: ## Runs go build on repo
 	# Run go build and generate scorecard executable
