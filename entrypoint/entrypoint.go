@@ -84,7 +84,7 @@ func New() (*cobra.Command, error) {
 	// users were having action failures due to secondary rate limits causing checks to fail
 	scorecardRunE := actionCmd.RunE
 	actionCmd.RunE = func(cmd *cobra.Command, args []string) error {
-		if err := scorecardRunE(cmd, args); err != nil && !errors.Is(err, sce.ErrorCheckRuntime) {
+		if err := scorecardRunE(cmd, args); err != nil && !errors.Is(err, sce.ErrCheckRuntime) {
 			return err
 		}
 		return nil
