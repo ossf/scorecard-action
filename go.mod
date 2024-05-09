@@ -6,7 +6,7 @@ require (
 	github.com/caarlos0/env/v6 v6.10.1
 	github.com/google/go-cmp v0.6.0
 	github.com/google/go-github/v46 v46.0.0
-	github.com/ossf/scorecard/v5 v5.0.0-rc2
+	github.com/ossf/scorecard/v5 v5.0.0-rc2.0.20240509182734-7ce860946928
 	github.com/sigstore/cosign/v2 v2.2.4
 	github.com/spf13/cobra v1.8.0
 	golang.org/x/net v0.25.0
@@ -34,7 +34,6 @@ require (
 	github.com/Azure/go-autorest/tracing v0.6.0 // indirect
 	github.com/BurntSushi/toml v1.3.2 // indirect
 	github.com/CycloneDX/cyclonedx-go v0.8.0 // indirect
-	github.com/Masterminds/semver/v3 v3.2.1 // indirect
 	github.com/Microsoft/go-winio v0.6.2 // indirect
 	github.com/ProtonMail/go-crypto v1.0.0 // indirect
 	github.com/ThalesIgnite/crypto11 v1.2.5 // indirect
