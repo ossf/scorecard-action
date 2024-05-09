@@ -40,7 +40,7 @@ inputs:
   internal_publish_base_url:
     description: "INPUT: Base URL for publishing results. Used for testing."
     required: false
-    default: "https://api.securityscorecards.dev"
+    default: "https://api.scorecard.dev"
 
   internal_default_token:
     description: "INPUT: Default GitHub token. (Internal purpose only, not intended for developers to set. Used for pull requests configured with a PAT)."
