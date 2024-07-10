@@ -1,6 +1,8 @@
 # Scorecards' GitHub action
 [![CodeQL](https://github.com/ossf/scorecard-action/actions/workflows/codeql-analysis.yml/badge.svg)](https://github.com/ossf/scorecard-action/actions/workflows/codeql-analysis.yml)
 [![codecov](https://codecov.io/gh/ossf/scorecard-action/branch/main/graph/badge.svg?token=MAXISWR53I)](https://codecov.io/gh/ossf/scorecard-action)
+[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/ossf/scorecard-action/badge)](https://scorecard.dev/viewer/?uri=github.com/ossf/scorecard-action)
+
 > Official GitHub Action for [OSSF Scorecards](https://github.com/ossf/scorecard).
 
 The Scorecards GitHub Action is free for all public repositories. Private repositories are supported if they have [GitHub Advanced Security](https://docs.github.com/en/get-started/learning-about-github/about-github-advanced-security). Private repositories without GitHub Advanced Security can run Scorecards from the command line by following the [standard installation instructions](https://github.com/ossf/scorecard#using-scorecards-1).
