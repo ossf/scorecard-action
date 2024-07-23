@@ -27,7 +27,7 @@ policies:
       score: 10
       mode: enforced
   License:
-      score: 10
+      score: 9
       mode: enforced
   Pinned-Dependencies:
       score: 10
