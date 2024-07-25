@@ -56,21 +56,21 @@ GitHub Enterprise repositories are not supported.
 
 ![image](/images/install02.png)
 
-3) Depending on whether or not the repo already has a scanning tool configured, you will see "Add tool" or "Configure scanning tool". If you see "Add tool" click it and proceed to step 4. If you see "Configure scanning tool" proceed to step 3b.
+3) Depending on whether or not the repo already has a scanning tool configured, you will see "Add tool" or "Configure scanning tool". If you see "Add tool" click it and skip step 3b. If you see "Configure scanning tool" proceed to step 3b.
 
 ![image](/images/install03.png)
-![image](https://github.com/user-attachments/assets/28bb93de-bd38-471c-b2e5-b5ff61c96c50)
+![image](/images/configureScanningToolSS.png)
 
 
-3b) After clicking "Configure scanning tool", click "Explore workflows" underneath the Other tools section.
-![image](/images/install04.png)
+   3b. After clicking "Configure scanning tool", click "Explore workflows" underneath the "Other tools" section.
+![image](/images/exploreWorkflowsSS.png)
 
 
-4) Choose the "OSSF Scorecard" from the list of workflows, and then click “Configure”.
+4) Choose the "OSSF Scorecard" from the list of workflows below, and then click “Configure”. (To find it faster type "OSSF" in searchbox.)
 
-![image](/images/install04.png)
+![image](/images/searchingOSSF.png)
 
-5) Commit the changes.
+5) Commit the changes. (Your button might say "Commit changes..." instead of "Start commit", it does the same thing.)
 
 ![image](/images/install05.png)
 
