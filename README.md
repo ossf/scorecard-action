@@ -56,9 +56,15 @@ GitHub Enterprise repositories are not supported.
 
 ![image](/images/install02.png)
 
-3) Then click "Add tool".
+3) Depending on whether or not the repo already has a scanning tool configured, you will see "Add tool" or "Configure scanning tool". If you see "Add tool" click it and proceed to step 4. If you see "Configure scanning tool" proceed to step 3b.
 
 ![image](/images/install03.png)
+![image](https://github.com/user-attachments/assets/28bb93de-bd38-471c-b2e5-b5ff61c96c50)
+
+
+3b) After clicking "Configure scanning tool", click "Explore workflows" underneath the Other tools section.
+![image](/images/install04.png)
+
 
 4) Choose the "OSSF Scorecard" from the list of workflows, and then click “Configure”.
 
