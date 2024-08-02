@@ -48,25 +48,35 @@ GitHub Enterprise repositories are not supported.
 ## Installation
 
 ### Workflow Setup (Required)
-1) From your GitHub project's main page, click “Security” in the top ribbon.
+1. From your GitHub project's main page, click “Security” in the top ribbon.
 
-![image](/images/install01.png)
+   ![image](/images/install01.png)
 
-2) Select “Code scanning”.
+2. Select “Code scanning”.
 
-![image](/images/install02.png)
+   ![image](/images/install02.png)
 
-3) Then click "Add tool".
+3. Depending on whether the repository already has a scanning tool configured, you will see "Add tool" or "Configure scanning tool.
 
-![image](/images/install03.png)
+   a. If you see "Add tool" click it and skip step `b`.
 
-4) Choose the "OSSF Scorecard" from the list of workflows, and then click “Configure”.
+   ![image](/images/install03.png)
 
-![image](/images/install04.png)
+   If you see "Configure scanning tool" proceed to step `b`:
 
-5) Commit the changes.
+   ![image](/images/configurescantool.png)
 
-![image](/images/install05.png)
+   b. After clicking "Configure scanning tool", click "Explore workflows" underneath the "Other tools" section:
+
+   ![image](/images/exploreworkflow.png)
+
+5. Choose the "OSSF Scorecard" from the list of workflows below, and then click “Configure”. (To find it faster type "OSSF" in searchbox.)
+
+   ![image](/images/searchingossf.png)
+
+6. Commit the changes. (Your button might say "Commit changes..." instead of "Start commit", it does the same thing.)
+
+   ![image](/images/install05.png)
 
 ### Authentication with Fine-grained PAT (optional)
 Scorecard can run successfully with the workflow's default `GITHUB_TOKEN`, which is our recommended approach.
