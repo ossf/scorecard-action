@@ -35,7 +35,6 @@ import (
 	"github.com/sigstore/cosign/v2/cmd/cosign/cli/sign"
 	"github.com/sigstore/cosign/v2/pkg/cosign"
 
-	"github.com/ossf/scorecard-action/entrypoint"
 	"github.com/ossf/scorecard-action/options"
 )
 
@@ -124,31 +123,6 @@ func (s *Signing) SignScorecardResult(scorecardResultsFile string) error {
 	s.rekorTlogIndex = rekorTlogIndex
 
 	return nil
-}
-
-// GetJSONScorecardResults changes output settings to json and runs scorecard again.
-// TODO: run scorecard only once and generate multiple formats together.
-func GetJSONScorecardResults() ([]byte, error) {
-	defer os.Setenv(options.EnvInputResultsFile, os.Getenv(options.EnvInputResultsFile))
-	defer os.Setenv(options.EnvInputResultsFormat, os.Getenv(options.EnvInputResultsFormat))
-	os.Setenv(options.EnvInputResultsFile, "results.json")
-	os.Setenv(options.EnvInputResultsFormat, "json")
-
-	actionJSON, err := entrypoint.New()
-	if err != nil {
-		return nil, fmt.Errorf("creating scorecard entrypoint: %w", err)
-	}
-	if err := actionJSON.Execute(); err != nil {
-		return nil, fmt.Errorf("error during command execution: %w", err)
-	}
-
-	// Get json output data from file.
-	jsonPayload, err := os.ReadFile(os.Getenv(options.EnvInputResultsFile))
-	if err != nil {
-		return nil, fmt.Errorf("reading scorecard json results from file: %w", err)
-	}
-
-	return jsonPayload, nil
 }
 
 // ProcessSignature calls scorecard-api to process & upload signed scorecard results.
