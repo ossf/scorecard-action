@@ -19,6 +19,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"strings"
 
 	"github.com/ossf/scorecard-action/options"
 	"github.com/ossf/scorecard/v5/docs/checks"
@@ -56,10 +57,13 @@ func Format(result *scorecard.Result, opts *options.Options) error {
 		return fmt.Errorf("read check docs: %w", err)
 	}
 
-	switch opts.InputResultsFormat {
+	switch strings.ToLower(opts.InputResultsFormat) {
 	// sarif is considered the default format when unset
 	case "", "sarif":
-		pol, err := policy.ParseFromFile(defaultScorecardPolicyFile)
+		if opts.ScorecardOpts.PolicyFile == "" {
+			opts.ScorecardOpts.PolicyFile = defaultScorecardPolicyFile
+		}
+		pol, err := policy.ParseFromFile(opts.ScorecardOpts.PolicyFile)
 		if err != nil {
 			return fmt.Errorf("parse policy file: %w", err)
 		}
