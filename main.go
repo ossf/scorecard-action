@@ -47,7 +47,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	// `pull_request` do not have the necessary `token-id: write` permissions.
+	// `pull_request` does not have the necessary `token-id: write` permissions.
 	//
 	//nolint:nestif // trying to keep the refactor simpler
 	if os.Getenv(options.EnvInputPublishResults) == "true" && triggerEventName != "pull_request" {
