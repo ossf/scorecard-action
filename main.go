@@ -16,10 +16,11 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"os"
 
-	"github.com/ossf/scorecard-action/entrypoint"
+	"github.com/ossf/scorecard-action/internal/scorecard"
 	"github.com/ossf/scorecard-action/options"
 	"github.com/ossf/scorecard-action/signing"
 )
@@ -31,22 +32,38 @@ func main() {
 			"see https://securitylab.github.com/research/github-actions-preventing-pwn-requests/")
 	}
 
-	action, err := entrypoint.New()
+	opts, err := getOpts()
 	if err != nil {
-		log.Fatalf("creating scorecard entrypoint: %v", err)
+		log.Fatal(err)
+	}
+	opts.Print()
+
+	result, err := scorecard.Run(opts)
+	if err != nil {
+		log.Fatal(err)
 	}
 
-	if err := action.Execute(); err != nil {
-		log.Fatalf("error during command execution: %v", err)
+	if err := scorecard.Format(&result, opts); err != nil {
+		log.Fatal(err)
 	}
 
-	if os.Getenv(options.EnvInputPublishResults) == "true" &&
-		// `pull_request` do not have the necessary `token-id: write` permissions.
-		triggerEventName != "pull_request" {
-		// Get json results by re-running scorecard.
-		jsonPayload, err := signing.GetJSONScorecardResults()
+	// `pull_request` does not have the necessary `token-id: write` permissions.
+	//
+	//nolint:nestif // trying to keep the refactor simpler
+	if os.Getenv(options.EnvInputPublishResults) == "true" && triggerEventName != "pull_request" {
+		// if we don't already have the results as JSON, generate them
+		if opts.InputResultsFormat != "json" {
+			opts.InputResultsFormat = "json"
+			opts.InputResultsFile = "results.json"
+			err = scorecard.Format(&result, opts)
+			if err != nil {
+				log.Fatal(err)
+			}
+		}
+
+		jsonPayload, err := os.ReadFile(opts.InputResultsFile)
 		if err != nil {
-			log.Fatalf("error generating json scorecard results: %v", err)
+			log.Fatalf("reading json scorecard results: %v", err)
 		}
 
 		// Sign json results.
@@ -56,7 +73,8 @@ func main() {
 		if err != nil {
 			log.Fatalf("error SigningNew: %v", err)
 		}
-		if err = s.SignScorecardResult("results.json"); err != nil {
+		// TODO: does it matter if this is hardcoded as results.json or not?
+		if err = s.SignScorecardResult(opts.InputResultsFile); err != nil {
 			log.Fatalf("error signing scorecard json results: %v", err)
 		}
 
@@ -67,4 +85,15 @@ func main() {
 			log.Fatalf("error processing signature: %v", err)
 		}
 	}
+}
+
+func getOpts() (*options.Options, error) {
+	opts, err := options.New()
+	if err != nil {
+		return nil, fmt.Errorf("creating new options: %w", err)
+	}
+	if err := opts.Validate(); err != nil {
+		return nil, fmt.Errorf("validating options: %w", err)
+	}
+	return opts, nil
 }
