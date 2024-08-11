@@ -45,7 +45,7 @@ func Format(result *scorecard.Result, opts *options.Options) error {
 	}
 
 	// write results to both stdout and result file
-	resultFile, err := os.Create(opts.GithubWorkspace + opts.InputResultsFile)
+	resultFile, err := os.Create(opts.GithubWorkspace + "/" + opts.InputResultsFile)
 	if err != nil {
 		return fmt.Errorf("creating result file: %w", err)
 	}

@@ -61,7 +61,8 @@ func main() {
 			}
 		}
 
-		jsonPayload, err := os.ReadFile(opts.InputResultsFile)
+		resultFile := opts.GithubWorkspace + "/" + opts.InputResultsFile
+		jsonPayload, err := os.ReadFile(resultFile)
 		if err != nil {
 			log.Fatalf("reading json scorecard results: %v", err)
 		}
@@ -74,7 +75,7 @@ func main() {
 			log.Fatalf("error SigningNew: %v", err)
 		}
 		// TODO: does it matter if this is hardcoded as results.json or not?
-		if err = s.SignScorecardResult(opts.InputResultsFile); err != nil {
+		if err = s.SignScorecardResult(resultFile); err != nil {
 			log.Fatalf("error signing scorecard json results: %v", err)
 		}
 
