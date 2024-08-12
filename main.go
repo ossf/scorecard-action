@@ -19,6 +19,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"path/filepath"
 
 	"github.com/ossf/scorecard-action/internal/scorecard"
 	"github.com/ossf/scorecard-action/options"
@@ -61,7 +62,7 @@ func main() {
 			}
 		}
 
-		resultFile := opts.GithubWorkspace + "/" + opts.InputResultsFile
+		resultFile := filepath.Join(opts.GithubWorkspace, opts.InputResultsFile)
 		jsonPayload, err := os.ReadFile(resultFile)
 		if err != nil {
 			log.Fatalf("reading json scorecard results: %v", err)
