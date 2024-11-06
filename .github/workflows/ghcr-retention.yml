@@ -1,0 +1,22 @@
+name: Delete untagged GHCR images
+on:
+  schedule:
+    - cron:  '17 10 * * TUE' # Tuesday morning at 10:17 UTC
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  delete-untagged:
+    runs-on: ubuntu-latest
+    permissions:
+      packages: write
+    steps:
+      - uses: actions/delete-package-versions@e5bc658cc4c965c472efe991f8beea3981499c55 # v5.0.0
+        with: 
+          package-name: 'scorecard-action'
+          package-type: 'container'
+          # keep official releases
+          delete-only-untagged-versions: 'true'
+          # 'latest' counts as a tag, so this won't break the e2e tests
+          min-versions-to-keep: 0
