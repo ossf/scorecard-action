@@ -121,7 +121,7 @@ func (o *Options) Validate() error {
 	if !o.isPullRequestEvent() &&
 		!o.isDefaultBranch() {
 		fmt.Printf("%s not supported with %s event.\n", o.GithubRef, o.GithubEventName)
-		fmt.Printf("Only the default branch %s is supported.\n", o.DefaultBranch)
+		fmt.Printf("::error ::Only the default branch %s is supported.\n", o.DefaultBranch)
 
 		return errOnlyDefaultBranchSupported
 	}
