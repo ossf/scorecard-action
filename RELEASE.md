@@ -57,7 +57,7 @@ Example:
 ```
 runs:
   using: "docker"
-  image: "docker://gcr.io/openssf/scorecard-action:Tag"
+  image: "docker://ghcr.io/ossf/scorecard-action:Tag"
 ```
 
 Create a pull request with this change and merge into `main`.
