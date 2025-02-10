@@ -1,7 +1,6 @@
 module github.com/ossf/scorecard-action
 
-go 1.22.9
-toolchain go1.23.6
+go 1.23.4
 
 require (
 	github.com/caarlos0/env/v6 v6.10.1
