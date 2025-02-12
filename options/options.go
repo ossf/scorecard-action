@@ -77,6 +77,7 @@ type Options struct {
 	// Input parameters
 	InputResultsFile   string `env:"INPUT_RESULTS_FILE"`
 	InputResultsFormat string `env:"INPUT_RESULTS_FORMAT"`
+	InputFileMode      string `env:"INPUT_FILE_MODE"`
 
 	PublishResults bool
 }
