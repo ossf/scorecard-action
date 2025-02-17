@@ -642,8 +642,8 @@ github.com/opencontainers/image-spec v1.1.0 h1:8SG7/vwALn54lVB/0yZ/MMwhFrPYtpEHQ
 github.com/opencontainers/image-spec v1.1.0/go.mod h1:W4s4sFTMaBeK1BQLXbG4AdM2szdn85PY75RI83NrTrM=
 github.com/opentracing/opentracing-go v1.2.0 h1:uEJPy/1a5RIPAJ0Ov+OIO8OxWu77jEv+1B0VhjKrZUs=
 github.com/opentracing/opentracing-go v1.2.0/go.mod h1:GxEUsuufX4nBwe+T+Wl9TAgYrxe9dPLANfrWvHYVTgc=
-github.com/ossf/scorecard/v5 v5.1.0 h1:onGMdLkflcsc2OOLiqpdY1Y4RGWicK3V9/q6qGWLqP4=
-github.com/ossf/scorecard/v5 v5.1.0/go.mod h1:LPrCMUyDZyEbJXgRDLWP6IKl9rPDooYY15T2FYMJxYY=
+github.com/ossf/scorecard/v5 v5.1.1 h1:PbEs+JznKjwXyk9N1voOOwFqVNuFKfr0URNt9TBjLeo=
+github.com/ossf/scorecard/v5 v5.1.1/go.mod h1:LPrCMUyDZyEbJXgRDLWP6IKl9rPDooYY15T2FYMJxYY=
 github.com/owenrumney/go-sarif v1.1.1/go.mod h1:dNDiPlF04ESR/6fHlPyq7gHKmrM0sHUvAGjsoh8ZH0U=
 github.com/owenrumney/go-sarif/v2 v2.3.3 h1:ubWDJcF5i3L/EIOER+ZyQ03IfplbSU1BLOE26uKQIIU=
 github.com/owenrumney/go-sarif/v2 v2.3.3/go.mod h1:MSqMMx9WqlBSY7pXoOZWgEsVB4FDNfhcaXDA1j6Sr+w=
