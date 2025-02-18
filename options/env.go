@@ -43,6 +43,7 @@ const (
 	EnvInputResultsFile            = "INPUT_RESULTS_FILE"
 	EnvInputResultsFormat          = "INPUT_RESULTS_FORMAT"
 	EnvInputPublishResults         = "INPUT_PUBLISH_RESULTS"
+	EnvInputFileMode               = "INPUT_FILE_MODE"
 	EnvInputInternalPublishBaseURL = "INPUT_INTERNAL_PUBLISH_BASE_URL"
 )
 

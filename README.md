@@ -135,10 +135,11 @@ First, [create a new file](https://docs.github.com/en/repositories/working-with-
 
 | Name | Required | Description |
 | ----- | -------- | ----------- |
-| `result_file` | yes | The file that contains the results. |
-| `result_format` | yes | The format in which to store the results [json \| sarif]. For GitHub's scanning dashboard, select `sarif`. |
+| `results_file` | yes | The file that contains the results. |
+| `results_format` | yes | The format in which to store the results [json \| sarif]. For GitHub's scanning dashboard, select `sarif`. |
 | `repo_token` | no | PAT token with repository read access. Follow [these steps](/docs/authentication/fine-grained-auth-token.md) to create it. |
 | `publish_results` | recommended | This will allow you to display a badge on your repository to show off your hard work. See details [here](#publishing-results).|
+| `file_mode` | no | The method to fetch files from the repository: `archive` or `git` (default `archive`).
 
 ### Publishing Results
 The Scorecard team runs a weekly scan of public GitHub repositories in order to track

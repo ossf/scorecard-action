@@ -48,6 +48,7 @@ func TestNew(t *testing.T) {
 		Local       string
 		ChecksToRun []string
 		ShowDetails bool
+		FileMode    string
 	}
 	tests := []struct {
 		name             string
@@ -58,6 +59,7 @@ func TestNew(t *testing.T) {
 		resultsFile      string
 		resultsFormat    string
 		publishResults   string
+		fileMode         string
 		want             fields
 		unsetResultsPath bool
 		unsetToken       bool
@@ -71,6 +73,7 @@ func TestNew(t *testing.T) {
 			repo:            testRepo,
 			resultsFormat:   "sarif",
 			resultsFile:     testResultsFile,
+			fileMode:        options.FileModeArchive,
 			want: fields{
 				EnableSarif: true,
 				Format:      formatSarif,
@@ -80,6 +83,7 @@ func TestNew(t *testing.T) {
 				LogLevel:    options.DefaultLogLevel,
 				Repo:        testRepo,
 				ShowDetails: true,
+				FileMode:    options.FileModeArchive,
 			},
 			wantErr: false,
 		},
@@ -91,6 +95,7 @@ func TestNew(t *testing.T) {
 			repo:            testRepo,
 			resultsFormat:   "json",
 			resultsFile:     testResultsFile,
+			fileMode:        options.FileModeArchive,
 			want: fields{
 				EnableSarif: true,
 				Format:      options.FormatJSON,
@@ -99,6 +104,29 @@ func TestNew(t *testing.T) {
 				LogLevel:    options.DefaultLogLevel,
 				Repo:        testRepo,
 				ShowDetails: true,
+				FileMode:    options.FileModeArchive,
+			},
+			wantErr: false,
+		},
+		{
+			name:            "SuccessFileModeGit",
+			githubEventPath: githubEventPathNonFork,
+			githubEventName: pushEvent,
+			githubRef:       "refs/heads/main",
+			repo:            testRepo,
+			resultsFormat:   "sarif",
+			resultsFile:     testResultsFile,
+			fileMode:        options.FileModeGit,
+			want: fields{
+				EnableSarif: true,
+				Format:      formatSarif,
+				PolicyFile:  defaultScorecardPolicyFile,
+				ResultsFile: testResultsFile,
+				Commit:      options.DefaultCommit,
+				LogLevel:    options.DefaultLogLevel,
+				Repo:        testRepo,
+				ShowDetails: true,
+				FileMode:    options.FileModeGit,
 			},
 			wantErr: false,
 		},
@@ -110,6 +138,7 @@ func TestNew(t *testing.T) {
 			repo:            testRepo,
 			resultsFormat:   "json",
 			resultsFile:     testResultsFile,
+			fileMode:        options.FileModeArchive,
 			want: fields{
 				EnableSarif: true,
 				Format:      options.FormatJSON,
@@ -118,6 +147,7 @@ func TestNew(t *testing.T) {
 				LogLevel:    options.DefaultLogLevel,
 				Local:       ".",
 				ShowDetails: true,
+				FileMode:    options.FileModeArchive,
 			},
 			wantErr: false,
 		},
@@ -129,6 +159,7 @@ func TestNew(t *testing.T) {
 			repo:            testRepo,
 			resultsFormat:   "json",
 			resultsFile:     testResultsFile,
+			fileMode:        options.FileModeArchive,
 			want: fields{
 				EnableSarif: true,
 				Format:      options.FormatJSON,
@@ -137,6 +168,7 @@ func TestNew(t *testing.T) {
 				LogLevel:    options.DefaultLogLevel,
 				Repo:        testRepo,
 				ShowDetails: true,
+				FileMode:    options.FileModeArchive,
 			},
 			wantErr: false,
 		},
@@ -148,6 +180,7 @@ func TestNew(t *testing.T) {
 			repo:            testRepo,
 			resultsFormat:   "sarif",
 			resultsFile:     testResultsFile,
+			fileMode:        options.FileModeArchive,
 			want: fields{
 				EnableSarif: true,
 				Format:      formatSarif,
@@ -157,6 +190,7 @@ func TestNew(t *testing.T) {
 				LogLevel:    options.DefaultLogLevel,
 				Repo:        testRepo,
 				ShowDetails: true,
+				FileMode:    options.FileModeArchive,
 			},
 			unsetToken: true,
 			wantErr:    true,
@@ -166,6 +200,7 @@ func TestNew(t *testing.T) {
 			githubEventPath: githubEventPathNonFork,
 			githubEventName: pushEvent,
 			githubRef:       "refs/heads/main",
+			fileMode:        options.FileModeArchive,
 			want: fields{
 				EnableSarif: true,
 				Format:      formatSarif,
@@ -173,6 +208,7 @@ func TestNew(t *testing.T) {
 				Commit:      options.DefaultCommit,
 				LogLevel:    options.DefaultLogLevel,
 				ShowDetails: true,
+				FileMode:    options.FileModeArchive,
 			},
 			unsetResultsPath: true,
 			wantErr:          true,
@@ -183,6 +219,7 @@ func TestNew(t *testing.T) {
 			githubEventName: pushEvent,
 			githubRef:       "refs/heads/main",
 			resultsFile:     "",
+			fileMode:        options.FileModeArchive,
 			want: fields{
 				EnableSarif: true,
 				Format:      formatSarif,
@@ -191,6 +228,7 @@ func TestNew(t *testing.T) {
 				Commit:      options.DefaultCommit,
 				LogLevel:    options.DefaultLogLevel,
 				ShowDetails: true,
+				FileMode:    options.FileModeArchive,
 			},
 			wantErr: true,
 		},
@@ -202,6 +240,7 @@ func TestNew(t *testing.T) {
 			repo:            testRepo,
 			resultsFormat:   "sarif",
 			resultsFile:     testResultsFile,
+			fileMode:        options.FileModeArchive,
 			want: fields{
 				EnableSarif: true,
 				Format:      formatSarif,
@@ -211,6 +250,7 @@ func TestNew(t *testing.T) {
 				LogLevel:    options.DefaultLogLevel,
 				Repo:        testRepo,
 				ShowDetails: true,
+				FileMode:    options.FileModeArchive,
 			},
 			wantErr: true,
 		},
@@ -243,6 +283,8 @@ func TestNew(t *testing.T) {
 			os.Setenv(EnvInputResultsFormat, tt.resultsFormat)
 			defer os.Unsetenv(EnvInputResultsFormat)
 
+			t.Setenv(EnvInputFileMode, tt.fileMode)
+
 			if tt.unsetResultsPath {
 				os.Unsetenv(EnvInputResultsFile)
 			} else {
@@ -263,6 +305,7 @@ func TestNew(t *testing.T) {
 				Local:       scOpts.Local,
 				ChecksToRun: scOpts.ChecksToRun,
 				ShowDetails: scOpts.ShowDetails,
+				FileMode:    opts.InputFileMode,
 			}
 
 			if err != nil {

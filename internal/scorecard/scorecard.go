@@ -19,6 +19,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 
 	"github.com/ossf/scorecard-action/options"
 	"github.com/ossf/scorecard/v5/clients"
@@ -35,7 +36,11 @@ func Run(opts *options.Options) (scorecard.Result, error) {
 		return scorecard.Result{}, fmt.Errorf("unable to create repo: %w", err)
 	}
 
-	result, err := scorecard.Run(context.Background(), repo)
+	var scOpts []scorecard.Option
+	if strings.EqualFold(opts.InputFileMode, "git") {
+		scOpts = append(scOpts, scorecard.WithFileModeGit())
+	}
+	result, err := scorecard.Run(context.Background(), repo, scOpts...)
 	if err != nil && !errors.Is(err, sce.ErrCheckRuntime) {
 		return scorecard.Result{}, fmt.Errorf("scorecard had an error: %w", err)
 	}

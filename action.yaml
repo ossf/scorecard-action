@@ -37,6 +37,11 @@ inputs:
     required: false
     default: false
 
+  file_mode:
+    description: "INPUT: Method to fetch files from GitHub"
+    required: false
+    default: archive
+
   internal_publish_base_url:
     description: "INPUT: Base URL for publishing results. Used for testing."
     required: false
