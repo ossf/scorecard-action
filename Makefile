@@ -3,4 +3,4 @@ LDFLAGS=-X sigs.k8s.io/release-utils/version.gitVersion=v5.1.1 -X sigs.k8s.io/re
 
 build: ## Runs go build on repo
 	# Run go build and generate scorecard executable
-	CGO_ENABLED=0 go build -o scorecard-action -trimpath -a -tags netgo -ldflags '$(LDFLAGS)'
+	CGO_ENABLED=0 go build -o scorecard-action -trimpath -a -tags netgo -buildvcs=false -ldflags '$(LDFLAGS)'
