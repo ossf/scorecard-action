@@ -58,4 +58,4 @@ branding:
 
 runs:
   using: "docker"
-  image: "docker://gcr.io/openssf/scorecard-action:v2.4.0"
+  image: "docker://ghcr.io/ossf/scorecard-action:v2.4.1"
