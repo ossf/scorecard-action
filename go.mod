@@ -2,6 +2,8 @@ module github.com/ossf/scorecard-action
 
 go 1.23.4
 
+toolchain go1.24.1
+
 require (
 	github.com/caarlos0/env/v6 v6.10.1
 	github.com/google/go-cmp v0.7.0
@@ -9,7 +11,7 @@ require (
 	github.com/ossf/scorecard/v5 v5.1.1
 	github.com/sigstore/cosign/v2 v2.4.3
 	github.com/spf13/cobra v1.9.1
-	golang.org/x/net v0.37.0
+	golang.org/x/net v0.38.0
 )
 
 require (
