@@ -317,7 +317,7 @@ func TestNew(t *testing.T) {
 
 			if err := opts.Validate(); (err != nil) != tt.wantErr {
 				for _, e := range os.Environ() {
-					t.Logf(e)
+					t.Log(e)
 				}
 				t.Errorf("Validate() error = %+v, wantErr %+v", err, tt.wantErr)
 				return
