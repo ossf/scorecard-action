@@ -162,10 +162,10 @@ If possible, we will work on making this feature more flexible so we can drop th
 * Only the job with `ossf/scorecard-action` can use `id-token: write` permissions.
 
 #### Restrictions on the job containing `ossf/scorecard-action`
-* No job level env vars or defaults.
+* No job level env vars or defaults
 * No containers or services
-* The job should run on one of the [Ubuntu hosted runners](https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#choosing-github-hosted-runners)
-* The steps running in this job must belong to this approved list of GitHub actions.
+* The job should run on one of the [Ubuntu hosted runners](https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#choosing-github-hosted-runners).
+* The steps running in this job must belong to this approved list of GitHub actions:
   * "actions/checkout"
   * "actions/upload-artifact"
   * "github/codeql-action/upload-sarif"
