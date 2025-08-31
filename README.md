@@ -87,6 +87,38 @@ GitHub's new [Repository Rules](https://docs.github.com/repositories/configuring
 We recommend new repositories use Repository Rules so they can be read with the default GitHub token. 
 Repositories that already use classic Branch Protection and wish to see their results without an admin token should consider migrating to Repository Rules.
 
+### Additional permissions for private repositories
+
+When running Scorecard Action on **private repositories** with the default `GITHUB_TOKEN`, you may need a few **job-level read permissions** so the action can query commits and detect configured SAST tools. Without them you can see errors like:
+
+> `Resource not accessible by integration` (GraphQL ListCommits)
+
+Add these to the **job** that runs `ossf/scorecard-action`:
+
+```yaml
+jobs:
+  analysis:
+    runs-on: ubuntu-latest
+    permissions:
+      # Required when publishing results (badge / API / code scanning):
+      security-events: write
+      id-token: write
+      # Recommended reads for private repos to avoid GraphQL/SAST gaps:
+      contents: read
+      issues: read
+      pull-requests: read
+      checks: read
+      # (optional) if your workflow needs to read workflow metadata:
+      actions: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ossf/scorecard-action@v2
+        with:
+          results_file: results.sarif
+          results_format: sarif
+```
+
+
 ## View Results
 
 The workflow is preconfigured to run on every repository contribution. After making a code change, you can view the results for the change either through the Scorecard Badge, Code Scanning Alerts or GitHub Workflow Runs.
