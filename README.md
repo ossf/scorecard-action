@@ -89,35 +89,24 @@ Repositories that already use classic Branch Protection and wish to see their re
 
 ### Additional permissions for private repositories
 
-When running Scorecard Action on **private repositories** with the default `GITHUB_TOKEN`, you may need a few **job-level read permissions** so the action can query commits and detect configured SAST tools. Without them you can see errors like:
+When running Scorecard Action on **private repositories** with the default `GITHUB_TOKEN`, add these **job-level permissions** so Scorecard can query commits and detect configured SAST tools. Without them you may see errors like:
 
-> `Resource not accessible by integration` (GraphQL ListCommits)
-
-Add these to the **job** that runs `ossf/scorecard-action`:
+> `Resource not accessible by integration` (e.g., during GraphQL ListCommits)
 
 ```yaml
 jobs:
   analysis:
     runs-on: ubuntu-latest
     permissions:
-      # Required when publishing results (badge / API / code scanning):
+      # Required when publishing results (badge / API / code scanning)
       security-events: write
       id-token: write
-      # Recommended reads for private repos to avoid GraphQL/SAST gaps:
+      # Recommended reads for private repos to avoid GraphQL/SAST gaps
       contents: read
       issues: read
       pull-requests: read
       checks: read
-      # (optional) if your workflow needs to read workflow metadata:
-      actions: read
-    steps:
-      - uses: actions/checkout@v4
-      - uses: ossf/scorecard-action@v2
-        with:
-          results_file: results.sarif
-          results_format: sarif
 ```
-
 
 ## View Results
 
