@@ -140,19 +140,19 @@ func (o *Options) Validate() error {
 func (o *Options) Print() {
 	// Scorecard options
 	fmt.Println("Scorecard options:")
-	fmt.Printf("Ref: %s\n", o.ScorecardOpts.Commit)
-	fmt.Printf("Repository: %s\n", o.ScorecardOpts.Repo)
-	fmt.Printf("Local: %s\n", o.ScorecardOpts.Local)
-	fmt.Printf("Format: %s\n", o.ScorecardOpts.Format)
-	fmt.Printf("Policy file: %s\n", o.ScorecardOpts.PolicyFile)
+	fmt.Printf("  Ref: %s\n", o.ScorecardOpts.Commit)
+	fmt.Printf("  Repository: %s\n", o.ScorecardOpts.Repo)
+	fmt.Printf("  Local: %s\n", o.ScorecardOpts.Local)
+	fmt.Printf("  Format: %s\n", o.ScorecardOpts.Format)
+	fmt.Printf("  Policy file: %s\n", o.ScorecardOpts.PolicyFile)
 	fmt.Println()
 	fmt.Println("Event / repo information:")
-	fmt.Printf("Event file: %s\n", o.GithubEventPath)
-	fmt.Printf("Event name: %s\n", o.GithubEventName)
-	fmt.Printf("Fork repository: %s\n", o.IsForkStr)
-	fmt.Printf("Private repository: %s\n", o.PrivateRepoStr)
-	fmt.Printf("Publication enabled: %+v\n", o.PublishResults)
-	fmt.Printf("Default branch: %s\n", o.DefaultBranch)
+	fmt.Printf("  Event file: %s\n", o.GithubEventPath)
+	fmt.Printf("  Event name: %s\n", o.GithubEventName)
+	fmt.Printf("  Fork repository: %s\n", o.IsForkStr)
+	fmt.Printf("  Private repository: %s\n", o.PrivateRepoStr)
+	fmt.Printf("  Publication enabled: %+v\n", o.PublishResults)
+	fmt.Printf("  Default branch: %s\n", o.DefaultBranch)
 }
 
 func (o *Options) setScorecardOpts() {
