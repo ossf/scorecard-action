@@ -38,6 +38,7 @@ docker run -e INPUT_REPO_TOKEN="$GITHUB_AUTH_TOKEN" \
            -e GITHUB_EVENT_NAME="branch_protection_rule" \
            -e GITHUB_EVENT_PATH="/testdata/fork.json" \
            -e GITHUB_REPOSITORY="ossf/scorecard" \
+           -e GITHUB_API_URL="https://api.github.com" \
            scorecard-action:testing
 ```
 
