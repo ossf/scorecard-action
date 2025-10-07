@@ -9,7 +9,7 @@ require (
 	github.com/ossf/scorecard/v5 v5.3.0
 	github.com/sigstore/cosign/v2 v2.6.0
 	github.com/spf13/cobra v1.10.1
-	golang.org/x/net v0.44.0
+	golang.org/x/net v0.45.0
 )
 
 require (
