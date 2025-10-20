@@ -31,9 +31,13 @@ import (
 	"strings"
 	"time"
 
-	sigOpts "github.com/sigstore/cosign/v2/cmd/cosign/cli/options"
-	"github.com/sigstore/cosign/v2/cmd/cosign/cli/sign"
-	"github.com/sigstore/cosign/v2/pkg/cosign"
+	protobundle "github.com/sigstore/protobuf-specs/gen/pb-go/bundle/v1"
+	"github.com/sigstore/sigstore-go/pkg/root"
+	"github.com/sigstore/sigstore-go/pkg/sign"
+	"github.com/sigstore/sigstore-go/pkg/tuf"
+	"github.com/sigstore/sigstore-go/pkg/util"
+	"github.com/theupdateframework/go-tuf/v2/metadata/fetcher"
+	"google.golang.org/protobuf/encoding/protojson"
 
 	"github.com/ossf/scorecard-action/options"
 )
@@ -41,6 +45,7 @@ import (
 var (
 	errorEmptyToken   = errors.New("error token empty")
 	errorInvalidToken = errors.New("invalid token")
+	errNoTlogEntries  = errors.New("no rekor tlog entries")
 
 	// backoff schedule for interactions with cosign/rekor and our web API.
 	backoffSchedule = []time.Duration{
@@ -52,12 +57,14 @@ var (
 
 // Signing is a signing structure.
 type Signing struct {
-	token          string
+	token          string // github token used to fetch workflow contents
+	idToken        string // oidc token used to sign results
 	rekorTlogIndex int64
+	bundle         string
 }
 
 // New creates a new Signing instance.
-func New(token string) (*Signing, error) {
+func New(token, idToken string) (*Signing, error) {
 	// Set the default GITHUB_TOKEN, because it's not available by default
 	// in a GitHub Action. We need it for OIDC.
 	if token == "" {
@@ -73,54 +80,41 @@ func New(token string) (*Signing, error) {
 	}
 
 	return &Signing{
-		token: token,
+		token:   token,
+		idToken: idToken,
 	}, nil
 }
 
-// SignScorecardResult signs the results file and uploads the attestation to the Rekor transparency log.
-func (s *Signing) SignScorecardResult(scorecardResultsFile string) error {
-	f, err := os.CreateTemp("", "bundle")
+// SignResult signs the results file and uploads the attestation to the Rekor transparency log.
+func (s *Signing) SignResult(result []byte) error {
+	content := sign.PlainData{
+		Data: result,
+	}
+	keypair, err := sign.NewEphemeralKeypair(nil)
 	if err != nil {
-		return fmt.Errorf("creating temporary bundle file: %w", err)
+		return fmt.Errorf("generating ephemeral keypair: %w", err)
 	}
-	bundlePath := f.Name()
-	f.Close()
-	defer os.Remove(bundlePath) // clean up
-
-	// Prepare settings for SignBlobCmd.
-	rootOpts := &sigOpts.RootOptions{Timeout: sigOpts.DefaultTimeout} // Just the timeout.
-	keyOpts := sigOpts.KeyOpts{
-		FulcioURL:        sigOpts.DefaultFulcioURL,     // Signing certificate provider.
-		RekorURL:         sigOpts.DefaultRekorURL,      // Transparency log.
-		OIDCIssuer:       sigOpts.DefaultOIDCIssuerURL, // OIDC provider to get ID token to auth for Fulcio.
-		OIDCClientID:     "sigstore",
-		SkipConfirmation: true, // skip cosign's privacy confirmation prompt as we run non-interactively
-		BundlePath:       bundlePath,
-	}
-
-	for _, backoff := range backoffSchedule {
-		// This command will use the provided OIDCIssuer to authenticate into Fulcio, which will generate the
-		// signing certificate on the scorecard result. This attestation is then uploaded to the Rekor transparency log.
-		// The output bytes (signature) and certificate are discarded since verification can be done with just the payload.
-		_, err = sign.SignBlobCmd(rootOpts, keyOpts, scorecardResultsFile, true, "", "", true)
-		if err == nil {
-			break
-		}
-		log.Printf("error signing scorecard results: %v\n", err)
-		log.Printf("retrying in %v...\n", backoff)
-		time.Sleep(backoff)
-	}
-
-	// retries failed
+	opts, err := getBundleOptions(s.idToken)
 	if err != nil {
-		return fmt.Errorf("error signing payload: %w", err)
+		return fmt.Errorf("getting bundle options: %w", err)
+	}
+	bundle, err := sign.Bundle(&content, keypair, opts)
+	if err != nil {
+		return fmt.Errorf("creating sigstore bundle: %w", err)
 	}
 
-	rekorTlogIndex, err := extractTlogIndex(bundlePath)
+	rekorTlogIndex, err := extractTlogIndex(bundle)
 	if err != nil {
 		return err
 	}
 	s.rekorTlogIndex = rekorTlogIndex
+
+	bundleJSON, err := protojson.Marshal(bundle)
+	if err != nil {
+		return fmt.Errorf("marshalling bundle to JSON: %v", err)
+	}
+	s.bundle = string(bundleJSON)
+	log.Println(s.bundle)
 
 	return nil
 }
@@ -134,11 +128,13 @@ func (s *Signing) ProcessSignature(jsonPayload []byte, repoName, repoRef string)
 		Branch      string `json:"branch"`
 		AccessToken string `json:"accessToken"`
 		TlogIndex   int64  `json:"tlogIndex"`
+		Bundle      string `json:"bundle"`
 	}{
 		Result:      string(jsonPayload),
 		Branch:      repoRef,
 		AccessToken: s.token,
 		TlogIndex:   s.rekorTlogIndex,
+		Bundle:      s.bundle,
 	}
 
 	payloadBytes, err := json.Marshal(resultsPayload)
@@ -202,15 +198,76 @@ func postResults(endpoint *url.URL, payload []byte) error {
 	return nil
 }
 
-func extractTlogIndex(bundlePath string) (int64, error) {
-	contents, err := os.ReadFile(bundlePath)
+func extractTlogIndex(bundle *protobundle.Bundle) (int64, error) {
+	// what does multiple tlog entries mean?
+	for _, entry := range bundle.GetVerificationMaterial().GetTlogEntries() {
+		return entry.GetLogIndex(), nil
+	}
+	return 0, errNoTlogEntries
+}
+
+func getBundleOptions(idToken string) (sign.BundleOptions, error) {
+	var opts sign.BundleOptions
+	fetcher := fetcher.NewDefaultFetcher()
+	fetcher.SetHTTPUserAgent(util.ConstructUserAgent())
+
+	tufOptions := &tuf.Options{
+		Root:              tuf.DefaultRoot(),
+		RepositoryBaseURL: tuf.DefaultMirror,
+		Fetcher:           fetcher,
+	}
+	tufClient, err := tuf.New(tufOptions)
 	if err != nil {
-		return 0, fmt.Errorf("reading cosign bundle file: %w", err)
+		return sign.BundleOptions{}, fmt.Errorf("creating tuf client: %w", err)
 	}
-	var payload cosign.LocalSignedPayload
-	err = json.Unmarshal(contents, &payload)
-	if err != nil || payload.Bundle == nil {
-		return 0, fmt.Errorf("invalid cosign bundle file: %w", err)
+
+	opts.TrustedRoot, err = root.GetTrustedRoot(tufClient)
+	if err != nil {
+		return sign.BundleOptions{}, fmt.Errorf("getting tuf root: %w", err)
 	}
-	return payload.Bundle.Payload.LogIndex, nil
+	signingConfig, err := root.GetSigningConfig(tufClient)
+	if err != nil {
+		return sign.BundleOptions{}, fmt.Errorf("getting signing config: %w", err)
+	}
+	now := time.Now()
+	fulcioService, err := root.SelectService(signingConfig.FulcioCertificateAuthorityURLs(), sign.FulcioAPIVersions, now)
+	if err != nil {
+		return sign.BundleOptions{}, fmt.Errorf("getting fulcio config: %w", err)
+	}
+	fulcioOpts := &sign.FulcioOptions{
+		BaseURL: fulcioService.URL,
+		Timeout: time.Duration(30 * time.Second),
+		Retries: 3,
+	}
+	opts.CertificateProvider = sign.NewFulcio(fulcioOpts)
+	opts.CertificateProviderOptions = &sign.CertificateProviderOptions{
+		IDToken: idToken,
+	}
+	tsaServices, err := root.SelectServices(signingConfig.TimestampAuthorityURLs(), signingConfig.TimestampAuthorityURLsConfig(), sign.TimestampAuthorityAPIVersions, now)
+	if err != nil {
+		return sign.BundleOptions{}, fmt.Errorf("getting TSA config: %w", err)
+	}
+	for _, tsaService := range tsaServices {
+		tsaOpts := &sign.TimestampAuthorityOptions{
+			URL:     tsaService.URL,
+			Timeout: time.Duration(30 * time.Second),
+			Retries: 3,
+		}
+		opts.TimestampAuthorities = append(opts.TimestampAuthorities, sign.NewTimestampAuthority(tsaOpts))
+	}
+	forceRekorV1 := []uint32{1}
+	rekorServices, err := root.SelectServices(signingConfig.RekorLogURLs(), signingConfig.RekorLogURLsConfig(), forceRekorV1, now)
+	if err != nil {
+		return sign.BundleOptions{}, fmt.Errorf("getting rekor config: %w", err)
+	}
+	for _, rekorService := range rekorServices {
+		rekorOpts := &sign.RekorOptions{
+			BaseURL: rekorService.URL,
+			Timeout: time.Duration(90 * time.Second),
+			Retries: 3,
+			Version: rekorService.MajorAPIVersion,
+		}
+		opts.TransparencyLogs = append(opts.TransparencyLogs, sign.NewRekor(rekorOpts))
+	}
+	return opts, nil
 }

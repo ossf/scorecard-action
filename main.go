@@ -16,11 +16,13 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"os"
 	"path/filepath"
 
+	"github.com/ossf/scorecard-action/internal/oidc"
 	"github.com/ossf/scorecard-action/internal/scorecard"
 	"github.com/ossf/scorecard-action/options"
 	"github.com/ossf/scorecard-action/signing"
@@ -71,12 +73,16 @@ func main() {
 		// Sign json results.
 		// Always use the default GitHub token, never a PAT.
 		accessToken := os.Getenv(options.EnvInputInternalRepoToken)
-		s, err := signing.New(accessToken)
+		idToken, err := oidc.RequestToken(context.Background())
+		if err != nil {
+			log.Fatalf("fetching oidc token: %v", err)
+		}
+
+		s, err := signing.New(accessToken, idToken)
 		if err != nil {
 			log.Fatalf("error SigningNew: %v", err)
 		}
-		// TODO: does it matter if this is hardcoded as results.json or not?
-		if err = s.SignScorecardResult(resultFile); err != nil {
+		if err = s.SignResult(jsonPayload); err != nil {
 			log.Fatalf("error signing scorecard json results: %v", err)
 		}
 
