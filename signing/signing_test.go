@@ -23,7 +23,10 @@ import (
 	"testing"
 	"time"
 
+	protobundle "github.com/sigstore/protobuf-specs/gen/pb-go/bundle/v1"
+
 	"github.com/ossf/scorecard-action/options"
+	"google.golang.org/protobuf/encoding/protojson"
 )
 
 // TODO: For this test to work, fake the OIDC token retrieval with something like.
@@ -110,13 +113,14 @@ func TestProcessSignature(t *testing.T) {
 			repoRef := "refs/heads/main"
 			//nolint:gosec // dummy credentials
 			accessToken := "ghs_foo"
+			idToken := "foo"
 			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 				w.WriteHeader(tt.status)
 			}))
 			t.Setenv(options.EnvInputInternalPublishBaseURL, server.URL)
 			t.Cleanup(server.Close)
 
-			s, err := New(accessToken)
+			s, err := New(accessToken, idToken)
 			if err != nil {
 				t.Fatalf("Unexpected error New: %v", err)
 			}
@@ -138,25 +142,19 @@ func Test_extractTlogIndex(t *testing.T) {
 	}{
 		{
 			name:       "valid bundle",
-			bundlePath: "testdata/cosign.bundle",
-			want:       23548006,
-		},
-		{
-			name:       "invalid bundle",
-			bundlePath: "testdata/invalid-cosign.bundle",
-			wantErr:    true,
-		},
-		{
-			name:       "missing bundle",
-			bundlePath: "testdata/does-not-exist.bundle",
-			wantErr:    true,
+			bundlePath: "testdata/bundle.json",
+			want:       623290401,
 		},
 	}
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			got, err := extractTlogIndex(tt.bundlePath)
+			contents, err := os.ReadFile(tt.bundlePath)
+			var bundle protobundle.Bundle
+			if err = protojson.Unmarshal(contents, &bundle); err != nil {
+				t.Fatal(err)
+			}
+			got, err := extractTlogIndex(&bundle)
 			if (err != nil) != tt.wantErr {
 				t.Fatalf("unexpected err: %v, wantErr: %t", err, tt.wantErr)
 			}
@@ -204,6 +202,7 @@ func TestProcessSignature_retries(t *testing.T) {
 			repoRef := "refs/heads/main"
 			//nolint:gosec // dummy credentials
 			accessToken := "ghs_foo"
+			idToken := "foo"
 			var nRequests int
 			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 				nRequests++
@@ -217,7 +216,7 @@ func TestProcessSignature_retries(t *testing.T) {
 			t.Setenv(options.EnvInputInternalPublishBaseURL, server.URL)
 			t.Cleanup(server.Close)
 
-			s, err := New(accessToken)
+			s, err := New(accessToken, idToken)
 			if err != nil {
 				t.Fatalf("Unexpected error New: %v", err)
 			}
