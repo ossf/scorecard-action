@@ -199,7 +199,7 @@ func postResults(endpoint *url.URL, payload []byte) error {
 }
 
 func extractTlogIndex(bundle *protobundle.Bundle) (int64, error) {
-	// what does multiple tlog entries mean?
+	// we only submit to one rekor log, so grab the first (and only) tlog entry
 	for _, entry := range bundle.GetVerificationMaterial().GetTlogEntries() {
 		return entry.GetLogIndex(), nil
 	}
@@ -256,18 +256,16 @@ func getBundleOptions(idToken string) (sign.BundleOptions, error) {
 		opts.TimestampAuthorities = append(opts.TimestampAuthorities, sign.NewTimestampAuthority(tsaOpts))
 	}
 	forceRekorV1 := []uint32{1}
-	rekorServices, err := root.SelectServices(signingConfig.RekorLogURLs(), signingConfig.RekorLogURLsConfig(), forceRekorV1, now)
+	rekorService, err := root.SelectService(signingConfig.RekorLogURLs(), forceRekorV1, now)
 	if err != nil {
 		return sign.BundleOptions{}, fmt.Errorf("getting rekor config: %w", err)
 	}
-	for _, rekorService := range rekorServices {
-		rekorOpts := &sign.RekorOptions{
-			BaseURL: rekorService.URL,
-			Timeout: time.Duration(90 * time.Second),
-			Retries: 3,
-			Version: rekorService.MajorAPIVersion,
-		}
-		opts.TransparencyLogs = append(opts.TransparencyLogs, sign.NewRekor(rekorOpts))
+	rekorOpts := &sign.RekorOptions{
+		BaseURL: rekorService.URL,
+		Timeout: time.Duration(90 * time.Second),
+		Retries: 3,
+		Version: rekorService.MajorAPIVersion,
 	}
+	opts.TransparencyLogs = append(opts.TransparencyLogs, sign.NewRekor(rekorOpts))
 	return opts, nil
 }
