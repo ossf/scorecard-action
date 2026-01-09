@@ -95,7 +95,7 @@ func TestProcessSignature(t *testing.T) {
 			name:        "post failed",
 			status:      http.StatusBadRequest,
 			payloadPath: "testdata/results.json",
-			wantErr:     true,
+			wantErr:     false,
 		},
 	}
 	// use smaller backoffs for the test so they run faster
@@ -192,7 +192,7 @@ func TestProcessSignature_retries(t *testing.T) {
 			name:          "retry limit exceeded",
 			nFailures:     4,
 			wantNRequests: 3,
-			wantErr:       true,
+			wantErr:       false,
 		},
 	}
 	// use smaller backoffs for the test so they run faster

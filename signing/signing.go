@@ -166,7 +166,9 @@ func (s *Signing) ProcessSignature(jsonPayload []byte, repoName, repoRef string)
 
 	// retries failed
 	if err != nil {
-		return fmt.Errorf("error sending scorecard results to webapp: %w", err)
+		log.Printf("::warning::Unable to POST scorecard results to webapp: %v. "+
+			"If this issue persists, check the repo issues for more information.\n", err)
+		return nil
 	}
 
 	return nil
