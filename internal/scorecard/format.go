@@ -81,6 +81,17 @@ func Format(result *scorecard.Result, opts *options.Options) error {
 		if err != nil {
 			return fmt.Errorf("format as JSON: %w", err)
 		}
+	case "intoto":
+		err = result.AsInToto(writer, docs, &scorecard.AsInTotoResultOption{
+			AsJSON2ResultOption: scorecard.AsJSON2ResultOption{
+				Details:     true,
+				Annotations: false, // TODO
+				LogLevel:    sclog.DefaultLevel,
+			},
+		})
+		if err != nil {
+			return fmt.Errorf("format as in-toto statement: %w", err)
+		}
 	default:
 		return errUnknownFormat
 	}

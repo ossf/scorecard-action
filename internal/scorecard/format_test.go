@@ -47,6 +47,11 @@ func TestFormat(t *testing.T) {
 			pattern: []byte(`"name":"github.com/foo/bar"`),
 		},
 		{
+			name:   "intoto format supported",
+			format: "intoto",
+			pattern: []byte(scorecard.InTotoPredicateType),
+		},
+		{
 			name:    "format is case insensitive",
 			format:  "SARIF",
 			pattern: []byte("sarif-schema"),

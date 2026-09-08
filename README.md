@@ -151,18 +151,18 @@ If you prefer to manually set up the Scorecard GitHub Action, you will need to s
 
 First, [create a new file](https://docs.github.com/en/repositories/working-with-files/managing-files/creating-new-files) in this location: `[yourrepo]/.github/workflows/scorecard.yml`. Then use the input values below.
 
-
 ### Inputs
 
 | Name | Required | Description |
 | ----- | -------- | ----------- |
 | `results_file` | yes | The file that contains the results. |
-| `results_format` | yes | The format in which to store the results [json \| sarif]. For GitHub's scanning dashboard, select `sarif`. |
+| `results_format` | yes | The format in which to store the results [json \| sarif \| intoto]. For GitHub's scanning dashboard, select `sarif`. Select `intoto` to wrap the JSON results in an [in-toto attestation statement](https://github.com/in-toto/attestation/blob/main/spec/v1/statement.md). |
 | `repo_token` | no | PAT token with repository read access. Follow [these steps](/docs/authentication/fine-grained-auth-token.md) to create it. |
-| `publish_results` | recommended | This will allow you to display a badge on your repository to show off your hard work. See details [here](#publishing-results).|
-| `file_mode` | no | The method to fetch files from the repository: `archive` or `git` (default `archive`).
+| `publish_results` | recommended | This will allow you to display a badge on your repository to show off your hard work. See details [here](#publishing-results). |
+| `file_mode` | no | The method to fetch files from the repository: `archive` or `git` (default `archive`). |
 
 ### Publishing Results
+
 The Scorecard team runs a weekly scan of public GitHub repositories in order to track
 the overall security health of the open source ecosystem. The results of the scans are [publicly
 available](https://github.com/ossf/scorecard#public-data).

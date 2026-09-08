@@ -24,7 +24,7 @@ inputs:
     required: true
 
   results_format:
-    description: "OUTPUT: format of the results [json, sarif]"
+    description: "OUTPUT: format of the results [json, sarif, intoto]"
     required: true
 
   repo_token:
