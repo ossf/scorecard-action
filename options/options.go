@@ -105,7 +105,6 @@ func New() (*Options, error) {
 
 // Validate validates the scorecard configuration.
 func (o *Options) Validate() error {
-	fmt.Println("EnvGithubAuthToken:", EnvGithubAuthToken, os.Getenv(EnvGithubAuthToken))
 	if os.Getenv(EnvGithubAuthToken) == "" {
 		fmt.Printf("%s variable is empty.\n", EnvGithubAuthToken)
 		if o.IsForkStr == trueStr {
