@@ -25,10 +25,6 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-    env:
-      # Scorecard's main can raise its go.mod floor at any time; let the
-      # toolchain follow it instead of failing on a version error.
-      GOTOOLCHAIN: auto
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -38,6 +34,13 @@ jobs:
         with:
           go-version-file: go.mod
           cache: false
+
+      # Scorecard's main can raise its go.mod floor at any time; let the
+      # toolchain follow it instead of failing on a version error. setup-go
+      # exports GOTOOLCHAIN=local through $GITHUB_ENV, which overrides a job-
+      # or workflow-level env setting, so override it the same way, after it.
+      - name: Allow Go toolchain downloads
+        run: echo "GOTOOLCHAIN=auto" >> "$GITHUB_ENV"
 
       - name: Point the Scorecard dependency at main
         run: |
