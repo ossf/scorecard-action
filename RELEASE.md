@@ -10,7 +10,7 @@ pull request to discuss.)
 - [Tracking](#tracking)
 - [Preparing the release](#preparing-the-release)
   - [Validate the Action](#validate-the-action)
-  - [Update the scorecard version](#update-the-scorecard-version)
+  - [Update the scorecard-action version](#update-the-scorecard-action-version)
 - [Drafting release notes](#drafting-release-notes)
 - [Release](#release)
   - [Create a tag](#create-a-tag)
@@ -38,8 +38,19 @@ be merged before releasing the scorecard GitHub Action.
 
 ### Validate the Action
 
-Manually run the workflow [scorecards.yml](https://github.com/ossf/scorecard-action/actions/workflows/scorecards.yml)
-and verify that the run succeeds.
+The [postsubmits.yml](https://github.com/ossf/scorecard-action/actions/workflows/postsubmits.yml)
+workflow runs on every push to `main` and weekly. It builds and pushes the
+`ghcr.io/ossf/scorecard-action:latest` image, then runs Scorecard on this
+repository with that image, uploading the SARIF and publishing the results.
+
+Confirm that the `postsubmits.yml` run for the commit you plan to release
+succeeded, including the Scorecard analysis job (no
+`error sending scorecard results` line in its log). If there isn't one, run the
+workflow manually.
+
+Do this before updating the image tag below: once `action.yaml` points at the
+new tag, `ossf/scorecard-action@main` references an image that won't exist until
+the release tag is pushed.
 
 ### Update the scorecard-action version
 
@@ -76,7 +87,7 @@ Locally, create a signed tag `Tag` on commitSHA `SHA`:
 git remote update
 git checkout `SHA`
 git tag -s -m "v100.0.0" v100.0.0
-git push <upstream> --tags
+git push <upstream> v100.0.0
 ```
 
 ### Create a GitHub release
@@ -99,15 +110,32 @@ Click `Publish release`.
 
 ## Update the starter workflow
 
-1. Open a pull request in the
-[starter workflows repo](https://github.com/actions/starter-workflows/tree/main/code-scanning/scorecards.yml)
-to update the action's digest to `GH2`.
+GitHub's starter workflow is what new users get when they add the action from
+the Actions tab, so keep it on the latest release.
 
-1. Update our documentation's example workflow to use `GH2`.
+1. Get the commit SHA of the release tag:
+
+   ```console
+   git rev-parse v100.0.0^{commit}
+   ```
+
+1. Open a pull request in
+   [actions/starter-workflows](https://github.com/actions/starter-workflows)
+   that updates the action in
+   [`code-scanning/scorecard.yml`](https://github.com/actions/starter-workflows/blob/main/code-scanning/scorecard.yml)
+   to that SHA, keeping the version comment in step:
+
+   ```yaml
+   uses: ossf/scorecard-action@<SHA> # v100.0.0
+   ```
+
+1. Update the example workflow our README points to,
+   [`ossf/scorecard`'s `scorecard-analysis.yml`](https://github.com/ossf/scorecard/blob/main/.github/workflows/scorecard-analysis.yml),
+   the same way.
 
 1. Verify on
    [GitHub Marketplace](https://github.com/marketplace/actions/ossf-scorecard-action)
-   that the workflow example contains `GH2`.
+   that the workflow example uses the new release.
 
    _NOTE: GitHub Marketplace uses the default branch as reference documentation_
 
