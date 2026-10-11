@@ -5,6 +5,8 @@ updates:
     directory: "/"
     schedule:
       interval: "weekly"
+    cooldown:
+      default-days: 7
     commit-message:
       prefix: ":seedling:"
     groups:
@@ -17,6 +19,8 @@ updates:
     directory: /
     schedule:
       interval: "weekly"
+    cooldown:
+      default-days: 7
     commit-message:
       prefix: ":seedling:"
     groups:
@@ -30,5 +34,7 @@ updates:
     open-pull-requests-limit: 20
     schedule:
       interval: "daily"
+    cooldown:
+      default-days: 7
     commit-message:
       prefix: ":seedling:"

@@ -72,10 +72,12 @@ jobs:
 
       # Runs the image the previous job built from this commit, rather than
       # `ossf/scorecard-action@main`, whose action.yaml pins the last released
-      # image. A docker:// step gets none of action.yaml's input defaults, so
-      # they're set here.
+      # image. The reference floats on purpose: `uses:` can't take the image
+      # job's digest output, and the concurrency group keeps `latest` on this
+      # run's image. A docker:// step gets none of action.yaml's input
+      # defaults, so they're set here.
       - name: "Run analysis"
-        uses: docker://ghcr.io/ossf/scorecard-action:latest
+        uses: docker://ghcr.io/ossf/scorecard-action:latest # zizmor: ignore[unpinned-images]
         with:
           results_file: results.sarif
           results_format: sarif
