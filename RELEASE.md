@@ -75,7 +75,27 @@ Create a pull request with this change and merge into `main`.
 
 ## Drafting release notes
 
-<!-- TODO(release): Provide details -->
+Start from GitHub's generated notes for the range, either by clicking
+**Generate release notes** on a
+[new draft release](https://github.com/ossf/scorecard-action/releases/new) or
+with:
+
+```console
+gh api -X POST repos/ossf/scorecard-action/releases/generate-notes \
+  -f tag_name=v100.0.0 -f previous_tag_name=<previous tag>
+```
+
+Then edit, following
+[v2.4.4](https://github.com/ossf/scorecard-action/releases/tag/v2.4.4):
+
+- Open with a sentence naming the Scorecard version the release moves to,
+  linking that version's Scorecard release notes, which cover the changes to
+  checks and results.
+- List the action's own changes. Drop Dependabot bumps unless they change
+  behavior.
+- Keep **New Contributors** and the **Full Changelog** link as generated.
+
+Save the draft and share it with the other maintainers.
 
 ## Release
 
