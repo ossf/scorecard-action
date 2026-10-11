@@ -24,7 +24,7 @@ import (
 
 const (
 	configDir      = "starter-workflows/code-scanning"
-	configFilename = "scorecards.yml"
+	configFilename = "scorecard.yml"
 )
 
 var errOwnerNotSpecified = errors.New("owner not specified")
