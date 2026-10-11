@@ -1,7 +1,7 @@
 name: Publish GitHub Container Registry
 on:
+  # Release images only. postsubmits.yml publishes `latest` from main.
   push:
-    branches: ['main']
     tags:
       - v*
 
@@ -35,9 +35,7 @@ jobs:
         uses: docker/metadata-action@dc802804100637a589fabce1cb79ff13a1411302 # v6.2.0
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
-          # pushes to the default branch get labeled latest, otherwise use tag name
           tags: |
-            type=raw,value=latest,enable={{is_default_branch}}
             type=ref,event=tag
 
       - name: Build and push Docker image
