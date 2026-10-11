@@ -47,6 +47,11 @@ func TestFormat(t *testing.T) {
 			pattern: []byte(`"name":"github.com/foo/bar"`),
 		},
 		{
+			name:    "intoto format supported",
+			format:  "intoto",
+			pattern: []byte(scorecard.InTotoPredicateType),
+		},
+		{
 			name:    "format is case insensitive",
 			format:  "SARIF",
 			pattern: []byte("sarif-schema"),
@@ -55,6 +60,9 @@ func TestFormat(t *testing.T) {
 	result := scorecard.Result{
 		Repo: scorecard.RepoInfo{
 			Name: "github.com/foo/bar",
+			// The in-toto statement's subject digest is the scanned commit,
+			// which Scorecard validates as a SHA-1.
+			CommitSHA: "0123456789abcdef0123456789abcdef01234567",
 		},
 	}
 	for _, tt := range tests {

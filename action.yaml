@@ -15,7 +15,7 @@
 # Action syntax: https://docs.github.com/en/actions/creating-actions/metadata-syntax-for-github-actions.
 
 name: "OSSF Scorecard action"
-description: "Run OSSF Scorecard checks and output results in SARIF format"
+description: "Run OSSF Scorecard checks and output results in SARIF, JSON, or in-toto format"
 author: "OSSF - github.com/ossf/scorecard"
 
 inputs:
@@ -24,7 +24,7 @@ inputs:
     required: true
 
   results_format:
-    description: "OUTPUT: format of the results [json, sarif]"
+    description: "OUTPUT: format of the results [json, sarif, intoto]"
     required: true
 
   repo_token:
