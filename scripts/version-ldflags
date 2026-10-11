@@ -1,0 +1,41 @@
+#!/usr/bin/env bash
+# Copyright 2026 OpenSSF Scorecard Authors
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Prints the -ldflags that set the Scorecard version and commit the action
+# reports, derived from the github.com/ossf/scorecard/v5 requirement in go.mod.
+set -euo pipefail
+
+module=github.com/ossf/scorecard/v5
+
+version=$(go list -m -f '{{.Version}}' "${module}")
+if [[ -z "${version}" ]]; then
+  echo "version-ldflags: no version for ${module} in go.mod" >&2
+  exit 1
+fi
+
+# The module proxy reports the commit for both tags and pseudo-versions. A
+# module cache populated before that was recorded can omit it, so fall back to
+# the commit encoded in a pseudo-version.
+commit=$(go mod download -json "${module}@${version}" |
+  sed -n 's/^[[:space:]]*"Hash": "\([0-9a-f]\{40\}\)",\{0,1\}$/\1/p' | head -n 1)
+if [[ -z "${commit}" && "${version}" =~ -([0-9a-f]{12})$ ]]; then
+  commit="${BASH_REMATCH[1]}"
+fi
+if [[ -z "${commit}" ]]; then
+  echo "version-ldflags: no commit for ${module}@${version}" >&2
+  exit 1
+fi
+
+echo "-X sigs.k8s.io/release-utils/version.gitVersion=${version} -X sigs.k8s.io/release-utils/version.gitCommit=${commit}"
