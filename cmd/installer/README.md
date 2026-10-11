@@ -34,5 +34,5 @@ Flags:
 ```
 
 Another PAT should also be defined as an organization secret for
-`scorecards.yml` using steps listed in
+`scorecard.yml` using steps listed in
 [scorecard-action](https://github.com/ossf/scorecard-action#pat-token-creation).
