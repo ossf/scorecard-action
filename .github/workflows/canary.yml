@@ -1,0 +1,107 @@
+# Builds and tests the action against ossf/scorecard's main branch.
+#
+# The action pins a Scorecard release in go.mod, so an incompatible Scorecard
+# change only shows up when someone bumps that pin, usually at release time.
+# This canary moves that discovery earlier.
+#
+# It is deliberately not a pull request check: it tests another repository's
+# main branch, so a red run usually means upstream work in progress, and gating
+# this repository's PRs on it would block unrelated changes. Failures are
+# reported to a single tracking issue instead.
+
+name: canary
+
+on:
+  schedule:
+    # 06:41 UTC daily, off the hour so the run isn't queued behind others.
+    - cron: '41 6 * * *'
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  build-against-scorecard-main:
+    name: build and test against scorecard main
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    env:
+      # Scorecard's main can raise its go.mod floor at any time; let the
+      # toolchain follow it instead of failing on a version error.
+      GOTOOLCHAIN: auto
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: go.mod
+          cache: false
+
+      - name: Point the Scorecard dependency at main
+        run: |
+          go get github.com/ossf/scorecard/v5@main
+          go mod tidy
+          go list -m github.com/ossf/scorecard/v5
+
+      - name: Build
+        run: go build ./...
+
+      - name: Test
+        # cannot run tests with race because we are mutating state (setting ENV variables)
+        env:
+          GITHUB_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: go test ./...
+
+      # The image's builder stage uses a pinned Go version without
+      # GOTOOLCHAIN=auto, so this also catches a Scorecard go.mod floor that
+      # the Dockerfile's base image no longer meets.
+      - name: Build the Docker image
+        run: docker build . --file Dockerfile
+
+      - name: Report the go.mod delta
+        if: always()
+        run: git diff --no-color go.mod || true
+
+  report-failure:
+    name: report canary failure
+    needs: build-against-scorecard-main
+    if: failure()
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+    steps:
+      - name: Open or update the canary issue
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          TITLE: 'canary: scorecard-action fails against ossf/scorecard main'
+        run: |
+          set -euo pipefail
+          existing=$(gh issue list --repo "$REPO" --state open \
+            --search "in:title \"$TITLE\"" --json number --jq '.[0].number // empty')
+          if [ -n "$existing" ]; then
+            gh issue comment "$existing" --repo "$REPO" \
+              --body "Still failing as of $(date -u +%Y-%m-%d). Run: $RUN_URL"
+          else
+            gh issue create --repo "$REPO" --title "$TITLE" --body "$(cat <<BODY
+          The scheduled canary builds and tests this action against
+          \`ossf/scorecard\`'s \`main\` branch, ahead of the pinned release. It failed.
+
+          Run: $RUN_URL
+
+          **This does not mean the action is broken.** Pull requests and releases
+          build against the Scorecard version pinned in \`go.mod\`. It means an
+          unreleased Scorecard change is incompatible with the action, or needs a
+          newer Go than the Docker image's builder stage provides.
+
+          Raise it in \`ossf/scorecard\` while the change can still be adjusted,
+          rather than at the next Scorecard bump.
+
+          This issue is reused for later failures. Close it once the canary is
+          green again.
+          BODY
+          )"
+          fi
