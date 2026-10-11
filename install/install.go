@@ -32,8 +32,9 @@ const (
 	commitMessage          = ".github: Add scorecard workflow"
 	pullRequestBranch      = "scorecard-action-install"
 	workflowBase           = ".github/workflows"
-	workflowFile           = "scorecards.yml"
-	workflowFileDeprecated = "scorecards-analysis.yml"
+	workflowFile           = "scorecard.yml"
+	workflowFileDeprecated = "scorecards.yml"
+	workflowFileLegacy     = "scorecards-analysis.yml"
 )
 
 var (
@@ -48,6 +49,7 @@ To report any issues with this tool, see [here](https://github.com/ossf/scorecar
 	workflowFiles    = []string{
 		workflowFilePath,
 		path.Join(workflowBase, workflowFileDeprecated),
+		path.Join(workflowBase, workflowFileLegacy),
 	}
 )
 

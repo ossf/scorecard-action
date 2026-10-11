@@ -1,11 +1,11 @@
-# Scorecards' GitHub action
+# Scorecard's GitHub action
 [![CodeQL](https://github.com/ossf/scorecard-action/actions/workflows/codeql-analysis.yml/badge.svg)](https://github.com/ossf/scorecard-action/actions/workflows/codeql-analysis.yml)
 [![codecov](https://codecov.io/gh/ossf/scorecard-action/branch/main/graph/badge.svg?token=MAXISWR53I)](https://codecov.io/gh/ossf/scorecard-action)
 [![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/ossf/scorecard-action/badge)](https://scorecard.dev/viewer/?uri=github.com/ossf/scorecard-action)
 
-> Official GitHub Action for [OSSF Scorecards](https://github.com/ossf/scorecard).
+> Official GitHub Action for [OSSF Scorecard](https://github.com/ossf/scorecard).
 
-The Scorecards GitHub Action is free for all public repositories. Private repositories are supported if they have [GitHub Advanced Security](https://docs.github.com/en/get-started/learning-about-github/about-github-advanced-security). Private repositories without GitHub Advanced Security can run Scorecards from the command line by following the [standard installation instructions](https://github.com/ossf/scorecard#using-scorecards-1).
+The Scorecard GitHub Action is free for all public repositories. Private repositories are supported if they have [GitHub Advanced Security](https://docs.github.com/en/get-started/learning-about-github/about-github-advanced-security). Private repositories without GitHub Advanced Security can run Scorecard from the command line by following the [standard installation instructions](https://github.com/ossf/scorecard#using-scorecard-1).
 
 
 ## Breaking changes in v2
@@ -147,9 +147,9 @@ If you have a valid PAT saved as an encrypted secret and the run is still failin
 
 ## Manual Action Setup
 
-If you prefer to manually set up the Scorecards GitHub Action, you will need to set up a [workflow file](https://docs.github.com/en/actions/learn-github-actions/workflow-syntax-for-github-actions).
+If you prefer to manually set up the Scorecard GitHub Action, you will need to set up a [workflow file](https://docs.github.com/en/actions/learn-github-actions/workflow-syntax-for-github-actions).
 
-First, [create a new file](https://docs.github.com/en/repositories/working-with-files/managing-files/creating-new-files) in this location: `[yourrepo]/.github/workflows/scorecards.yml`. Then use the input values below.
+First, [create a new file](https://docs.github.com/en/repositories/working-with-files/managing-files/creating-new-files) in this location: `[yourrepo]/.github/workflows/scorecard.yml`. Then use the input values below.
 
 
 ### Inputs
@@ -194,9 +194,9 @@ If possible, we will work on making this feature more flexible so we can drop th
   * "step-security/harden-runner"
 
 ### Uploading Artifacts
-The Scorecards Action uses the [artifact uploader action](https://github.com/actions/upload-artifact) to upload results in SARIF format to the Actions tab. These results are available to anybody for five days after the run to help with debugging. To disable the upload, comment out the `Upload Artifact` value in the Workflow Example.
+The Scorecard Action uses the [artifact uploader action](https://github.com/actions/upload-artifact) to upload results in SARIF format to the Actions tab. These results are available to anybody for five days after the run to help with debugging. To disable the upload, comment out the `Upload Artifact` value in the Workflow Example.
 
-Note: if you disable this option, the results of the Scorecards Action run will be only available to people with write access or more. You can find the results on the Security tab scanning dashboard).
+Note: if you disable this option, the results of the Scorecard Action run will be only available to people with write access or more. You can find the results on the Security tab scanning dashboard).
 
 ### Workflow Example
 
