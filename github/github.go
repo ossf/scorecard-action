@@ -58,11 +58,6 @@ func (c *Client) SetContext(ctx context.Context) {
 	c.ctx = ctx
 }
 
-// SetTransport sets a http.RoundTripper for a GitHub client.
-func (c *Client) SetTransport(rt http.RoundTripper) {
-	c.rt = rt
-}
-
 // Transport returns the http.RoundTripper for a GitHub client.
 func (c *Client) Transport() http.RoundTripper {
 	return c.rt
