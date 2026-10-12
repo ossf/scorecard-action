@@ -797,8 +797,8 @@ github.com/opencontainers/runtime-spec v1.3.0 h1:YZupQUdctfhpZy3TM39nN9Ika5CBWT5
 github.com/opencontainers/runtime-spec v1.3.0/go.mod h1:jwyrGlmzljRJv/Fgzds9SsS/C5hL+LL3ko9hs6T5lQ0=
 github.com/ossf/osv-schema/bindings/go v0.0.0-20260730052020-9509daabeece h1:PSGyVVj2mqBaGj9sa/8yv/XNni3JCPZC4xAVdnwww2M=
 github.com/ossf/osv-schema/bindings/go v0.0.0-20260730052020-9509daabeece/go.mod h1:IrUa4QzZUi03J3WXDzZYXVawYipHownNfqqZrqeGXfg=
-github.com/ossf/scorecard/v5 v5.5.1-0.20261011173757-61e847433562 h1:3Gd/7QBM96VN84scvl0dLpNqaEq4x9WbtPTo6yfPljY=
-github.com/ossf/scorecard/v5 v5.5.1-0.20261011173757-61e847433562/go.mod h1:A9DUDZNHm+nJlRdpXKCLHp2qpmkyx40RNCu6T6D4mLA=
+github.com/ossf/scorecard/v5 v5.6.0 h1:lWsnFj0sBsR78EZ9J6WWeSNEiz2H4vmYturmVawjEPc=
+github.com/ossf/scorecard/v5 v5.6.0/go.mod h1:A9DUDZNHm+nJlRdpXKCLHp2qpmkyx40RNCu6T6D4mLA=
 github.com/owenrumney/go-sarif/v3 v3.3.1 h1:bKY8YnWcY8zYTiGVObC5wZLlfEvMkCxK9XMGXBbzEtQ=
 github.com/owenrumney/go-sarif/v3 v3.3.1/go.mod h1:72MaugkExDexbSauRuPq6BvUAAqAX0TwoNYMIQyZCMw=
 github.com/package-url/packageurl-go v0.1.6 h1:YO3p6u1XmCUliivUg/qWphaY8vI6hxSnnPv7Bfg3m5M=
