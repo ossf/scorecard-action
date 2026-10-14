@@ -20,8 +20,12 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"slices"
+	"sort"
 	"strings"
 	"testing"
+
+	"go.yaml.in/yaml/v3"
 )
 
 var usesPattern = regexp.MustCompile(`(?m)^\s*(?:-\s*)?uses:\s*(\S+)`)
@@ -235,6 +239,79 @@ func TestExamples(t *testing.T) {
 				t.Errorf("examples/%s is stale; run `make generate`", ex.Path)
 			}
 		})
+	}
+}
+
+// TestExamples_pinnedToFullSHA checks the committed files directly, so it
+// holds even if the template stops using the pin function.
+func TestExamples_pinnedToFullSHA(t *testing.T) {
+	t.Parallel()
+	fullSHA := regexp.MustCompile(`^[\w.-]+/[\w./-]+@[0-9a-f]{40}$`)
+	paths, err := filepath.Glob(filepath.Join("..", "..", "examples", "*.yml"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(paths) == 0 {
+		t.Fatal("found no examples to check")
+	}
+	for _, path := range paths {
+		content, err := os.ReadFile(path)
+		if err != nil {
+			t.Fatal(err)
+		}
+		matches := usesPattern.FindAllStringSubmatch(string(content), -1)
+		if len(matches) == 0 {
+			t.Errorf("%s has no uses: lines", path)
+		}
+		for _, m := range matches {
+			if !fullSHA.MatchString(m[1]) {
+				t.Errorf("%s: %s isn't pinned to a full commit SHA", path, m[1])
+			}
+		}
+	}
+}
+
+// TestExamples_linted fails if the actionlint step in examples.yml, which
+// takes an explicit file list, doesn't lint exactly the files in examples/.
+func TestExamples_linted(t *testing.T) {
+	t.Parallel()
+	content, err := os.ReadFile(filepath.Join("..", "..", ".github", "workflows", "examples.yml"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	var workflow struct {
+		Jobs map[string]struct {
+			Steps []struct {
+				With map[string]string `yaml:"with"`
+				Uses string            `yaml:"uses"`
+			} `yaml:"steps"`
+		} `yaml:"jobs"`
+	}
+	if err := yaml.Unmarshal(content, &workflow); err != nil {
+		t.Fatalf("parsing examples.yml: %v", err)
+	}
+	var linted []string
+	for _, step := range workflow.Jobs["actionlint"].Steps {
+		if strings.HasPrefix(step.Uses, "kjanat/actionlint@") {
+			linted = strings.Fields(step.With["files"])
+		}
+	}
+	if len(linted) == 0 {
+		t.Fatal("examples.yml has no actionlint step with files")
+	}
+
+	paths, err := filepath.Glob(filepath.Join("..", "..", "examples", "*.yml"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	var want []string
+	for _, path := range paths {
+		want = append(want, filepath.ToSlash(filepath.Join("examples", filepath.Base(path))))
+	}
+	sort.Strings(linted)
+	sort.Strings(want)
+	if !slices.Equal(linted, want) {
+		t.Errorf("examples.yml lints %v with actionlint, but examples/ has %v", linted, want)
 	}
 }
 
