@@ -29,7 +29,7 @@ jobs:
         # cannot run tests with race because we are mutating state (setting ENV variables)
         run: GITHUB_AUTH_TOKEN=${{ secrets.GITHUB_TOKEN }} go test -covermode=atomic  -coverprofile=unit-coverage.out ./...
       - name: Upload codecoverage
-        uses: codecov/codecov-action@ab904c41d6ece82784817410c45d8b8c02684457 # v3.1.6
+        uses: codecov/codecov-action@303a32d7a59b442fa8d48b6a1cc6825c09c847a5 # v7.1.1
         with:
          files: ./unit-coverage.out
          verbose: true
