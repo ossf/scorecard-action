@@ -24,8 +24,6 @@ import (
 	"sort"
 	"strings"
 	"testing"
-
-	"go.yaml.in/yaml/v3"
 )
 
 var usesPattern = regexp.MustCompile(`(?m)^\s*(?:-\s*)?uses:\s*(\S+)`)
@@ -279,23 +277,7 @@ func TestExamples_linted(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	var workflow struct {
-		Jobs map[string]struct {
-			Steps []struct {
-				With map[string]string `yaml:"with"`
-				Uses string            `yaml:"uses"`
-			} `yaml:"steps"`
-		} `yaml:"jobs"`
-	}
-	if err := yaml.Unmarshal(content, &workflow); err != nil {
-		t.Fatalf("parsing examples.yml: %v", err)
-	}
-	var linted []string
-	for _, step := range workflow.Jobs["actionlint"].Steps {
-		if strings.HasPrefix(step.Uses, "kjanat/actionlint@") {
-			linted = strings.Fields(step.With["files"])
-		}
-	}
+	linted := actionlintFiles(string(content))
 	if len(linted) == 0 {
 		t.Fatal("examples.yml has no actionlint step with files")
 	}
@@ -306,13 +288,34 @@ func TestExamples_linted(t *testing.T) {
 	}
 	var want []string
 	for _, path := range paths {
-		want = append(want, filepath.ToSlash(filepath.Join("examples", filepath.Base(path))))
+		want = append(want, "examples/"+filepath.Base(path))
 	}
 	sort.Strings(linted)
 	sort.Strings(want)
 	if !slices.Equal(linted, want) {
 		t.Errorf("examples.yml lints %v with actionlint, but examples/ has %v", linted, want)
 	}
+}
+
+// actionlintFiles returns the entries of the `files: |` block that follows
+// the kjanat/actionlint step in a workflow.
+func actionlintFiles(workflow string) []string {
+	var files []string
+	inStep, inFiles := false, false
+	for _, line := range strings.Split(workflow, "\n") {
+		trimmed := strings.TrimSpace(line)
+		switch {
+		case strings.HasPrefix(trimmed, "uses: kjanat/actionlint@"):
+			inStep = true
+		case inStep && trimmed == "files: |":
+			inFiles = true
+		case inFiles && strings.HasPrefix(trimmed, "examples/"):
+			files = append(files, trimmed)
+		case inFiles && trimmed != "" && !strings.HasPrefix(trimmed, "#"):
+			return files
+		}
+	}
+	return files
 }
 
 func contains(lines []string, want string) bool {
