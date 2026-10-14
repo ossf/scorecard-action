@@ -1,0 +1,14 @@
+---
+# Mirrors the yamllint settings curl's CI applies to its workflows, so a
+# workflow copied from examples/ passes their checks too: yamllint's defaults
+# with these rules relaxed.
+extends: default
+
+rules:
+  braces: disable
+  commas: disable
+  comments: disable
+  document-start: disable
+  line-length:
+    max: 500
+    level: warning
