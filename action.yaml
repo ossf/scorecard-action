@@ -42,6 +42,11 @@ inputs:
     required: false
     default: archive
 
+  fail_on_publish_error:
+    description: "INPUT: Fail the step when the Scorecard API rejects published results. Network errors, 408, 429 and 5xx responses are retried and only produce a warning."
+    required: false
+    default: false
+
   internal_publish_base_url:
     description: "INPUT: Base URL for publishing results. Used for testing."
     required: false
@@ -51,6 +56,13 @@ inputs:
     description: "INPUT: Default GitHub token. (Internal purpose only, not intended for developers to set. Used for pull requests configured with a PAT)."
     required: false
     default: ${{ github.token }}
+
+outputs:
+  results_published:
+    description: "Whether the results were published to the Scorecard API: true or false"
+
+  publication_status:
+    description: "HTTP status code of the final publish attempt, `error` if no response was received, or `skipped` if publishing was not attempted"
 
 branding:
   icon: "mic"

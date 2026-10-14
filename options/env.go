@@ -33,6 +33,8 @@ const (
 	EnvGithubRef               = "GITHUB_REF"
 	EnvGithubWorkspace         = "GITHUB_WORKSPACE"
 	EnvGithubAuthToken         = "GITHUB_AUTH_TOKEN" //nolint:gosec
+	EnvGithubOutput            = "GITHUB_OUTPUT"
+	EnvGithubStepSummary       = "GITHUB_STEP_SUMMARY"
 	EnvScorecardFork           = "SCORECARD_IS_FORK"
 	EnvScorecardPrivateRepo    = "SCORECARD_PRIVATE_REPOSITORY"
 
@@ -43,6 +45,7 @@ const (
 	EnvInputResultsFile            = "INPUT_RESULTS_FILE"
 	EnvInputResultsFormat          = "INPUT_RESULTS_FORMAT"
 	EnvInputPublishResults         = "INPUT_PUBLISH_RESULTS"
+	EnvInputFailOnPublishError     = "INPUT_FAIL_ON_PUBLISH_ERROR"
 	EnvInputFileMode               = "INPUT_FILE_MODE"
 	EnvInputInternalPublishBaseURL = "INPUT_INTERNAL_PUBLISH_BASE_URL"
 )
