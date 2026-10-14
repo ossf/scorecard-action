@@ -2,7 +2,11 @@ version: 2
 updates:
   # Maintain dependencies for GitHub Actions
   - package-ecosystem: "github-actions"
-    directory: "/"
+    # Grouped with the workflows, so a bump updates the template pins in the
+    # same PR. Run `make generate` on that PR to update examples/.
+    directories:
+      - "/"
+      - "/internal/workflowtemplate/pins"
     schedule:
       interval: "weekly"
     cooldown:

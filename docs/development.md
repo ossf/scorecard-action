@@ -278,3 +278,28 @@ Default branch: refs/heads/main
 ```
 
 </details>
+
+## Example workflows
+
+The workflows in [`examples/`](/examples) are generated. Don't edit them by
+hand. Each one is rendered from a single template,
+[`internal/workflowtemplate/scorecard.yml.tmpl`](/internal/workflowtemplate/scorecard.yml.tmpl):
+
+| File | Use |
+| ---- | --- |
+| `scorecard.yml` | Public repositories (the default) |
+| `scorecard-private.yml` | Private repositories |
+
+The actions they use, and the versions pinned, come from
+[`internal/workflowtemplate/pins/action.yml`](/internal/workflowtemplate/pins/action.yml).
+That file is never run. It's a composite action so that Dependabot updates
+the pins in the same pull request as this repository's own workflows.
+
+After changing the template or the pins, regenerate the examples:
+
+```shell
+make generate
+```
+
+CI fails if `examples/` doesn't match. On a Dependabot pull request that bumps
+the pins, run `make generate` and push the result to the same branch.
