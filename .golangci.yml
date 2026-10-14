@@ -1,34 +1,16 @@
----
+version: "2"
 run:
   concurrency: 6
-  timeout: 5m
-issues:
-  include:
-    # revive `package-comments` and `exported` rules.
-    - EXC0012
-    - EXC0013
-    - EXC0014
-    - EXC0015
-  # Maximum issues count per one linter.
-  # Set to 0 to disable.
-  # Default: 50
-  max-issues-per-linter: 0
-  # Maximum count of issues with the same text.
-  # Set to 0 to disable.
-  # Default: 3
-  max-same-issues: 0
-  new-from-rev: ""
 linters:
-  disable-all: true
+  default: none
   enable:
     - asciicheck
     - bodyclose
     - dogsled
+    - err113
     - errcheck
     - errorlint
     - exhaustive
-    - exportloopref
-    - gci
     - gochecknoinits
     - gocognit
     - goconst
@@ -36,15 +18,10 @@ linters:
     - gocyclo
     - godot
     - godox
-    - goerr113
-    - gofmt
-    - gofumpt
     - goheader
-    - goimports
     - gomodguard
     - goprintffuncname
     - gosec
-    - gosimple
     - govet
     - ineffassign
     - lll
@@ -59,98 +36,131 @@ linters:
     - rowserrcheck
     - sqlclosecheck
     - staticcheck
-    - stylecheck
     - thelper
     - tparallel
-    - typecheck
     - unconvert
     - unparam
     - unused
     - whitespace
     - wrapcheck
-linters-settings:
-  errcheck:
-    check-type-assertions: true
-    check-blank: true
-  govet:
-    enable:
-      - fieldalignment
-  godox:
-    keywords:
-      - BUG
-      - FIXME
-      - HACK
-  gci:
-    sections:
-      - standard
-      - default
-      - prefix(github.com/ossf)
-  gocritic:
-    enabled-checks:
-      # Diagnostic
-      - appendAssign
-      - argOrder
-      - badCond
-      - caseOrder
-      - codegenComment
-      - commentedOutCode
-      - deprecatedComment
-      - dupArg
-      - dupBranchBody
-      - dupCase
-      - dupSubExpr
-      - exitAfterDefer
-      - flagDeref
-      - flagName
-      - nilValReturn
-      - offBy1
-      - sloppyReassign
-      - weakCond
-      - octalLiteral
+  settings:
+    errcheck:
+      check-type-assertions: true
+      check-blank: true
+    gocritic:
+      enabled-checks:
+        # Diagnostic
+        - appendAssign
+        - argOrder
+        - badCond
+        - caseOrder
+        - codegenComment
+        - commentedOutCode
+        - deprecatedComment
+        - dupArg
+        - dupBranchBody
+        - dupCase
+        - dupSubExpr
+        - exitAfterDefer
+        - flagDeref
+        - flagName
+        - nilValReturn
+        - offBy1
+        - sloppyReassign
+        - weakCond
+        - octalLiteral
 
-      # Performance
-      - appendCombine
-      - equalFold
-      - hugeParam
-      - indexAlloc
-      - rangeExprCopy
-      - rangeValCopy
+        # Performance
+        - appendCombine
+        - equalFold
+        - hugeParam
+        - indexAlloc
+        - rangeExprCopy
+        - rangeValCopy
 
-      # Style
-      - assignOp
-      - boolExprSimplify
-      - captLocal
-      - commentFormatting
-      - commentedOutImport
-      - defaultCaseOrder
-      - docStub
-      - elseif
-      - emptyFallthrough
-      - emptyStringTest
-      - hexLiteral
-      - ifElseChain
-      - methodExprCall
-      - regexpMust
-      - singleCaseSwitch
-      - sloppyLen
-      - stringXbytes
-      - switchTrue
-      - typeAssertChain
-      - typeSwitchVar
-      - underef
-      - unlabelStmt
-      - unlambda
-      - unslice
-      - valSwap
-      - wrapperFunc
-      - yodaStyleExpr
+        # Style
+        - assignOp
+        - boolExprSimplify
+        - captLocal
+        - commentFormatting
+        - commentedOutImport
+        - defaultCaseOrder
+        - docStub
+        - elseif
+        - emptyFallthrough
+        - emptyStringTest
+        - hexLiteral
+        - ifElseChain
+        - methodExprCall
+        - regexpMust
+        - singleCaseSwitch
+        - sloppyLen
+        - stringXbytes
+        - switchTrue
+        - typeAssertChain
+        - typeSwitchVar
+        - underef
+        - unlabelStmt
+        - unlambda
+        - unslice
+        - valSwap
+        - wrapperFunc
+        - yodaStyleExpr
 
-      # Opinionated
-      - builtinShadow
-      - importShadow
-      - initClause
-      - nestingReduce
-      - paramTypeCombine
-      - ptrToRefParam
-      - typeUnparen
-      - unnecessaryBlock
+        # Opinionated
+        - builtinShadow
+        - importShadow
+        - initClause
+        - nestingReduce
+        - paramTypeCombine
+        - ptrToRefParam
+        - typeUnparen
+        - unnecessaryBlock
+    godox:
+      keywords:
+        - BUG
+        - FIXME
+        - HACK
+    govet:
+      enable:
+        - fieldalignment
+  exclusions:
+    generated: lax
+    # The `comments` preset stays off, so revive's `package-comments` and
+    # `exported` rules apply.
+    presets:
+      - common-false-positives
+      - legacy
+      - std-error-handling
+    paths:
+      - third_party$
+      - builtin$
+      - examples$
+issues:
+  # Maximum issues count per one linter.
+  # Set to 0 to disable.
+  # Default: 50
+  max-issues-per-linter: 0
+  # Maximum count of issues with the same text.
+  # Set to 0 to disable.
+  # Default: 3
+  max-same-issues: 0
+  new-from-rev: ""
+formatters:
+  enable:
+    - gci
+    - gofmt
+    - gofumpt
+    - goimports
+  settings:
+    gci:
+      sections:
+        - standard
+        - default
+        - prefix(github.com/ossf)
+  exclusions:
+    generated: lax
+    paths:
+      - third_party$
+      - builtin$
+      - examples$
