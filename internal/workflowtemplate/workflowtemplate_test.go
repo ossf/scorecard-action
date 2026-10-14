@@ -38,7 +38,7 @@ func TestRender_variants(t *testing.T) {
 	}{
 		{
 			name: "public",
-			opts: Options{Variant: Public, Branch: exampleBranch, Cron: exampleCron},
+			opts: Options{Variant: Public, Branch: exampleBranch, Cron: DefaultCron},
 			wantLines: []string{
 				"    - cron: '15 14 * * 0'",
 				"    branches: ['main']",
@@ -96,7 +96,7 @@ func TestRender_pinsEveryAction(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Pins(): %v", err)
 	}
-	got, err := Render(Options{Variant: Public, Branch: exampleBranch, Cron: exampleCron})
+	got, err := Render(Options{Variant: Public, Branch: exampleBranch, Cron: DefaultCron})
 	if err != nil {
 		t.Fatalf("Render(): %v", err)
 	}
@@ -125,12 +125,12 @@ func TestRender_invalidOptions(t *testing.T) {
 	}{
 		{
 			name:    "unknown variant",
-			opts:    Options{Variant: "internal", Branch: exampleBranch, Cron: exampleCron},
+			opts:    Options{Variant: "internal", Branch: exampleBranch, Cron: DefaultCron},
 			wantErr: errUnknownVariant,
 		},
 		{
 			name:    "no branch",
-			opts:    Options{Variant: Public, Cron: exampleCron},
+			opts:    Options{Variant: Public, Cron: DefaultCron},
 			wantErr: errEmptyOption,
 		},
 		{

@@ -19,21 +19,12 @@ package options
 
 import (
 	"errors"
-	"path/filepath"
-)
-
-const (
-	configDir      = "starter-workflows/code-scanning"
-	configFilename = "scorecard.yml"
 )
 
 var errOwnerNotSpecified = errors.New("owner not specified")
 
 // Options are installation options for the scorecard action.
 type Options struct {
-	// Scorecard GitHub Action configuration path
-	ConfigPath string
-
 	// GitHub org/repo owner
 	Owner string
 
@@ -43,9 +34,7 @@ type Options struct {
 
 // New creates a new instance of installation options.
 func New() *Options {
-	opts := &Options{}
-	opts.ConfigPath = GetConfigPath()
-	return opts
+	return &Options{}
 }
 
 // Validate checks if the installation options specified are valid.
@@ -55,10 +44,4 @@ func (o *Options) Validate() error {
 	}
 
 	return nil
-}
-
-// GetConfigPath returns the local path for the scorecard action config file.
-// TODO: Consider making this configurable.
-func GetConfigPath() string {
-	return filepath.Join(configDir, configFilename)
 }

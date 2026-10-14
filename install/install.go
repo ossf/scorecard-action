@@ -21,11 +21,13 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"os"
 	"path"
+
+	gogh "github.com/google/go-github/v46/github"
 
 	"github.com/ossf/scorecard-action/install/github"
 	"github.com/ossf/scorecard-action/install/options"
+	"github.com/ossf/scorecard-action/internal/workflowtemplate"
 )
 
 const (
@@ -81,17 +83,11 @@ func Run(o *options.Options) error {
 		}
 	}
 
-	// Get yml file into byte array.
-	workflowContent, err := os.ReadFile(o.ConfigPath)
-	if err != nil {
-		return fmt.Errorf("reading scorecard workflow file: %w", err)
-	}
-
 	// Process each repository.
 	// TODO: Capture repo access errors
 	for _, repoName := range o.Repositories {
 		log.Printf("Processing repository: %s", repoName)
-		err := processRepo(ctx, gh, o.Owner, repoName, workflowContent)
+		err := processRepo(ctx, gh, o.Owner, repoName)
 		if err != nil {
 			log.Printf("processing repository: %+v", err)
 		}
@@ -109,7 +105,6 @@ func processRepo(
 	ctx context.Context,
 	gh *github.Client,
 	owner, repoName string,
-	workflowContent []byte,
 ) error {
 	// Get repo metadata.
 	log.Printf("getting repo metadata for %s", repoName)
@@ -139,6 +134,11 @@ func processRepo(
 	}
 
 	defaultBranchSHA := defaultBranch.Commit.SHA
+
+	workflowContent, err := renderWorkflow(repo)
+	if err != nil {
+		return fmt.Errorf("rendering scorecard workflow for %s: %w", repoName, err)
+	}
 
 	// Skip if scorecard file already exists in workflows folder.
 	workflowExists := false
@@ -242,4 +242,22 @@ func processRepo(
 	}
 
 	return nil
+}
+
+// renderWorkflow renders the Scorecard workflow for a repository: the private
+// variant for private repositories, triggered on its default branch.
+func renderWorkflow(repo *gogh.Repository) ([]byte, error) {
+	variant := workflowtemplate.Public
+	if repo.GetPrivate() {
+		variant = workflowtemplate.Private
+	}
+	content, err := workflowtemplate.Render(workflowtemplate.Options{
+		Variant: variant,
+		Branch:  repo.GetDefaultBranch(),
+		Cron:    workflowtemplate.DefaultCron,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("rendering workflow: %w", err)
+	}
+	return content, nil
 }
