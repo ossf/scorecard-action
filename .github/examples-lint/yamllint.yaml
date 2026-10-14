@@ -1,0 +1,8 @@
+---
+# yamllint's defaults, with one relaxation: SHA-pinned `uses:` lines with a
+# `# vX.Y.Z` comment run up to 99 characters.
+extends: default
+
+rules:
+  line-length:
+    max: 100

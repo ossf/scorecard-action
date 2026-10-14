@@ -303,3 +303,10 @@ make generate
 
 CI fails if `examples/` doesn't match. On a Dependabot pull request that bumps
 the pins, run `make generate` and push the result to the same branch.
+
+[`examples.yml`](/.github/workflows/examples.yml) lints the examples more
+strictly than this repository's other workflows: zizmor with the `auditor`
+persona, yamllint with our configuration and with curl's, and the actionlint
+fork the Scorecard API's verifier uses. A unit test checks that every `uses:`
+is pinned to a full commit SHA. The tool versions and configurations are in
+[`.github/examples-lint/`](/.github/examples-lint).

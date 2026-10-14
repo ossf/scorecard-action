@@ -1,0 +1,81 @@
+name: Lint example workflows
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions: {}
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+# Lints the generated workflows adopters copy, more strictly than the rest of
+# this repository's workflows. See .github/examples-lint/README.md.
+jobs:
+  zizmor:
+    name: zizmor (auditor)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Run zizmor
+        uses: zizmorcore/zizmor-action@cc914d7f3750a2d13d75c7f184a1060aa0e9d482 # v0.6.4
+        with:
+          # Matches the zizmor version in zizmor.yml.
+          version: 1.30.1
+          # The action expands the glob, so new examples are linted too.
+          inputs: examples/*.yml
+          persona: auditor
+          # Fail the job on findings instead of uploading them to code scanning.
+          advanced-security: false
+
+  yamllint:
+    name: yamllint (${{ matrix.config }})
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        config: [yamllint, yamllint-curl]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Install yamllint
+        run: |
+          python3 -m venv "$RUNNER_TEMP/venv"
+          "$RUNNER_TEMP/venv/bin/pip" install --require-hashes -r .github/examples-lint/requirements.txt
+
+      - name: Run yamllint
+        env:
+          CONFIG: .github/examples-lint/${{ matrix.config }}.yaml
+        run: '"$RUNNER_TEMP/venv/bin/yamllint" --strict --config-file "$CONFIG" examples/'
+
+  actionlint:
+    name: actionlint
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      # The fork the Scorecard API's verifier uses. It knows newer workflow
+      # syntax, such as cache-mode, that rhysd/actionlint v1.7.12 rejects.
+      - name: Run actionlint
+        uses: kjanat/actionlint@08bb2c4f0d039744455b87aef1c647fb8b66d37b # v1.17.0
+        with:
+          # The action doesn't expand globs. TestExamples_linted in
+          # internal/workflowtemplate fails if this misses an example.
+          files: |
+            examples/scorecard-private.yml
+            examples/scorecard.yml
