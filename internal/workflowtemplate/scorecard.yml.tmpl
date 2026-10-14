@@ -1,0 +1,69 @@
+---
+# This workflow uses actions that are not certified by GitHub. They are
+# provided by a third-party and are governed by separate terms of
+# service, privacy policy, and support documentation.
+
+name: 'Scorecard supply-chain security'
+
+'on':
+  # For the Branch-Protection check. Only the default branch is supported.
+  # See:
+  # https://github.com/ossf/scorecard/blob/main/docs/checks.md#branch-protection
+  branch_protection_rule:
+  # Keeps the Maintained check updated. See:
+  # https://github.com/ossf/scorecard/blob/main/docs/checks.md#maintained
+  schedule:
+    - cron: '[[ .Cron ]]'
+  push:
+    branches: ['[[ .Branch ]]']
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions: {}
+
+jobs:
+  analysis:
+    name: 'Scorecard analysis'
+    runs-on: ubuntu-latest
+    # Scorecard only supports the default branch.
+    if: ${{ github.event.repository.default_branch == github.ref_name }}
+    permissions:
+      security-events: write  # Upload SARIF to GitHub code scanning.
+[[- if .Private ]]
+      contents: read  # Read the code of a private repository.
+      actions: read  # Read the workflow runs of a private repository.
+[[- else ]]
+      id-token: write  # Sign results published to api.scorecard.dev.
+[[- end ]]
+
+    steps:
+      - name: 'Checkout code'
+        uses: [[ pin "actions/checkout" ]]
+        with:
+          persist-credentials: false
+
+      - name: 'Run analysis'
+        uses: [[ pin "ossf/scorecard-action" ]]
+        with:
+          results_file: results.sarif
+          results_format: sarif
+[[- if .Private ]]
+          # Results from private repositories aren't published.
+          publish_results: false
+[[- else ]]
+          publish_results: true
+[[- end ]]
+
+      - name: 'Upload artifact'
+        uses: [[ pin "actions/upload-artifact" ]]
+        with:
+          name: SARIF file
+          path: results.sarif
+          retention-days: 5
+
+      - name: 'Upload to code scanning'
+        uses: [[ pin "github/codeql-action/upload-sarif" ]]
+        with:
+          sarif_file: results.sarif

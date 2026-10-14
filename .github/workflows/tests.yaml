@@ -52,3 +52,9 @@ jobs:
         run: |
             go mod tidy && go mod verify
             git diff --exit-code
+      - name: Check that examples/ is current
+        # Fails if the template or pins changed without `make generate`.
+        run: |
+          make generate
+          git add --intent-to-add examples
+          git diff --exit-code -- examples

@@ -1,0 +1,61 @@
+---
+# This workflow uses actions that are not certified by GitHub. They are
+# provided by a third-party and are governed by separate terms of
+# service, privacy policy, and support documentation.
+
+name: 'Scorecard supply-chain security'
+
+'on':
+  # For the Branch-Protection check. Only the default branch is supported.
+  # See:
+  # https://github.com/ossf/scorecard/blob/main/docs/checks.md#branch-protection
+  branch_protection_rule:
+  # Keeps the Maintained check updated. See:
+  # https://github.com/ossf/scorecard/blob/main/docs/checks.md#maintained
+  schedule:
+    - cron: '15 14 * * 0'
+  push:
+    branches: ['main']
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions: {}
+
+jobs:
+  analysis:
+    name: 'Scorecard analysis'
+    runs-on: ubuntu-latest
+    # Scorecard only supports the default branch.
+    if: ${{ github.event.repository.default_branch == github.ref_name }}
+    permissions:
+      security-events: write  # Upload SARIF to GitHub code scanning.
+      contents: read  # Read the code of a private repository.
+      actions: read  # Read the workflow runs of a private repository.
+
+    steps:
+      - name: 'Checkout code'
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: 'Run analysis'
+        uses: ossf/scorecard-action@fa7117db83c52d787ae5a89f350999701505d78e  # v2.5.0
+        with:
+          results_file: results.sarif
+          results_format: sarif
+          # Results from private repositories aren't published.
+          publish_results: false
+
+      - name: 'Upload artifact'
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9  # v7.0.2
+        with:
+          name: SARIF file
+          path: results.sarif
+          retention-days: 5
+
+      - name: 'Upload to code scanning'
+        uses: github/codeql-action/upload-sarif@24c54180a607b1449ed407dd24f251e4e9147c8d  # v4.38.3
+        with:
+          sarif_file: results.sarif
