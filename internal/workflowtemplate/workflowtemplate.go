@@ -172,20 +172,21 @@ type Example struct {
 	Options Options
 }
 
-// Branch and schedule for the examples adopters copy.
-const (
-	exampleBranch = "main"
-	exampleCron   = "15 14 * * 0"
-)
+// DefaultCron is the weekly schedule of the examples and of workflows the
+// installer adds.
+const DefaultCron = "15 14 * * 0"
+
+// exampleBranch is the default branch the examples assume.
+const exampleBranch = "main"
 
 // Examples are the workflows `make generate` renders into examples/.
 var Examples = []Example{
 	{
 		Path:    "scorecard.yml",
-		Options: Options{Variant: Public, Branch: exampleBranch, Cron: exampleCron},
+		Options: Options{Variant: Public, Branch: exampleBranch, Cron: DefaultCron},
 	},
 	{
 		Path:    "scorecard-private.yml",
-		Options: Options{Variant: Private, Branch: exampleBranch, Cron: exampleCron},
+		Options: Options{Variant: Private, Branch: exampleBranch, Cron: DefaultCron},
 	},
 }

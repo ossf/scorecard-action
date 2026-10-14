@@ -78,6 +78,8 @@ GitHub Enterprise repositories are not supported.
 
    ![image](/images/install05.png)
 
+To add the workflow to many repositories at once, use the [installer](/docs/installer.md).
+
 ### Authentication with Fine-grained PAT (optional)
 Scorecard can run successfully with the workflow's default `GITHUB_TOKEN`, which is our recommended approach.
 However, Scorecard Action requires additional permissions if you use GitHub's classic [Branch Protection](https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-protected-branches/about-protected-branches) settings and want to see it reflected in your results.
