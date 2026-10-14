@@ -278,6 +278,15 @@ The Scorecard Action uses the [artifact uploader action](https://github.com/acti
 
 Note: if you disable this option, the results of the Scorecard Action run will be only available to people with write access or more. You can find the results on the Security tab scanning dashboard).
 
+### Workflow Linters
+
+The [example workflows](/examples) set `cache-mode: none`, which blocks all cache access.
+GitHub Actions added the `cache-mode` key in September 2026, so linters released before then may not recognize it:
+
+- actionlint v1.7.12 and earlier report `unexpected key "cache-mode"`.
+  On those versions, `actionlint -ignore 'unexpected key "cache-mode"'` suppresses only this finding; other unknown keys are still reported.
+- actionlint.kjanat.dev v1.17.0 and later, zizmor, and yamllint accept it.
+
 ### Workflow Example
 
 Please see our workflow from `ossf/scorecard` for an up-to-date example.

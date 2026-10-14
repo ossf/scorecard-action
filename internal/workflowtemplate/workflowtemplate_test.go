@@ -42,6 +42,8 @@ func TestRender_variants(t *testing.T) {
 			wantLines: []string{
 				"    - cron: '15 14 * * 0'",
 				"    branches: ['main']",
+				"cache-mode: none",
+				"        if: ${{ always() }}",
 				"      id-token: write  # Sign results published to api.scorecard.dev.",
 				"          publish_results: true",
 			},

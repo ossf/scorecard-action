@@ -22,6 +22,10 @@ concurrency:
   cancel-in-progress: true
 
 permissions: {}
+# Blocks all cache access. Added to GitHub Actions in September 2026, so
+# some workflow linters may not recognize it yet. See:
+# https://github.com/ossf/scorecard-action#workflow-linters
+cache-mode: none
 
 jobs:
   analysis:
@@ -57,6 +61,7 @@ jobs:
 [[- end ]]
 
       - name: 'Upload artifact'
+        if: ${{ always() }}
         uses: [[ pin "actions/upload-artifact" ]]
         with:
           name: SARIF file
@@ -64,6 +69,7 @@ jobs:
           retention-days: 5
 
       - name: 'Upload to code scanning'
+        if: ${{ always() }}
         uses: [[ pin "github/codeql-action/upload-sarif" ]]
         with:
           sarif_file: results.sarif
