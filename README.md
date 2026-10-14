@@ -145,6 +145,10 @@ If the run has failed, the most likely reason is an authentication failure. Conf
 
 If you have a valid PAT saved as an encrypted secret and the run is still failing, confirm that you have not made any changes to the workflow yaml file that affected the syntax. Review the [workflow example](#workflow-example) and reset to the default values if necessary.
 
+If the run succeeded but your results didn't update, check the job summary and the run's annotations.
+A warning that the Scorecard API rejected the results usually means the workflow breaks one of the [workflow restrictions](#workflow-restrictions); the annotation includes the API's error message.
+See [When publishing fails](#when-publishing-fails) to make a rejection fail the run.
+
 ## Manual Action Setup
 
 If you prefer to manually set up the Scorecard GitHub Action, you will need to set up a [workflow file](https://docs.github.com/en/actions/learn-github-actions/workflow-syntax-for-github-actions).
@@ -160,6 +164,14 @@ First, [create a new file](https://docs.github.com/en/repositories/working-with-
 | `repo_token` | no | PAT token with repository read access. Follow [these steps](/docs/authentication/fine-grained-auth-token.md) to create it. |
 | `publish_results` | recommended | This will allow you to display a badge on your repository to show off your hard work. See details [here](#publishing-results). |
 | `file_mode` | no | The method to fetch files from the repository: `archive` or `git` (default `archive`). |
+| `fail_on_publish_error` | no | Fail the step when the Scorecard API rejects published results (default `false`). See [Publishing Results](#publishing-results). |
+
+### Outputs
+
+| Name | Description |
+| ---- | ----------- |
+| `results_published` | `true` if the results were published to the Scorecard API, otherwise `false`. |
+| `publication_status` | The HTTP status code of the final publish attempt, `error` if no response was received, or `skipped` if publishing was not attempted. |
 
 ### Publishing Results
 
@@ -170,9 +182,77 @@ Setting `publish_results: true` replaces the results of the team's weekly scans 
 helping us scale by cutting down on repeated workflows and GitHub API requests.
 This option is also needed to enable badges on the repository.
 
+#### When publishing fails
+
+The action retries publishing on network errors and on HTTP 408, 429 and 5xx responses.
+It attempts other 4xx responses, such as a [workflow restriction](#workflow-restrictions) rejection, only once, because retrying won't change the result.
+
+By default, a failed publish is reported as a warning annotation, and the step still succeeds.
+The job summary always states whether the scan succeeded and whether the results were published.
+
+Set `fail_on_publish_error: true` to fail the step when the Scorecard API rejects the results.
+Network errors, 408, 429 and 5xx responses still produce only a warning, so an outage of the Scorecard API doesn't fail your workflow.
+The results file is written before publishing, so add `if: always()` to the steps that upload it:
+
+```yaml
+      - name: Run analysis
+        uses: ossf/scorecard-action@<full commit SHA> # v2.6.0 or later
+        with:
+          results_file: results.sarif
+          results_format: sarif
+          publish_results: true
+          fail_on_publish_error: true
+
+      - name: Upload artifact
+        if: always()
+        uses: actions/upload-artifact@<full commit SHA>
+        with:
+          name: SARIF file
+          path: results.sarif
+          retention-days: 5
+
+      - name: Upload to code-scanning
+        if: always()
+        uses: github/codeql-action/upload-sarif@<full commit SHA>
+        with:
+          sarif_file: results.sarif
+```
+
+#### Using the outputs
+
+The [`results_published` and `publication_status` outputs](#outputs) let later jobs act on the outcome.
+When publishing, the [workflow restrictions](#workflow-restrictions) don't allow `run` steps in the Scorecard job, so read the outputs from a separate job:
+
+```yaml
+jobs:
+  analysis:
+    # ...
+    outputs:
+      results-published: ${{ steps.scorecard.outputs.results_published }}
+      publication-status: ${{ steps.scorecard.outputs.publication_status }}
+    steps:
+      - name: Run analysis
+        id: scorecard
+        uses: ossf/scorecard-action@<full commit SHA> # v2.6.0 or later
+        # ...
+
+  report:
+    needs: analysis
+    if: always()
+    runs-on: ubuntu-latest
+    permissions: {}
+    steps:
+      - name: Report publication status
+        env:
+          RESULTS_PUBLISHED: ${{ needs.analysis.outputs.results-published }}
+          PUBLICATION_STATUS: ${{ needs.analysis.outputs.publication-status }}
+        run: |
+          echo "Published: $RESULTS_PUBLISHED (status: $PUBLICATION_STATUS)"
+```
+
 ### Workflow Restrictions
 
-If [publishing results](#publishing-results), our API [enforces certain rules](https://github.com/ossf/scorecard-webapp/blob/9c2f66d5f6ff56ca4a4ac2fba6ec8dcc5379d31c/app/server/post_results.go#L184-L187) on the producing workflow, which may reject the results and cause the Scorecard Action run to fail. 
+If [publishing results](#publishing-results), our API [enforces certain rules](https://github.com/ossf/scorecard-webapp/blob/9c2f66d5f6ff56ca4a4ac2fba6ec8dcc5379d31c/app/server/post_results.go#L184-L187) on the producing workflow, which may reject the results. With `fail_on_publish_error: true`, a rejection fails the Scorecard Action step. 
 We understand that this is restrictive, but currently it's necessary to ensure the integrity of our API dataset, since GitHub workflow steps run in the same environment as the job they belong to.
 If possible, we will work on making this feature more flexible so we can drop this requirement in the future.
 

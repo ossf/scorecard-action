@@ -17,6 +17,7 @@
 package signing
 
 import (
+	"errors"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -77,25 +78,64 @@ import (
 // 	}
 // }
 
+const resultsPayloadPath = "testdata/results.json"
+
 //nolint:paralleltest // we are using t.Setenv
 func TestProcessSignature(t *testing.T) {
 	tests := []struct {
-		name        string
-		payloadPath string
-		status      int
-		wantErr     bool
+		name          string
+		payloadPath   string
+		status        int
+		wantNRequests int
+		wantErr       bool
+		wantRetryable bool
 	}{
 		{
-			name:        "post succeeded",
-			status:      http.StatusCreated,
-			payloadPath: "testdata/results.json",
-			wantErr:     false,
+			name:          "post succeeded",
+			status:        http.StatusCreated,
+			payloadPath:   resultsPayloadPath,
+			wantNRequests: 1,
+			wantErr:       false,
 		},
 		{
-			name:        "post failed",
-			status:      http.StatusBadRequest,
-			payloadPath: "testdata/results.json",
-			wantErr:     false,
+			name:          "bad request is attempted once",
+			status:        http.StatusBadRequest,
+			payloadPath:   resultsPayloadPath,
+			wantNRequests: 1,
+			wantErr:       true,
+			wantRetryable: false,
+		},
+		{
+			name:          "forbidden is attempted once",
+			status:        http.StatusForbidden,
+			payloadPath:   resultsPayloadPath,
+			wantNRequests: 1,
+			wantErr:       true,
+			wantRetryable: false,
+		},
+		{
+			name:          "request timeout is retried",
+			status:        http.StatusRequestTimeout,
+			payloadPath:   resultsPayloadPath,
+			wantNRequests: 3,
+			wantErr:       true,
+			wantRetryable: true,
+		},
+		{
+			name:          "too many requests is retried",
+			status:        http.StatusTooManyRequests,
+			payloadPath:   resultsPayloadPath,
+			wantNRequests: 3,
+			wantErr:       true,
+			wantRetryable: true,
+		},
+		{
+			name:          "server error is retried",
+			status:        http.StatusInternalServerError,
+			payloadPath:   resultsPayloadPath,
+			wantNRequests: 3,
+			wantErr:       true,
+			wantRetryable: true,
 		},
 	}
 	// use smaller backoffs for the test so they run faster
@@ -110,7 +150,9 @@ func TestProcessSignature(t *testing.T) {
 			repoRef := "refs/heads/main"
 			//nolint:gosec // dummy credentials
 			accessToken := "ghs_foo"
+			var nRequests int
 			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				nRequests++
 				w.WriteHeader(tt.status)
 			}))
 			t.Setenv(options.EnvInputInternalPublishBaseURL, server.URL)
@@ -124,7 +166,43 @@ func TestProcessSignature(t *testing.T) {
 			if (err != nil) != tt.wantErr {
 				t.Errorf("ProcessSignature() error: %v, wantErr: %v", err, tt.wantErr)
 			}
+			if nRequests != tt.wantNRequests {
+				t.Errorf("ProcessSignature() made %d requests, wanted %d", nRequests, tt.wantNRequests)
+			}
+			if err == nil {
+				return
+			}
+			var pubErr *PublishError
+			if !errors.As(err, &pubErr) {
+				t.Fatalf("ProcessSignature() error %v doesn't wrap a *PublishError", err)
+			}
+			if pubErr.StatusCode != tt.status {
+				t.Errorf("PublishError.StatusCode: got %d, wanted %d", pubErr.StatusCode, tt.status)
+			}
+			if pubErr.Retryable() != tt.wantRetryable {
+				t.Errorf("PublishError.Retryable(): got %t, wanted %t", pubErr.Retryable(), tt.wantRetryable)
+			}
 		})
+	}
+}
+
+func TestProcessSignature_networkError(t *testing.T) {
+	setBackoffs(t, []time.Duration{0, time.Millisecond, 2 * time.Millisecond})
+	server := httptest.NewServer(http.NotFoundHandler())
+	server.Close() // nothing is listening, so every attempt is a network error
+	t.Setenv(options.EnvInputInternalPublishBaseURL, server.URL)
+
+	s, err := New("ghs_foo")
+	if err != nil {
+		t.Fatalf("Unexpected error New: %v", err)
+	}
+	err = s.ProcessSignature(nil, "ossf-tests/scorecard-action", "refs/heads/main")
+	var pubErr *PublishError
+	if !errors.As(err, &pubErr) {
+		t.Fatalf("ProcessSignature() error %v doesn't wrap a *PublishError", err)
+	}
+	if pubErr.StatusCode != 0 || !pubErr.Retryable() {
+		t.Errorf("PublishError: got status %d, retryable %t; wanted 0, true", pubErr.StatusCode, pubErr.Retryable())
 	}
 }
 
@@ -192,7 +270,7 @@ func TestProcessSignature_retries(t *testing.T) {
 			name:          "retry limit exceeded",
 			nFailures:     4,
 			wantNRequests: 3,
-			wantErr:       false,
+			wantErr:       true,
 		},
 	}
 	// use smaller backoffs for the test so they run faster
@@ -209,7 +287,7 @@ func TestProcessSignature_retries(t *testing.T) {
 				nRequests++
 				status := http.StatusCreated
 				if tt.nFailures > 0 {
-					status = http.StatusBadRequest
+					status = http.StatusServiceUnavailable
 					tt.nFailures--
 				}
 				w.WriteHeader(status)

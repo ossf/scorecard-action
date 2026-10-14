@@ -20,7 +20,9 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"strconv"
 
+	"github.com/ossf/scorecard-action/internal/publication"
 	"github.com/ossf/scorecard-action/internal/scorecard"
 	"github.com/ossf/scorecard-action/options"
 	"github.com/ossf/scorecard-action/signing"
@@ -39,6 +41,11 @@ func main() {
 	}
 	opts.Print()
 
+	failOnPublishError, err := getFailOnPublishError()
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	result, err := scorecard.Run(opts)
 	if err != nil {
 		log.Fatal(err)
@@ -47,6 +54,8 @@ func main() {
 	if err := scorecard.Format(&result, opts); err != nil {
 		log.Fatal(err)
 	}
+
+	var pub publication.Result
 
 	// `pull_request` does not have the necessary `token-id: write` permissions.
 	//
@@ -83,10 +92,49 @@ func main() {
 		// Processes json results.
 		repoName := os.Getenv(options.EnvGithubRepository)
 		repoRef := os.Getenv(options.EnvGithubRef)
-		if err := s.ProcessSignature(jsonPayload, repoName, repoRef); err != nil {
-			log.Fatalf("error processing signature: %v", err)
+		pub = publication.Result{
+			Attempted: true,
+			Err:       s.ProcessSignature(jsonPayload, repoName, repoRef),
 		}
 	}
+
+	if err := pub.Report(os.Getenv(options.EnvGithubOutput), os.Getenv(options.EnvGithubStepSummary)); err != nil {
+		fmt.Printf("::warning::Unable to report the publication status: %v\n", err)
+	}
+	if pub.Err != nil && reportPublishError(pub, failOnPublishError) {
+		os.Exit(1)
+	}
+}
+
+// reportPublishError annotates a failed publish, and reports whether the step
+// should fail: only when fail_on_publish_error is set and the Scorecard API
+// rejected the results. Workflow commands must start a line, so this prints
+// them without the log package's timestamp.
+func reportPublishError(pub publication.Result, failOnPublishError bool) bool {
+	if pub.Rejected() && failOnPublishError {
+		fmt.Printf("::error::The Scorecard API rejected the results: %v. "+
+			"Check the workflow restrictions at "+
+			"https://github.com/ossf/scorecard-action#workflow-restrictions.\n", pub.Err)
+		return true
+	}
+	hint := "If this issue persists, check the repo issues for more information."
+	if pub.Rejected() {
+		hint = "Set fail_on_publish_error: true to fail the step when the Scorecard API rejects results."
+	}
+	fmt.Printf("::warning::Unable to POST scorecard results to webapp: %v. %s\n", pub.Err, hint)
+	return false
+}
+
+func getFailOnPublishError() (bool, error) {
+	val := os.Getenv(options.EnvInputFailOnPublishError)
+	if val == "" {
+		return false, nil
+	}
+	b, err := strconv.ParseBool(val)
+	if err != nil {
+		return false, fmt.Errorf("parsing %s: %w", options.EnvInputFailOnPublishError, err)
+	}
+	return b, nil
 }
 
 func getOpts() (*options.Options, error) {

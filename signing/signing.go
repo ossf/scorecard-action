@@ -41,14 +41,47 @@ import (
 var (
 	errorEmptyToken   = errors.New("error token empty")
 	errorInvalidToken = errors.New("invalid token")
+	errorHTTPResponse = errors.New("http response")
 
 	// backoff schedule for interactions with cosign/rekor and our web API.
+	// Its length is the maximum number of attempts.
 	backoffSchedule = []time.Duration{
 		1 * time.Second,
 		3 * time.Second,
 		10 * time.Second,
 	}
 )
+
+// PublishError reports a failed attempt to publish results to the Scorecard API.
+type PublishError struct {
+	Err error
+	// StatusCode is the HTTP status code of the response, or 0 if no response
+	// was received.
+	StatusCode int
+}
+
+func (e *PublishError) Error() string {
+	return e.Err.Error()
+}
+
+func (e *PublishError) Unwrap() error {
+	return e.Err
+}
+
+// Retryable reports whether retrying the request could succeed: network
+// errors, 408, 429 and 5xx. Other 4xx responses are deterministic, so they
+// are attempted only once.
+func (e *PublishError) Retryable() bool {
+	switch {
+	case e.StatusCode == 0,
+		e.StatusCode == http.StatusRequestTimeout,
+		e.StatusCode == http.StatusTooManyRequests,
+		e.StatusCode >= http.StatusInternalServerError:
+		return true
+	default:
+		return false
+	}
+}
 
 // Signing is a signing structure.
 type Signing struct {
@@ -126,6 +159,8 @@ func (s *Signing) SignScorecardResult(scorecardResultsFile string) error {
 }
 
 // ProcessSignature calls scorecard-api to process & upload signed scorecard results.
+// Retryable failures are retried with backoff; others are attempted once. A
+// failed POST returns an error that wraps a *PublishError.
 func (s *Signing) ProcessSignature(jsonPayload []byte, repoName, repoRef string) error {
 	// Prepare HTTP request body for scorecard-webapp-api call.
 	// TODO: Use the `ScorecardResult` struct from `scorecard-webapp`.
@@ -153,25 +188,22 @@ func (s *Signing) ProcessSignature(jsonPayload []byte, repoName, repoRef string)
 		return fmt.Errorf("parsing Scorecard API endpoint: %w", err)
 	}
 
-	for _, backoff := range backoffSchedule {
+	for i, backoff := range backoffSchedule {
 		// Call scorecard-webapp-api to process and upload signature.
 		err = postResults(postURL, payloadBytes)
 		if err == nil {
-			break
+			return nil
 		}
 		log.Printf("error sending scorecard results to webapp: %v\n", err)
+		var pubErr *PublishError
+		if !errors.As(err, &pubErr) || !pubErr.Retryable() || i == len(backoffSchedule)-1 {
+			break
+		}
 		log.Printf("retrying in %v...\n", backoff)
 		time.Sleep(backoff)
 	}
 
-	// retries failed
-	if err != nil {
-		log.Printf("::warning::Unable to POST scorecard results to webapp: %v. "+
-			"If this issue persists, check the repo issues for more information.\n", err)
-		return nil
-	}
-
-	return nil
+	return fmt.Errorf("publishing scorecard results: %w", err)
 }
 
 func postResults(endpoint *url.URL, payload []byte) error {
@@ -189,16 +221,20 @@ func postResults(endpoint *url.URL, payload []byte) error {
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
-		return fmt.Errorf("executing scorecard-api call: %w", err)
+		return &PublishError{Err: fmt.Errorf("executing scorecard-api call: %w", err)}
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusCreated {
 		bodyBytes, err := io.ReadAll(resp.Body)
 		if err != nil {
-			return fmt.Errorf("reading response body: %w", err)
+			return &PublishError{StatusCode: resp.StatusCode, Err: fmt.Errorf("reading response body: %w", err)}
 		}
-		return fmt.Errorf("http response %d, status: %v, error: %v", resp.StatusCode, resp.Status, string(bodyBytes)) //nolint
+		return &PublishError{
+			StatusCode: resp.StatusCode,
+			Err: fmt.Errorf("%w %d, status: %v, error: %v",
+				errorHTTPResponse, resp.StatusCode, resp.Status, string(bodyBytes)),
+		}
 	}
 
 	return nil
