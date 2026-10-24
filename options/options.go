@@ -79,7 +79,7 @@ type Options struct {
 	InputResultsFormat string `env:"INPUT_RESULTS_FORMAT"`
 	InputFileMode      string `env:"INPUT_FILE_MODE"`
 
-	PublishResults bool
+	PublishResults bool `env:"INPUT_PUBLISH_RESULTS"`
 }
 
 // New creates a new options set for running scorecard via GitHub Actions.
