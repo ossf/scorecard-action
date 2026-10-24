@@ -460,6 +460,12 @@ func TestSetPublishResults(t *testing.T) {
 			want:        false,
 		},
 		{
+			name:        "InputTruePublicRepo",
+			privateRepo: "false",
+			userInput:   true,
+			want:        true,
+		},
+		{
 			name:        "InvalidValueForPrivateRepo",
 			privateRepo: "invalid-value",
 			want:        false,
@@ -471,12 +477,68 @@ func TestSetPublishResults(t *testing.T) {
 				ScorecardOpts: options.New(),
 			}
 			opts.PrivateRepoStr = tt.privateRepo
+			opts.PublishResults = tt.userInput
 
 			opts.setPublishResults()
 			got := opts.PublishResults
 
 			if !cmp.Equal(tt.want, got) {
 				t.Errorf("New(): -want, +got:\n%s", cmp.Diff(tt.want, got))
+			}
+		})
+	}
+}
+
+//nolint:paralleltest // we are using t.Setenv
+func TestNewPublishResults(t *testing.T) {
+	tests := []struct {
+		name      string
+		input     string
+		eventPath string
+		want      bool
+	}{
+		{
+			name:      "public repo with publishing enabled",
+			input:     trueStr,
+			eventPath: githubEventPathPublic,
+			want:      true,
+		},
+		{
+			name:      "private repo is never published",
+			input:     trueStr,
+			eventPath: githubEventPathNonFork,
+			want:      false,
+		},
+		{
+			name:      "publishing disabled",
+			input:     "false",
+			eventPath: githubEventPathPublic,
+			want:      false,
+		},
+		{
+			name:      "empty input",
+			eventPath: githubEventPathPublic,
+			want:      false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Setenv(EnvGithubAuthToken, testToken)
+			t.Setenv(EnvInputRepoToken, testToken)
+			t.Setenv(EnvGithubEventPath, tt.eventPath)
+			t.Setenv(EnvGithubEventName, pushEvent)
+			t.Setenv(EnvGithubRef, "refs/heads/main")
+			t.Setenv(EnvGithubRepository, testRepo)
+			t.Setenv(EnvInputResultsFile, testResultsFile)
+			t.Setenv(EnvInputResultsFormat, formatSarif)
+			t.Setenv(EnvInputPublishResults, tt.input)
+
+			opts, err := New()
+			if err != nil {
+				t.Fatalf("New() unexpected error: %v", err)
+			}
+			if opts.PublishResults != tt.want {
+				t.Errorf("PublishResults: got %t, wanted %t", opts.PublishResults, tt.want)
 			}
 		})
 	}
