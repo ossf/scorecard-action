@@ -39,7 +39,7 @@ ________
 
 The following GitHub triggers are supported: `push`, `schedule` (default branch only).
 
-The `pull_request` and `workflow_dispatch` triggers are experimental.
+The `pull_request`, `merge_group`, and `workflow_dispatch` triggers are experimental.
 
 Running the Scorecard action on a fork repository is not supported.
 
