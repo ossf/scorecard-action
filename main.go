@@ -57,10 +57,12 @@ func main() {
 
 	var pub publication.Result
 
-	// `pull_request` does not have the necessary `token-id: write` permissions.
+	// `pull_request` and `merge_group` do not publish results to the Scorecard API.
 	//
 	//nolint:nestif // trying to keep the refactor simpler
-	if os.Getenv(options.EnvInputPublishResults) == "true" && triggerEventName != "pull_request" {
+	if os.Getenv(options.EnvInputPublishResults) == "true" &&
+		triggerEventName != "pull_request" &&
+		triggerEventName != "merge_group" {
 		// if we don't already have the results as JSON, generate them
 		if opts.InputResultsFormat != "json" {
 			opts.InputResultsFormat = "json"
