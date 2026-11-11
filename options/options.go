@@ -34,6 +34,7 @@ const (
 	formatSarif                = scopts.FormatSarif
 
 	pullRequestEvent      = "pull_request"
+	mergeGroupEvent       = "merge_group"
 	pushEvent             = "push"
 	branchProtectionEvent = "branch_protection_rule"
 )
@@ -119,6 +120,7 @@ func (o *Options) Validate() error {
 	}
 
 	if !o.isPullRequestEvent() &&
+		!o.isMergeGroupEvent() &&
 		!o.isDefaultBranch() {
 		fmt.Printf("%s not supported with %s event.\n", o.GithubRef, o.GithubEventName)
 		fmt.Printf("::error ::Only the default branch %s is supported.\n", o.DefaultBranch)
@@ -169,7 +171,7 @@ func (o *Options) setScorecardOpts() {
 	// This section restores functionality that was removed in
 	// https://github.com/ossf/scorecard/pull/1898.
 	// TODO(options): Consider moving this to its own function.
-	if !o.isPullRequestEvent() {
+	if !o.isPullRequestEvent() && !o.isMergeGroupEvent() {
 		o.ScorecardOpts.Repo = o.GithubRepository
 	} else {
 		o.ScorecardOpts.Local = "."
@@ -264,6 +266,10 @@ func (o *Options) parseFromRepoInfo(repoInfo github.RepoInfo) bool {
 
 func (o *Options) isPullRequestEvent() bool {
 	return strings.HasPrefix(o.GithubEventName, pullRequestEvent)
+}
+
+func (o *Options) isMergeGroupEvent() bool {
+	return o.GithubEventName == mergeGroupEvent
 }
 
 func (o *Options) isDefaultBranch() bool {
