@@ -25,7 +25,7 @@ jobs:
           persist-credentials: false
 
       - name: Run zizmor
-        uses: zizmorcore/zizmor-action@53290badfa369cb0bf7ad16342cb62c2fa47ac7b # v0.8.0
+        uses: zizmorcore/zizmor-action@45d7276c9ca790aabd705e31ca99c6185c3e76dd # v0.8.1
         with:
           # Matches the zizmor version in zizmor.yml.
           version: 1.30.1
@@ -72,7 +72,7 @@ jobs:
       # The fork the Scorecard API's verifier uses. It knows newer workflow
       # syntax, such as cache-mode, that rhysd/actionlint v1.7.12 rejects.
       - name: Run actionlint
-        uses: kjanat/actionlint@08bb2c4f0d039744455b87aef1c647fb8b66d37b # v1.17.0
+        uses: kjanat/actionlint@220b76cfa568e00ed8b3c476898f849a722b88e2 # v1.17.1
         with:
           # The action doesn't expand globs. TestExamples_linted in
           # internal/workflowtemplate fails if this misses an example.
