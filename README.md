@@ -48,6 +48,15 @@ GitHub Enterprise repositories are not supported.
 ## Installation
 
 ### Workflow Setup (Required)
+Copy the example workflow into your repository as `.github/workflows/scorecard.yml`:
+
+- Public repositories: [`examples/scorecard.yml`](/examples/scorecard.yml), which publishes results to the Scorecard API.
+- Private repositories: [`examples/scorecard-private.yml`](/examples/scorecard-private.yml), which doesn't publish.
+
+Both pin every action to a full commit SHA, and Dependabot can keep the pins current.
+
+Alternatively, add GitHub's starter workflow from the Security tab:
+
 1. From your GitHub project's main page, click “Security” in the top ribbon.
 
    ![image](/images/install01.png)
@@ -291,8 +300,9 @@ GitHub Actions added the `cache-mode` key in September 2026, so linters released
 
 ### Workflow Example
 
-Please see our workflow from `ossf/scorecard` for an up-to-date example.
-https://github.com/ossf/scorecard/blob/main/.github/workflows/scorecard-analysis.yml
+See the [example workflows](/examples): [`scorecard.yml`](/examples/scorecard.yml) for public repositories and
+[`scorecard-private.yml`](/examples/scorecard-private.yml) for private ones.
+They are generated from one template, linted in CI, and updated on `main` after each release.
 
 ## Reporting vulnerabilities
 

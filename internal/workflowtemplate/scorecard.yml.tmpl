@@ -58,6 +58,9 @@ jobs:
           publish_results: false
 [[- else ]]
           publish_results: true
+          # Fail the step if the Scorecard API rejects the results. See:
+          # https://github.com/ossf/scorecard-action#when-publishing-fails
+          fail_on_publish_error: true
 [[- end ]]
 
       - name: 'Upload artifact'
