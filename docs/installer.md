@@ -21,10 +21,12 @@ installer:
 
 ## Usage
 
-Run the installer from a release tag, so it adds that release's workflow:
+Run the installer from `main`. The workflow it adds pins the latest release;
+at a release tag, the pins name the release before it, because a commit can't
+contain its own SHA.
 
 ```shell
-git clone --depth 1 --branch <release tag> https://github.com/ossf/scorecard-action
+git clone --depth 1 https://github.com/ossf/scorecard-action
 cd scorecard-action
 export GITHUB_AUTH_TOKEN=<token>
 go run ./cmd/installer --owner <org> --repos <repo1>,<repo2>
