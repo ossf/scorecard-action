@@ -15,6 +15,7 @@
 package scorecard
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
 	"io"
@@ -22,6 +23,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/ossf/scorecard-action/internal/attestation"
 	"github.com/ossf/scorecard-action/options"
 	"github.com/ossf/scorecard/v5/docs/checks"
 	sclog "github.com/ossf/scorecard/v5/log"
@@ -38,9 +40,16 @@ var (
 	errUnknownFormat = errors.New("unknown result format")
 )
 
+// signFunc signs an in-toto statement and returns the signed artifact.
+type signFunc func(statement []byte) ([]byte, error)
+
 // Format provides a wrapper around the Scorecard library's various formatting functions,
 // converting our options into theirs.
 func Format(result *scorecard.Result, opts *options.Options) error {
+	return format(result, opts, attestation.Sign)
+}
+
+func format(result *scorecard.Result, opts *options.Options, sign signFunc) error {
 	if result == nil {
 		return errNoResult
 	}
@@ -82,7 +91,8 @@ func Format(result *scorecard.Result, opts *options.Options) error {
 			return fmt.Errorf("format as JSON: %w", err)
 		}
 	case "intoto":
-		err = result.AsInToto(writer, docs, &scorecard.AsInTotoResultOption{
+		var statement bytes.Buffer
+		err = result.AsInToto(&statement, docs, &scorecard.AsInTotoResultOption{
 			AsJSON2ResultOption: scorecard.AsJSON2ResultOption{
 				Details:     true,
 				Annotations: false, // TODO
@@ -91,6 +101,17 @@ func Format(result *scorecard.Result, opts *options.Options) error {
 		})
 		if err != nil {
 			return fmt.Errorf("format as in-toto statement: %w", err)
+		}
+		output := statement.Bytes()
+		if opts.SignAttestation {
+			// The results file holds the signed bundle; the statement is its payload.
+			output, err = sign(output)
+			if err != nil {
+				return fmt.Errorf("signing in-toto statement: %w", err)
+			}
+		}
+		if _, err := writer.Write(output); err != nil {
+			return fmt.Errorf("writing in-toto results: %w", err)
 		}
 	default:
 		return errUnknownFormat
