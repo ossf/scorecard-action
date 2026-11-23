@@ -42,6 +42,11 @@ inputs:
     required: false
     default: archive
 
+  sign_attestation:
+    description: "INPUT: Sign the in-toto attestation with the job's OIDC identity (Sigstore keyless). Only valid with results_format: intoto. Empty signs when the job has the id-token: write permission (true requires it, false never)."
+    required: false
+    default: ""
+
   fail_on_publish_error:
     description: "INPUT: Fail the step when the Scorecard API rejects published results. Network errors, 408, 429 and 5xx responses are retried and only produce a warning."
     required: false
