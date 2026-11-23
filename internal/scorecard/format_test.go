@@ -16,6 +16,7 @@ package scorecard
 
 import (
 	"bytes"
+	"errors"
 	"os"
 	"testing"
 
@@ -23,6 +24,75 @@ import (
 	scopts "github.com/ossf/scorecard/v5/options"
 	"github.com/ossf/scorecard/v5/pkg/scorecard"
 )
+
+const formatInToto = "intoto"
+
+var errNoIdentity = errors.New("no identity")
+
+func TestFormatSignsInToto(t *testing.T) {
+	t.Parallel()
+	result := scorecard.Result{
+		Repo: scorecard.RepoInfo{
+			Name:      "github.com/foo/bar",
+			CommitSHA: "0123456789abcdef0123456789abcdef01234567",
+		},
+	}
+	t.Run("signed statement is written", func(t *testing.T) {
+		t.Parallel()
+		opts := options.Options{
+			InputResultsFile:   t.TempDir() + "/results",
+			InputResultsFormat: formatInToto,
+			SignAttestation:    true,
+			ScorecardOpts:      &scopts.Options{},
+		}
+		var signed []byte
+		sign := func(statement []byte) ([]byte, error) {
+			if !bytes.Contains(statement, []byte(scorecard.InTotoPredicateType)) {
+				t.Errorf("signer did not receive the in-toto statement")
+			}
+			signed = append([]byte("signed:"), statement...)
+			return signed, nil
+		}
+		if err := format(&result, &opts, sign); err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+		contents, err := os.ReadFile(opts.InputResultsFile)
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+		if !bytes.Equal(contents, signed) {
+			t.Errorf("results file does not hold the signed output")
+		}
+	})
+	t.Run("signing error is returned", func(t *testing.T) {
+		t.Parallel()
+		opts := options.Options{
+			InputResultsFile:   t.TempDir() + "/results",
+			InputResultsFormat: formatInToto,
+			SignAttestation:    true,
+			ScorecardOpts:      &scopts.Options{},
+		}
+		sign := func([]byte) ([]byte, error) { return nil, errNoIdentity }
+		if err := format(&result, &opts, sign); !errors.Is(err, errNoIdentity) {
+			t.Fatalf("format() error = %v, want %v", err, errNoIdentity)
+		}
+	})
+	t.Run("unsigned when signing is off", func(t *testing.T) {
+		t.Parallel()
+		opts := options.Options{
+			InputResultsFile:   t.TempDir() + "/results",
+			InputResultsFormat: formatInToto,
+			ScorecardOpts:      &scopts.Options{},
+		}
+		sign := func([]byte) ([]byte, error) {
+			t.Errorf("signer must not be called")
+			return nil, nil
+		}
+		if err := format(&result, &opts, sign); err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+	})
+}
 
 func TestFormat(t *testing.T) {
 	t.Parallel()
