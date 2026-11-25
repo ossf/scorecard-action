@@ -29,14 +29,21 @@ const formatInToto = "intoto"
 
 var errNoIdentity = errors.New("no identity")
 
-func TestFormatSignsInToto(t *testing.T) {
-	t.Parallel()
-	result := scorecard.Result{
+// testResult returns a result the formatters accept.
+func testResult() scorecard.Result {
+	return scorecard.Result{
 		Repo: scorecard.RepoInfo{
-			Name:      "github.com/foo/bar",
+			Name: "github.com/foo/bar",
+			// The in-toto statement's subject digest is the scanned commit,
+			// which Scorecard validates as a SHA-1.
 			CommitSHA: "0123456789abcdef0123456789abcdef01234567",
 		},
 	}
+}
+
+func TestFormatSignsInToto(t *testing.T) {
+	t.Parallel()
+	result := testResult()
 	t.Run("signed statement is written", func(t *testing.T) {
 		t.Parallel()
 		opts := options.Options{
@@ -152,14 +159,7 @@ func TestFormat(t *testing.T) {
 			pattern: []byte("sarif-schema"),
 		},
 	}
-	result := scorecard.Result{
-		Repo: scorecard.RepoInfo{
-			Name: "github.com/foo/bar",
-			// The in-toto statement's subject digest is the scanned commit,
-			// which Scorecard validates as a SHA-1.
-			CommitSHA: "0123456789abcdef0123456789abcdef01234567",
-		},
-	}
+	result := testResult()
 	for _, tt := range tests {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
@@ -181,6 +181,62 @@ func TestFormat(t *testing.T) {
 			}
 			if !bytes.Contains(contents, tt.pattern) {
 				t.Errorf("Output didn't match expected pattern (%s)", tt.pattern)
+			}
+		})
+	}
+}
+
+// A run that fails to produce its output must not leave a results file
+// behind: an empty one would be uploaded by a later step.
+func TestFormatFailureLeavesNoResultsFile(t *testing.T) {
+	t.Parallel()
+	result := testResult()
+	tests := []struct {
+		wantErr error
+		name    string
+		opts    options.Options
+	}{
+		{
+			name: "signing fails",
+			opts: options.Options{
+				InputResultsFormat:      formatInToto,
+				SignAttestation:         true,
+				SignAttestationRequired: true,
+				ScorecardOpts:           &scopts.Options{},
+			},
+			wantErr: errNoIdentity,
+		},
+		{
+			name: "unknown format",
+			opts: options.Options{
+				InputResultsFormat: "nope",
+				ScorecardOpts:      &scopts.Options{},
+			},
+			wantErr: errUnknownFormat,
+		},
+		{
+			name: "sarif policy file is missing",
+			opts: options.Options{
+				InputResultsFormat: "sarif",
+				ScorecardOpts:      &scopts.Options{PolicyFile: "does-not-exist.yml"},
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			tt.opts.InputResultsFile = t.TempDir() + "/results"
+			sign := func([]byte) ([]byte, error) { return nil, errNoIdentity }
+
+			err := format(&result, &tt.opts, sign)
+			if err == nil {
+				t.Fatalf("format() succeeded, want an error")
+			}
+			if tt.wantErr != nil && !errors.Is(err, tt.wantErr) {
+				t.Fatalf("format() error = %v, want %v", err, tt.wantErr)
+			}
+			if _, err := os.Stat(tt.opts.InputResultsFile); !errors.Is(err, os.ErrNotExist) {
+				t.Errorf("results file exists after a failed run (stat error: %v)", err)
 			}
 		})
 	}

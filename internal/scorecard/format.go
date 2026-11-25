@@ -54,19 +54,36 @@ func format(result *scorecard.Result, opts *options.Options, sign signFunc) erro
 		return errNoResult
 	}
 
+	// Produce the whole output before touching the results file: a failure
+	// to format or to sign must not leave an empty file behind for a later
+	// step to upload.
+	output, err := render(result, opts, sign)
+	if err != nil {
+		return err
+	}
+
 	// write results to both stdout and result file
 	resultFile, err := os.Create(filepath.Join(opts.GithubWorkspace, opts.InputResultsFile))
 	if err != nil {
 		return fmt.Errorf("creating result file: %w", err)
 	}
 	defer resultFile.Close()
-	writer := io.MultiWriter(resultFile, os.Stdout)
 
+	if _, err := io.MultiWriter(resultFile, os.Stdout).Write(output); err != nil {
+		return fmt.Errorf("writing results: %w", err)
+	}
+	return nil
+}
+
+// render formats the result as the options ask and returns the bytes to
+// write. The in-toto statement is signed when the options say so.
+func render(result *scorecard.Result, opts *options.Options, sign signFunc) ([]byte, error) {
 	docs, err := checks.Read()
 	if err != nil {
-		return fmt.Errorf("read check docs: %w", err)
+		return nil, fmt.Errorf("read check docs: %w", err)
 	}
 
+	var output bytes.Buffer
 	switch strings.ToLower(opts.InputResultsFormat) {
 	// sarif is considered the default format when unset
 	case "", "sarif":
@@ -75,24 +92,23 @@ func format(result *scorecard.Result, opts *options.Options, sign signFunc) erro
 		}
 		pol, err := policy.ParseFromFile(opts.ScorecardOpts.PolicyFile)
 		if err != nil {
-			return fmt.Errorf("parse policy file: %w", err)
+			return nil, fmt.Errorf("parse policy file: %w", err)
 		}
-		err = result.AsSARIF(true, sclog.DefaultLevel, writer, docs, pol, opts.ScorecardOpts)
+		err = result.AsSARIF(true, sclog.DefaultLevel, &output, docs, pol, opts.ScorecardOpts)
 		if err != nil {
-			return fmt.Errorf("format as sarif: %w", err)
+			return nil, fmt.Errorf("format as sarif: %w", err)
 		}
 	case "json":
-		err = result.AsJSON2(writer, docs, &scorecard.AsJSON2ResultOption{
+		err = result.AsJSON2(&output, docs, &scorecard.AsJSON2ResultOption{
 			Details:     true,
 			Annotations: false, // TODO
 			LogLevel:    sclog.DefaultLevel,
 		})
 		if err != nil {
-			return fmt.Errorf("format as JSON: %w", err)
+			return nil, fmt.Errorf("format as JSON: %w", err)
 		}
 	case "intoto":
-		var statement bytes.Buffer
-		err = result.AsInToto(&statement, docs, &scorecard.AsInTotoResultOption{
+		err = result.AsInToto(&output, docs, &scorecard.AsInTotoResultOption{
 			AsJSON2ResultOption: scorecard.AsJSON2ResultOption{
 				Details:     true,
 				Annotations: false, // TODO
@@ -100,32 +116,29 @@ func format(result *scorecard.Result, opts *options.Options, sign signFunc) erro
 			},
 		})
 		if err != nil {
-			return fmt.Errorf("format as in-toto statement: %w", err)
+			return nil, fmt.Errorf("format as in-toto statement: %w", err)
 		}
-		output := statement.Bytes()
-		if opts.SignAttestation {
-			// The results file holds the signed bundle; the statement is its payload.
-			signed, err := sign(output)
-			switch {
-			case err == nil:
-				output = signed
-			case opts.SignAttestationRequired:
-				return fmt.Errorf("signing in-toto statement: %w", err)
-			default:
-				// Nobody asked for the signature: it was attempted because
-				// the job can request an OIDC token. Its failure must not
-				// fail a run that works without it.
-				fmt.Printf("::warning::Unable to sign the in-toto attestation: %v. "+
-					"The results are written unsigned. Set sign_attestation to true to "+
-					"fail the step when signing fails, or to false to skip signing.\n", err)
-			}
+		if !opts.SignAttestation {
+			break
 		}
-		if _, err := writer.Write(output); err != nil {
-			return fmt.Errorf("writing in-toto results: %w", err)
+		// The results file holds the signed bundle; the statement is its payload.
+		signed, err := sign(output.Bytes())
+		switch {
+		case err == nil:
+			return signed, nil
+		case opts.SignAttestationRequired:
+			return nil, fmt.Errorf("signing in-toto statement: %w", err)
+		default:
+			// Nobody asked for the signature: it was attempted because
+			// the job can request an OIDC token. Its failure must not
+			// fail a run that works without it.
+			fmt.Printf("::warning::Unable to sign the in-toto attestation: %v. "+
+				"The results are written unsigned. Set sign_attestation to true to "+
+				"fail the step when signing fails, or to false to skip signing.\n", err)
 		}
 	default:
-		return errUnknownFormat
+		return nil, errUnknownFormat
 	}
 
-	return nil
+	return output.Bytes(), nil
 }
