@@ -32,6 +32,7 @@ const (
 	defaultScorecardPolicyFile = "/policy.yml"
 	trueStr                    = "true"
 	formatSarif                = scopts.FormatSarif
+	formatInToto               = scopts.FormatInToto
 
 	pullRequestEvent      = "pull_request"
 	pushEvent             = "push"
@@ -44,6 +45,8 @@ var (
 	errResultsPathEmpty           = errors.New("results path is empty")
 	errGitHubRepoInfoUnavailable  = errors.New("GitHub repo info inaccessible")
 	errOnlyDefaultBranchSupported = errors.New("only default branch is supported")
+	errSignAttestationFormat      = errors.New("sign_attestation is only available when results_format is intoto")
+	errSignAttestationNoIDToken   = errors.New("sign_attestation is true but the job cannot request an OIDC token")
 )
 
 // Options are options for running scorecard via GitHub Actions.
@@ -78,8 +81,22 @@ type Options struct {
 	InputResultsFile   string `env:"INPUT_RESULTS_FILE"`
 	InputResultsFormat string `env:"INPUT_RESULTS_FORMAT"`
 	InputFileMode      string `env:"INPUT_FILE_MODE"`
+	// InputSignAttestation is the raw sign_attestation input: "true",
+	// "false" or empty for automatic. See setSignAttestation.
+	InputSignAttestation string `env:"INPUT_SIGN_ATTESTATION"`
 
 	PublishResults bool `env:"INPUT_PUBLISH_RESULTS"`
+
+	// SignAttestation is whether the in-toto statement is signed with the
+	// job's OIDC identity before it is written. Resolved from
+	// InputSignAttestation by setSignAttestation.
+	SignAttestation bool
+
+	// SignAttestationRequired is whether the signature was asked for with
+	// sign_attestation: true. A signature that was asked for and cannot be
+	// made fails the run. One made only because the job happens to have an
+	// OIDC token does not: the statement is then written unsigned.
+	SignAttestationRequired bool
 }
 
 // New creates a new options set for running scorecard via GitHub Actions.
@@ -100,6 +117,9 @@ func New() (*Options, error) {
 	}
 	opts.setScorecardOpts()
 	opts.setPublishResults()
+	if err := opts.setSignAttestation(); err != nil {
+		return opts, err
+	}
 	return opts, nil
 }
 
@@ -151,6 +171,8 @@ func (o *Options) Print() {
 	fmt.Printf("  Fork repository: %s\n", o.IsForkStr)
 	fmt.Printf("  Private repository: %s\n", o.PrivateRepoStr)
 	fmt.Printf("  Publication enabled: %+v\n", o.PublishResults)
+	fmt.Printf("  Sign attestation: %+v\n", o.SignAttestation)
+	fmt.Printf("  Sign attestation required: %+v\n", o.SignAttestationRequired)
 	fmt.Printf("  Default branch: %s\n", o.DefaultBranch)
 }
 
@@ -218,6 +240,57 @@ func (o *Options) setPublishResults() {
 	}
 
 	o.PublishResults = inputVal && !privateRepo
+}
+
+// setSignAttestation resolves the sign_attestation input. Signing needs the
+// job's OIDC token, which the runner only exposes with the id-token: write
+// permission, and applies to the in-toto format only.
+//
+//   - empty: sign when the format is intoto and the token is available. A
+//     signature that fails is not an error: the statement is written
+//     unsigned.
+//   - "true": sign. It is an error when the format is not intoto, when the
+//     token is not available or when the signature fails.
+//   - "false": never sign, whatever the format.
+func (o *Options) setSignAttestation() error {
+	o.SignAttestation = false
+	o.SignAttestationRequired = false
+	isInToto := strings.EqualFold(o.InputResultsFormat, formatInToto)
+	if o.InputSignAttestation == "" {
+		o.SignAttestation = isInToto && idTokenAvailable()
+		return nil
+	}
+
+	sign, err := strconv.ParseBool(o.InputSignAttestation)
+	if err != nil {
+		return fmt.Errorf("parsing %s: %w", EnvInputSignAttestation, err)
+	}
+	if !sign {
+		// Turning signing off asks for nothing: it is fine with any format.
+		return nil
+	}
+	if !isInToto {
+		fmt.Printf("::error::sign_attestation is true but results_format is %q. "+
+			"Signing is only available when results_format is intoto.\n",
+			o.InputResultsFormat)
+		return errSignAttestationFormat
+	}
+	if !idTokenAvailable() {
+		fmt.Printf("::error::sign_attestation is true but the job cannot request an OIDC token. " +
+			"Grant the job the `id-token: write` permission, or leave sign_attestation " +
+			"empty to sign only when the token is available.\n")
+		return errSignAttestationNoIDToken
+	}
+	o.SignAttestation = true
+	o.SignAttestationRequired = true
+	return nil
+}
+
+// idTokenAvailable reports whether the runner lets this job request an OIDC
+// token, which it does only with the id-token: write permission.
+func idTokenAvailable() bool {
+	return os.Getenv(EnvActionsIDTokenRequestURL) != "" &&
+		os.Getenv(EnvActionsIDTokenRequestToken) != ""
 }
 
 // setRepoInfo gets the path to the GitHub event and sets the

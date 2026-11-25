@@ -37,6 +37,9 @@ const (
 	EnvGithubStepSummary       = "GITHUB_STEP_SUMMARY"
 	EnvScorecardFork           = "SCORECARD_IS_FORK"
 	EnvScorecardPrivateRepo    = "SCORECARD_PRIVATE_REPOSITORY"
+	// Set by the runner when the job has the id-token: write permission.
+	EnvActionsIDTokenRequestURL   = "ACTIONS_ID_TOKEN_REQUEST_URL"
+	EnvActionsIDTokenRequestToken = "ACTIONS_ID_TOKEN_REQUEST_TOKEN" //nolint:gosec
 
 	// TODO(input): INPUT_ constants should be removed in a future release once
 	//              they have replacements in upstream scorecard.
@@ -47,6 +50,7 @@ const (
 	EnvInputPublishResults         = "INPUT_PUBLISH_RESULTS"
 	EnvInputFailOnPublishError     = "INPUT_FAIL_ON_PUBLISH_ERROR"
 	EnvInputFileMode               = "INPUT_FILE_MODE"
+	EnvInputSignAttestation        = "INPUT_SIGN_ATTESTATION"
 	EnvInputInternalPublishBaseURL = "INPUT_INTERNAL_PUBLISH_BASE_URL"
 )
 

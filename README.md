@@ -176,6 +176,7 @@ First, [create a new file](https://docs.github.com/en/repositories/working-with-
 | `publish_results` | recommended | This will allow you to display a badge on your repository to show off your hard work. See details [here](#publishing-results). |
 | `file_mode` | no | The method to fetch files from the repository: `archive` or `git` (default `archive`). |
 | `fail_on_publish_error` | no | Fail the step when the Scorecard API rejects published results (default `false`). See [Publishing Results](#publishing-results). |
+| `sign_attestation` | no | Sign the in-toto attestation with the job's OIDC identity. Leave empty to sign whenever the job has `id-token: write`, set `true` to require signing (only valid with `results_format: intoto`), or `false` to never sign. See [Signing the attestation](#signing-the-attestation). |
 
 ### Outputs
 
@@ -183,6 +184,25 @@ First, [create a new file](https://docs.github.com/en/repositories/working-with-
 | ---- | ----------- |
 | `results_published` | `true` if the results were published to the Scorecard API, otherwise `false`. |
 | `publication_status` | The HTTP status code of the final publish attempt, `error` if no response was received, or `skipped` if publishing was not attempted. |
+
+### Signing the attestation
+
+With `results_format: intoto`, the action can sign the attestation keylessly with
+[Sigstore](https://www.sigstore.dev/), using the workflow's OIDC identity as the
+signer. The results file then contains a
+[Sigstore bundle](https://github.com/sigstore/protobuf-specs/blob/main/protos/sigstore_bundle.proto)
+with the in-toto statement as its payload, instead of the bare statement.
+Signing needs the `id-token: write` permission on the job.
+
+`sign_attestation` controls this:
+
+* empty (default): sign when the job has `id-token: write`, otherwise write the unsigned statement.
+  If signing fails, the step logs a warning and writes the unsigned statement.
+* `true`: sign, and fail the step if the job cannot request an OIDC token or signing fails.
+* `false`: never sign.
+
+`sign_attestation: true` with any other `results_format` fails the step. `false` is
+accepted with every format, so a workflow can set it once for a matrix of formats.
 
 ### Publishing Results
 

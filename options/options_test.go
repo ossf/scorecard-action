@@ -16,7 +16,9 @@
 package options
 
 import (
+	"errors"
 	"os"
+	"strconv"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
@@ -539,6 +541,62 @@ func TestNewPublishResults(t *testing.T) {
 			}
 			if opts.PublishResults != tt.want {
 				t.Errorf("PublishResults: got %t, wanted %t", opts.PublishResults, tt.want)
+			}
+		})
+	}
+}
+
+//nolint:paralleltest // we are using t.Setenv
+func TestSetSignAttestation(t *testing.T) {
+	tests := []struct {
+		name    string
+		input   string
+		format  string
+		idToken bool
+		want    bool
+		// wantRequired is whether a failed signature fails the run.
+		wantRequired bool
+		wantErr      error
+	}{
+		{name: "empty signs intoto when token available", input: "", format: "intoto", idToken: true, want: true},
+		{name: "empty is case insensitive on format", input: "", format: "InToto", idToken: true, want: true},
+		{name: "empty does not sign without token", input: "", format: "intoto", idToken: false, want: false},
+		{name: "empty ignores other formats", input: "", format: "sarif", idToken: true, want: false},
+		{name: "true signs and requires it", input: "true", format: "intoto", idToken: true, want: true, wantRequired: true},
+		{name: "true is case insensitive on format", input: "true", format: "InToto", idToken: true, want: true, wantRequired: true},
+		{name: "true without token is an error", input: "true", format: "intoto", idToken: false, wantErr: errSignAttestationNoIDToken},
+		{name: "false never signs", input: "false", format: "intoto", idToken: true, want: false},
+		{name: "true with sarif is an error", input: "true", format: "sarif", idToken: true, wantErr: errSignAttestationFormat},
+		{name: "true with the default format is an error", input: "true", format: "", idToken: true, wantErr: errSignAttestationFormat},
+		{name: "false with json is fine", input: "false", format: "json", idToken: true, want: false},
+		{name: "false with sarif is fine", input: "false", format: "sarif", idToken: false, want: false},
+		{name: "false with the default format is fine", input: "false", format: "", idToken: true, want: false},
+		{name: "false without token is fine", input: "false", format: "intoto", idToken: false, want: false},
+		{name: "invalid value with sarif is an error", input: "yes please", format: "sarif", idToken: true, wantErr: strconv.ErrSyntax},
+		{name: "invalid value is an error", input: "yes please", format: "intoto", idToken: true, wantErr: strconv.ErrSyntax},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.idToken {
+				t.Setenv(EnvActionsIDTokenRequestURL, "https://pipelines.actions.githubusercontent.com/token")
+				t.Setenv(EnvActionsIDTokenRequestToken, "runner-token")
+			} else {
+				t.Setenv(EnvActionsIDTokenRequestURL, "")
+				t.Setenv(EnvActionsIDTokenRequestToken, "")
+			}
+			o := &Options{
+				InputResultsFormat:   tt.format,
+				InputSignAttestation: tt.input,
+			}
+			err := o.setSignAttestation()
+			if !errors.Is(err, tt.wantErr) {
+				t.Fatalf("setSignAttestation() error = %v, want %v", err, tt.wantErr)
+			}
+			if o.SignAttestation != tt.want {
+				t.Errorf("SignAttestation = %v, want %v", o.SignAttestation, tt.want)
+			}
+			if o.SignAttestationRequired != tt.wantRequired {
+				t.Errorf("SignAttestationRequired = %v, want %v", o.SignAttestationRequired, tt.wantRequired)
 			}
 		})
 	}

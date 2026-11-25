@@ -15,6 +15,7 @@
 package scorecard
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
 	"io"
@@ -22,9 +23,11 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/ossf/scorecard-action/internal/attestation"
 	"github.com/ossf/scorecard-action/options"
 	"github.com/ossf/scorecard/v5/docs/checks"
 	sclog "github.com/ossf/scorecard/v5/log"
+	scopts "github.com/ossf/scorecard/v5/options"
 	"github.com/ossf/scorecard/v5/pkg/scorecard"
 	"github.com/ossf/scorecard/v5/policy"
 )
@@ -38,11 +41,26 @@ var (
 	errUnknownFormat = errors.New("unknown result format")
 )
 
+// signFunc signs an in-toto statement and returns the signed artifact.
+type signFunc func(statement []byte) ([]byte, error)
+
 // Format provides a wrapper around the Scorecard library's various formatting functions,
 // converting our options into theirs.
 func Format(result *scorecard.Result, opts *options.Options) error {
+	return format(result, opts, attestation.Sign)
+}
+
+func format(result *scorecard.Result, opts *options.Options, sign signFunc) error {
 	if result == nil {
 		return errNoResult
+	}
+
+	// Produce the whole output before touching the results file: a failure
+	// to format or to sign must not leave an empty file behind for a later
+	// step to upload.
+	output, err := render(result, opts, sign)
+	if err != nil {
+		return err
 	}
 
 	// write results to both stdout and result file
@@ -51,38 +69,47 @@ func Format(result *scorecard.Result, opts *options.Options) error {
 		return fmt.Errorf("creating result file: %w", err)
 	}
 	defer resultFile.Close()
-	writer := io.MultiWriter(resultFile, os.Stdout)
 
+	if _, err := io.MultiWriter(resultFile, os.Stdout).Write(output); err != nil {
+		return fmt.Errorf("writing results: %w", err)
+	}
+	return nil
+}
+
+// render formats the result as the options ask and returns the bytes to
+// write. The in-toto statement is signed when the options say so.
+func render(result *scorecard.Result, opts *options.Options, sign signFunc) ([]byte, error) {
 	docs, err := checks.Read()
 	if err != nil {
-		return fmt.Errorf("read check docs: %w", err)
+		return nil, fmt.Errorf("read check docs: %w", err)
 	}
 
+	var output bytes.Buffer
 	switch strings.ToLower(opts.InputResultsFormat) {
 	// sarif is considered the default format when unset
-	case "", "sarif":
+	case "", scopts.FormatSarif:
 		if opts.ScorecardOpts.PolicyFile == "" {
 			opts.ScorecardOpts.PolicyFile = defaultScorecardPolicyFile
 		}
 		pol, err := policy.ParseFromFile(opts.ScorecardOpts.PolicyFile)
 		if err != nil {
-			return fmt.Errorf("parse policy file: %w", err)
+			return nil, fmt.Errorf("parse policy file: %w", err)
 		}
-		err = result.AsSARIF(true, sclog.DefaultLevel, writer, docs, pol, opts.ScorecardOpts)
+		err = result.AsSARIF(true, sclog.DefaultLevel, &output, docs, pol, opts.ScorecardOpts)
 		if err != nil {
-			return fmt.Errorf("format as sarif: %w", err)
+			return nil, fmt.Errorf("format as sarif: %w", err)
 		}
-	case "json":
-		err = result.AsJSON2(writer, docs, &scorecard.AsJSON2ResultOption{
+	case scopts.FormatJSON:
+		err = result.AsJSON2(&output, docs, &scorecard.AsJSON2ResultOption{
 			Details:     true,
 			Annotations: false, // TODO
 			LogLevel:    sclog.DefaultLevel,
 		})
 		if err != nil {
-			return fmt.Errorf("format as JSON: %w", err)
+			return nil, fmt.Errorf("format as JSON: %w", err)
 		}
-	case "intoto":
-		err = result.AsInToto(writer, docs, &scorecard.AsInTotoResultOption{
+	case scopts.FormatInToto:
+		err = result.AsInToto(&output, docs, &scorecard.AsInTotoResultOption{
 			AsJSON2ResultOption: scorecard.AsJSON2ResultOption{
 				Details:     true,
 				Annotations: false, // TODO
@@ -90,11 +117,29 @@ func Format(result *scorecard.Result, opts *options.Options) error {
 			},
 		})
 		if err != nil {
-			return fmt.Errorf("format as in-toto statement: %w", err)
+			return nil, fmt.Errorf("format as in-toto statement: %w", err)
+		}
+		if !opts.SignAttestation {
+			break
+		}
+		// The results file holds the signed bundle; the statement is its payload.
+		signed, err := sign(output.Bytes())
+		switch {
+		case err == nil:
+			return signed, nil
+		case opts.SignAttestationRequired:
+			return nil, fmt.Errorf("signing in-toto statement: %w", err)
+		default:
+			// Nobody asked for the signature: it was attempted because
+			// the job can request an OIDC token. Its failure must not
+			// fail a run that works without it.
+			fmt.Printf("::warning::Unable to sign the in-toto attestation: %v. "+
+				"The results are written unsigned. Set sign_attestation to true to "+
+				"fail the step when signing fails, or to false to skip signing.\n", err)
 		}
 	default:
-		return errUnknownFormat
+		return nil, errUnknownFormat
 	}
 
-	return nil
+	return output.Bytes(), nil
 }
