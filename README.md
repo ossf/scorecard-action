@@ -176,7 +176,7 @@ First, [create a new file](https://docs.github.com/en/repositories/working-with-
 | `publish_results` | recommended | This will allow you to display a badge on your repository to show off your hard work. See details [here](#publishing-results). |
 | `file_mode` | no | The method to fetch files from the repository: `archive` or `git` (default `archive`). |
 | `fail_on_publish_error` | no | Fail the step when the Scorecard API rejects published results (default `false`). See [Publishing Results](#publishing-results). |
-| `sign_attestation` | no | Sign the in-toto attestation with the job's OIDC identity. Only valid with `results_format: intoto`. Leave empty to sign whenever the job has `id-token: write`, set `true` to require signing, or `false` to never sign. See [Signing the attestation](#signing-the-attestation). |
+| `sign_attestation` | no | Sign the in-toto attestation with the job's OIDC identity. Leave empty to sign whenever the job has `id-token: write`, set `true` to require signing (only valid with `results_format: intoto`), or `false` to never sign. See [Signing the attestation](#signing-the-attestation). |
 
 ### Outputs
 
@@ -197,10 +197,12 @@ Signing needs the `id-token: write` permission on the job.
 `sign_attestation` controls this:
 
 * empty (default): sign when the job has `id-token: write`, otherwise write the unsigned statement.
-* `true`: sign, and fail the step if the job cannot request an OIDC token.
+  If signing fails, the step logs a warning and writes the unsigned statement.
+* `true`: sign, and fail the step if the job cannot request an OIDC token or signing fails.
 * `false`: never sign.
 
-Setting `sign_attestation` with any other `results_format` fails the step.
+`sign_attestation: true` with any other `results_format` fails the step. `false` is
+accepted with every format, so a workflow can set it once for a matrix of formats.
 
 ### Publishing Results
 

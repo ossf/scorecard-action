@@ -105,9 +105,19 @@ func format(result *scorecard.Result, opts *options.Options, sign signFunc) erro
 		output := statement.Bytes()
 		if opts.SignAttestation {
 			// The results file holds the signed bundle; the statement is its payload.
-			output, err = sign(output)
-			if err != nil {
+			signed, err := sign(output)
+			switch {
+			case err == nil:
+				output = signed
+			case opts.SignAttestationRequired:
 				return fmt.Errorf("signing in-toto statement: %w", err)
+			default:
+				// Nobody asked for the signature: it was attempted because
+				// the job can request an OIDC token. Its failure must not
+				// fail a run that works without it.
+				fmt.Printf("::warning::Unable to sign the in-toto attestation: %v. "+
+					"The results are written unsigned. Set sign_attestation to true to "+
+					"fail the step when signing fails, or to false to skip signing.\n", err)
 			}
 		}
 		if _, err := writer.Write(output); err != nil {

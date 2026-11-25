@@ -64,7 +64,21 @@ func TestFormatSignsInToto(t *testing.T) {
 			t.Errorf("results file does not hold the signed output")
 		}
 	})
-	t.Run("signing error is returned", func(t *testing.T) {
+	t.Run("signing error is returned when signing was asked for", func(t *testing.T) {
+		t.Parallel()
+		opts := options.Options{
+			InputResultsFile:        t.TempDir() + "/results",
+			InputResultsFormat:      formatInToto,
+			SignAttestation:         true,
+			SignAttestationRequired: true,
+			ScorecardOpts:           &scopts.Options{},
+		}
+		sign := func([]byte) ([]byte, error) { return nil, errNoIdentity }
+		if err := format(&result, &opts, sign); !errors.Is(err, errNoIdentity) {
+			t.Fatalf("format() error = %v, want %v", err, errNoIdentity)
+		}
+	})
+	t.Run("signing error leaves the statement unsigned when signing is automatic", func(t *testing.T) {
 		t.Parallel()
 		opts := options.Options{
 			InputResultsFile:   t.TempDir() + "/results",
@@ -72,9 +86,20 @@ func TestFormatSignsInToto(t *testing.T) {
 			SignAttestation:    true,
 			ScorecardOpts:      &scopts.Options{},
 		}
-		sign := func([]byte) ([]byte, error) { return nil, errNoIdentity }
-		if err := format(&result, &opts, sign); !errors.Is(err, errNoIdentity) {
-			t.Fatalf("format() error = %v, want %v", err, errNoIdentity)
+		var statement []byte
+		sign := func(s []byte) ([]byte, error) {
+			statement = bytes.Clone(s)
+			return []byte("half a bundle"), errNoIdentity
+		}
+		if err := format(&result, &opts, sign); err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+		contents, err := os.ReadFile(opts.InputResultsFile)
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+		if len(statement) == 0 || !bytes.Equal(contents, statement) {
+			t.Errorf("results file does not hold the unsigned statement")
 		}
 	})
 	t.Run("unsigned when signing is off", func(t *testing.T) {

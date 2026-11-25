@@ -91,6 +91,12 @@ type Options struct {
 	// job's OIDC identity before it is written. Resolved from
 	// InputSignAttestation by setSignAttestation.
 	SignAttestation bool
+
+	// SignAttestationRequired is whether the signature was asked for with
+	// sign_attestation: true. A signature that was asked for and cannot be
+	// made fails the run. One made only because the job happens to have an
+	// OIDC token does not: the statement is then written unsigned.
+	SignAttestationRequired bool
 }
 
 // New creates a new options set for running scorecard via GitHub Actions.
@@ -166,6 +172,7 @@ func (o *Options) Print() {
 	fmt.Printf("  Private repository: %s\n", o.PrivateRepoStr)
 	fmt.Printf("  Publication enabled: %+v\n", o.PublishResults)
 	fmt.Printf("  Sign attestation: %+v\n", o.SignAttestation)
+	fmt.Printf("  Sign attestation required: %+v\n", o.SignAttestationRequired)
 	fmt.Printf("  Default branch: %s\n", o.DefaultBranch)
 }
 
@@ -239,13 +246,15 @@ func (o *Options) setPublishResults() {
 // job's OIDC token, which the runner only exposes with the id-token: write
 // permission, and applies to the in-toto format only.
 //
-//   - empty: sign when the format is intoto and the token is available.
-//   - "true": sign; it is an error when the token is not available.
-//   - "false": never sign.
-//
-// Setting the input to anything but empty with another format is an error.
+//   - empty: sign when the format is intoto and the token is available. A
+//     signature that fails is not an error: the statement is written
+//     unsigned.
+//   - "true": sign. It is an error when the format is not intoto, when the
+//     token is not available or when the signature fails.
+//   - "false": never sign, whatever the format.
 func (o *Options) setSignAttestation() error {
 	o.SignAttestation = false
+	o.SignAttestationRequired = false
 	isInToto := strings.EqualFold(o.InputResultsFormat, formatInToto)
 	if o.InputSignAttestation == "" {
 		o.SignAttestation = isInToto && idTokenAvailable()
@@ -256,19 +265,24 @@ func (o *Options) setSignAttestation() error {
 	if err != nil {
 		return fmt.Errorf("parsing %s: %w", EnvInputSignAttestation, err)
 	}
+	if !sign {
+		// Turning signing off asks for nothing: it is fine with any format.
+		return nil
+	}
 	if !isInToto {
-		fmt.Printf("::error::sign_attestation is set to %q but results_format is %q. "+
+		fmt.Printf("::error::sign_attestation is true but results_format is %q. "+
 			"Signing is only available when results_format is intoto.\n",
-			o.InputSignAttestation, o.InputResultsFormat)
+			o.InputResultsFormat)
 		return errSignAttestationFormat
 	}
-	if sign && !idTokenAvailable() {
+	if !idTokenAvailable() {
 		fmt.Printf("::error::sign_attestation is true but the job cannot request an OIDC token. " +
 			"Grant the job the `id-token: write` permission, or leave sign_attestation " +
 			"empty to sign only when the token is available.\n")
 		return errSignAttestationNoIDToken
 	}
-	o.SignAttestation = sign
+	o.SignAttestation = true
+	o.SignAttestationRequired = true
 	return nil
 }
 

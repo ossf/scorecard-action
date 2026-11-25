@@ -43,7 +43,7 @@ inputs:
     default: archive
 
   sign_attestation:
-    description: "INPUT: Sign the in-toto attestation with the job's OIDC identity (Sigstore keyless). Only valid with results_format: intoto. Empty signs when the job has the id-token: write permission (true requires it, false never)."
+    description: "INPUT: Sign the in-toto attestation with the job's OIDC identity (Sigstore keyless). Empty signs when the job has the id-token: write permission and writes the unsigned statement if signing fails. true requires the signature and is only valid with results_format: intoto. false never signs."
     required: false
     default: ""
 
