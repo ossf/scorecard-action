@@ -32,7 +32,7 @@ const (
 	defaultScorecardPolicyFile = "/policy.yml"
 	trueStr                    = "true"
 	formatSarif                = scopts.FormatSarif
-	formatInToto               = "intoto"
+	formatInToto               = scopts.FormatInToto
 
 	pullRequestEvent      = "pull_request"
 	pushEvent             = "push"

@@ -25,8 +25,6 @@ import (
 	"github.com/ossf/scorecard/v5/pkg/scorecard"
 )
 
-const formatInToto = "intoto"
-
 var errNoIdentity = errors.New("no identity")
 
 // testResult returns a result the formatters accept.
@@ -48,7 +46,7 @@ func TestFormatSignsInToto(t *testing.T) {
 		t.Parallel()
 		opts := options.Options{
 			InputResultsFile:   t.TempDir() + "/results",
-			InputResultsFormat: formatInToto,
+			InputResultsFormat: scopts.FormatInToto,
 			SignAttestation:    true,
 			ScorecardOpts:      &scopts.Options{},
 		}
@@ -75,7 +73,7 @@ func TestFormatSignsInToto(t *testing.T) {
 		t.Parallel()
 		opts := options.Options{
 			InputResultsFile:        t.TempDir() + "/results",
-			InputResultsFormat:      formatInToto,
+			InputResultsFormat:      scopts.FormatInToto,
 			SignAttestation:         true,
 			SignAttestationRequired: true,
 			ScorecardOpts:           &scopts.Options{},
@@ -89,7 +87,7 @@ func TestFormatSignsInToto(t *testing.T) {
 		t.Parallel()
 		opts := options.Options{
 			InputResultsFile:   t.TempDir() + "/results",
-			InputResultsFormat: formatInToto,
+			InputResultsFormat: scopts.FormatInToto,
 			SignAttestation:    true,
 			ScorecardOpts:      &scopts.Options{},
 		}
@@ -113,7 +111,7 @@ func TestFormatSignsInToto(t *testing.T) {
 		t.Parallel()
 		opts := options.Options{
 			InputResultsFile:   t.TempDir() + "/results",
-			InputResultsFormat: formatInToto,
+			InputResultsFormat: scopts.FormatInToto,
 			ScorecardOpts:      &scopts.Options{},
 		}
 		sign := func([]byte) ([]byte, error) {
@@ -199,7 +197,7 @@ func TestFormatFailureLeavesNoResultsFile(t *testing.T) {
 		{
 			name: "signing fails",
 			opts: options.Options{
-				InputResultsFormat:      formatInToto,
+				InputResultsFormat:      scopts.FormatInToto,
 				SignAttestation:         true,
 				SignAttestationRequired: true,
 				ScorecardOpts:           &scopts.Options{},
@@ -217,7 +215,7 @@ func TestFormatFailureLeavesNoResultsFile(t *testing.T) {
 		{
 			name: "sarif policy file is missing",
 			opts: options.Options{
-				InputResultsFormat: "sarif",
+				InputResultsFormat: scopts.FormatSarif,
 				ScorecardOpts:      &scopts.Options{PolicyFile: "does-not-exist.yml"},
 			},
 		},

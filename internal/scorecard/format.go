@@ -27,6 +27,7 @@ import (
 	"github.com/ossf/scorecard-action/options"
 	"github.com/ossf/scorecard/v5/docs/checks"
 	sclog "github.com/ossf/scorecard/v5/log"
+	scopts "github.com/ossf/scorecard/v5/options"
 	"github.com/ossf/scorecard/v5/pkg/scorecard"
 	"github.com/ossf/scorecard/v5/policy"
 )
@@ -86,7 +87,7 @@ func render(result *scorecard.Result, opts *options.Options, sign signFunc) ([]b
 	var output bytes.Buffer
 	switch strings.ToLower(opts.InputResultsFormat) {
 	// sarif is considered the default format when unset
-	case "", "sarif":
+	case "", scopts.FormatSarif:
 		if opts.ScorecardOpts.PolicyFile == "" {
 			opts.ScorecardOpts.PolicyFile = defaultScorecardPolicyFile
 		}
@@ -98,7 +99,7 @@ func render(result *scorecard.Result, opts *options.Options, sign signFunc) ([]b
 		if err != nil {
 			return nil, fmt.Errorf("format as sarif: %w", err)
 		}
-	case "json":
+	case scopts.FormatJSON:
 		err = result.AsJSON2(&output, docs, &scorecard.AsJSON2ResultOption{
 			Details:     true,
 			Annotations: false, // TODO
@@ -107,7 +108,7 @@ func render(result *scorecard.Result, opts *options.Options, sign signFunc) ([]b
 		if err != nil {
 			return nil, fmt.Errorf("format as JSON: %w", err)
 		}
-	case "intoto":
+	case scopts.FormatInToto:
 		err = result.AsInToto(&output, docs, &scorecard.AsInTotoResultOption{
 			AsJSON2ResultOption: scorecard.AsJSON2ResultOption{
 				Details:     true,
