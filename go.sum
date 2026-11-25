@@ -824,8 +824,8 @@ github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 h1:Jamvg5psRI
 github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
 github.com/policylabs/attestation v0.3.0 h1:tutwsvbq/T5F0Hwt8+M4u42Egk1qP8YbNx4GQ1hnTTA=
 github.com/policylabs/attestation v0.3.0/go.mod h1:z5gJ2M2aAkByYxMLqoOIY31KvAOIX+Ys4ZW2HavM3/o=
-github.com/policylabs/signer v0.6.8 h1:uWQiH/TY1raqu5MNyZUuQsv9fyuSJVhU9qdSGdJcd4k=
-github.com/policylabs/signer v0.6.8/go.mod h1:zf87ypv6NUy+kB4xNDy39wMQ+leo/4t/bRTZT929mo4=
+github.com/policylabs/signer v0.7.0 h1:rTC0QKmsPWzxLk22bI1NSj5iQkbRmkPKNyyL5MH5hNQ=
+github.com/policylabs/signer v0.7.0/go.mod h1:DNZywc5CMxCBjUzN6lg5o2GCcYZx70QtglhC+VcNW4w=
 github.com/prometheus/client_model v0.0.0-20190812154241-14fe0d1b01d4/go.mod h1:xMI15A0UPsDsEKsMN9yxemIoYk6Tm2C1GtYGdfGttqA=
 github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec h1:W09IVJc94icq4NjY3clb7Lk8O1qJ8BdBEF8z0ibU0rE=
 github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec/go.mod h1:qqbHyh8v60DhA7CoWK5oRCqLrMHRGoxYCSS9EjAz6Eo=

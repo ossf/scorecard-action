@@ -25,15 +25,31 @@ import (
 
 var errEmptyStatement = errors.New("cannot sign an empty statement")
 
+// stsProviderActions is the name of the signer's credential provider that
+// reads the OIDC token of a GitHub Actions job.
+const stsProviderActions = "actions"
+
+// newSigner returns a signer that only signs with the identity of the
+// workflow.
+//
+// The signer can find credentials in more places than the workflow: on a
+// self-hosted runner in Google Cloud, for example, it could sign as the
+// service account of the machine. Only the workflow's token is used.
+func newSigner() *signer.Signer {
+	s := signer.NewSigner()
+	s.Options.STSProviders = []string{stsProviderActions}
+	return s
+}
+
 // Sign signs an in-toto statement keylessly with Sigstore, using the job's
 // OIDC identity, and returns the resulting Sigstore bundle as JSON. The
-// signer obtains the identity token from the runner's ambient credentials,
-// so the job needs the id-token: write permission.
+// signer obtains the identity token from GitHub Actions, so the job needs
+// the id-token: write permission.
 func Sign(statement []byte) ([]byte, error) {
 	if len(statement) == 0 {
 		return nil, errEmptyStatement
 	}
-	s := signer.NewSigner()
+	s := newSigner()
 	defer s.Close()
 
 	bndl, err := s.SignStatementBundle(statement)
